@@ -9,6 +9,44 @@
 
 define('FPDF_VERSION','1.81');
 
+// PHP 8.2 deprecated / PHP 8.4 removed utf8_encode() and utf8_decode()
+function fpdf_utf8_encode($string)
+{
+	$string = (string)$string;
+	if (function_exists('mb_convert_encoding')) {
+		return mb_convert_encoding($string, 'UTF-8', 'ISO-8859-1');
+	}
+	if (function_exists('iconv')) {
+		$converted = @iconv('ISO-8859-1', 'UTF-8//IGNORE', $string);
+		return $converted === false ? $string : $converted;
+	}
+	return $string;
+}
+function fpdf_utf8_decode($string)
+{
+	$string = (string)$string;
+	if (function_exists('mb_convert_encoding')) {
+		return mb_convert_encoding($string, 'ISO-8859-1', 'UTF-8');
+	}
+	if (function_exists('iconv')) {
+		$converted = @iconv('UTF-8', 'ISO-8859-1//IGNORE', $string);
+		return $converted === false ? $string : $converted;
+	}
+	return $string;
+}
+if (!function_exists('utf8_encode')) {
+	function utf8_encode($string)
+	{
+		return fpdf_utf8_encode($string);
+	}
+}
+if (!function_exists('utf8_decode')) {
+	function utf8_decode($string)
+	{
+		return fpdf_utf8_decode($string);
+	}
+}
+
 class FPDF
 {
 protected $page;               // current page number
@@ -232,31 +270,31 @@ function SetCompression($compress)
 function SetTitle($title, $isUTF8=false)
 {
 	// Title of document
-	$this->metadata['Title'] = $isUTF8 ? $title : utf8_encode($title);
+	$this->metadata['Title'] = $isUTF8 ? $title : fpdf_utf8_encode($title);
 }
 
 function SetAuthor($author, $isUTF8=false)
 {
 	// Author of document
-	$this->metadata['Author'] = $isUTF8 ? $author : utf8_encode($author);
+	$this->metadata['Author'] = $isUTF8 ? $author : fpdf_utf8_encode($author);
 }
 
 function SetSubject($subject, $isUTF8=false)
 {
 	// Subject of document
-	$this->metadata['Subject'] = $isUTF8 ? $subject : utf8_encode($subject);
+	$this->metadata['Subject'] = $isUTF8 ? $subject : fpdf_utf8_encode($subject);
 }
 
 function SetKeywords($keywords, $isUTF8=false)
 {
 	// Keywords of document
-	$this->metadata['Keywords'] = $isUTF8 ? $keywords : utf8_encode($keywords);
+	$this->metadata['Keywords'] = $isUTF8 ? $keywords : fpdf_utf8_encode($keywords);
 }
 
 function SetCreator($creator, $isUTF8=false)
 {
 	// Creator of document
-	$this->metadata['Creator'] = $isUTF8 ? $creator : utf8_encode($creator);
+	$this->metadata['Creator'] = $isUTF8 ? $creator : fpdf_utf8_encode($creator);
 }
 
 function AliasNbPages($alias='{nb}')
@@ -409,12 +447,12 @@ function SetTextColor($r, $g=null, $b=null)
 function GetStringWidth($s)
 {
 	// Get width of a string in the current font
-	$s = (string)$s;
+	$s = (string)($s ?? '');
 	$cw = &$this->CurrentFont['cw'];
 	$w = 0;
 	$l = strlen($s);
 	for($i=0;$i<$l;$i++)
-		$w += $cw[$s[$i]];
+		$w += $cw[$s[$i]] ?? 0;
 	return $w*$this->FontSize/1000;
 }
 
@@ -556,6 +594,7 @@ function Link($x, $y, $w, $h, $link)
 
 function Text($x, $y, $txt)
 {
+	$txt = (string)($txt ?? '');
 	// Output a string
 	if(!isset($this->CurrentFont))
 		$this->Error('No font has been set');
@@ -576,6 +615,7 @@ function AcceptPageBreak()
 function Cell($w, $h=0, $txt='', $border=0, $ln=0, $align='', $fill=false, $link='')
 {
 	// Output a cell
+	$txt = (string)($txt ?? '');
 	$k = $this->k;
 	if($this->y+$h>$this->PageBreakTrigger && !$this->InHeader && !$this->InFooter && $this->AcceptPageBreak())
 	{
@@ -655,6 +695,7 @@ function Cell($w, $h=0, $txt='', $border=0, $ln=0, $align='', $fill=false, $link
 function NbLines($w, $txt)
 {
     // NbLines calculates the number of lines a MultiCell of width $w will take
+    $txt = (string)($txt ?? '');
     $cw = &$this->CurrentFont['cw'];
     if ($w == 0) {
         $w = $this->w - $this->rMargin - $this->x;
@@ -706,6 +747,7 @@ function NbLines($w, $txt)
 function MultiCell($w, $h, $txt, $border=0, $align='J', $fill=false)
 {
 	// Output text with automatic or explicit line breaks
+	$txt = (string)($txt ?? '');
 	if(!isset($this->CurrentFont))
 		$this->Error('No font has been set');
 	$cw = &$this->CurrentFont['cw'];
@@ -821,6 +863,7 @@ function MultiCell($w, $h, $txt, $border=0, $align='J', $fill=false)
 function Write($h, $txt, $link='')
 {
 	// Output text in flowing mode
+	$txt = (string)($txt ?? '');
 	if(!isset($this->CurrentFont))
 		$this->Error('No font has been set');
 	$cw = &$this->CurrentFont['cw'];
@@ -1086,11 +1129,12 @@ function Output($dest='', $name='', $isUTF8=false)
 
 protected function _dochecks()
 {
-	// Check mbstring overloading
-	if(ini_get('mbstring.func_overload') & 2)
+	// Check mbstring overloading (removed in PHP 8.0+, keep guard for older runtimes)
+	$overload = ini_get('mbstring.func_overload');
+	if($overload !== false && $overload !== '' && ((int)$overload & 2))
 		$this->Error('mbstring overloading must be disabled');
-	// Ensure runtime magic quotes are disabled
-	if(get_magic_quotes_runtime())
+	// get_magic_quotes_runtime() / set_magic_quotes_runtime() removed in PHP 8.0
+	if(function_exists('get_magic_quotes_runtime') && get_magic_quotes_runtime() && function_exists('set_magic_quotes_runtime'))
 		@set_magic_quotes_runtime(0);
 }
 
@@ -1218,8 +1262,9 @@ protected function _httpencode($param, $value, $isUTF8)
 	if($this->_isascii($value))
 		return $param.'="'.$value.'"';
 	if(!$isUTF8)
-		$value = utf8_encode($value);
-	if(strpos($_SERVER['HTTP_USER_AGENT'],'MSIE')!==false)
+		$value = fpdf_utf8_encode($value);
+	$ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
+	if(strpos($ua,'MSIE')!==false)
 		return $param.'="'.rawurlencode($value).'"';
 	else
 		return $param."*=UTF-8''".rawurlencode($value);

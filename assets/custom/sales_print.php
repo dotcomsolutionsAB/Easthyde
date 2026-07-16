@@ -186,6 +186,7 @@ class PDF_AutoPrint extends PDF_JavaScript
 	//Cell with horizontal scaling if text is too wide
     function CellFit($w, $h=0, $txt='', $border=0, $ln=0, $align='', $fill=false, $link='', $scale=false, $force=true)
     {
+        $txt = (string)($txt ?? '');
         //Get string width
         $str_width=$this->GetStringWidth($txt);
 
@@ -304,13 +305,13 @@ if (!is_array($address)) { $address = []; }
 $GLOBALS["si_no"] = $si_no;
 $GLOBALS["dt"] = !empty($row['si_date']) ? date('d-m-Y', strtotime($row['si_date'])) : '';
 
-$GLOBALS['client'] = $row_temp['print_name'] ?? '';
+$GLOBALS['client'] = is_array($row_temp) ? ($row_temp['print_name'] ?? $client) : $client;
 $GLOBALS['add1'] = $address["address_1"] ?? '';
 $GLOBALS['add2'] = $address["address_2"] ?? '';
 $GLOBALS['city'] = $address["city"] ?? '';
 $GLOBALS['pincode'] = $address["pincode"] ?? '';
-$GLOBALS['state'] = $row_temp["state"] ?? '';
-$GLOBALS['country'] = $row_temp["country"] ?? '';
+$GLOBALS['state'] = is_array($row_temp) ? ($row_temp["state"] ?? '') : '';
+$GLOBALS['country'] = is_array($row_temp) ? ($row_temp["country"] ?? '') : '';
 if(($row["mobile"] ?? null)!=null){
 $GLOBALS['mobile'] = "MOBILE No: ".$row["mobile"];
 }
