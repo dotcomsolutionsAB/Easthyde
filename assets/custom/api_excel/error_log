@@ -1,0 +1,1 @@
+[28-Apr-2020 13:08:53 America/Chicago] PHP Parse error:  syntax error, unexpected '$query' (T_VARIABLE) in /home/ammarhm7/public_html/crm/assets/custom/api_excel/add_products.php on line 59

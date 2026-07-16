@@ -1,0 +1,360 @@
+<?xml version="1.0"?>
+<ENVELOPE>
+    <HEADER>
+        <TALLYREQUEST>Import Data</TALLYREQUEST>
+    </HEADER>
+
+    <BODY>
+        <IMPORTDATA>
+            <REQUESTDESC>
+                <REPORTNAME>Vouchers</REPORTNAME>
+                <STATICVARIABLES>
+                    <SVCURRENTCOMPANY>AMMAR INDUSTRIAL CORPORATION</SVCURRENTCOMPANY>
+                </STATICVARIABLES>
+            </REQUESTDESC>
+            <REQUESTDATA>
+                <TALLYMESSAGE xmlns:UDF="TallyUDF">
+                    <VOUCHER VCHTYPE="Sales" ACTION="Create" OBJVIEW="Invoice Voucher View">
+                        <ADDRESS.LIST TYPE="String">
+                            <ADDRESS>THE DIRECTOR (CSIR-CMERI)</ADDRESS>
+                            <ADDRESS>M.G.AVENUE</ADDRESS>
+                            <ADDRESS>DURGAPUR - 713209</ADDRESS>
+                        </ADDRESS.LIST>
+                        <BASICBUYERADDRESS.LIST TYPE="String">
+                            <BASICBUYERADDRESS>THE DIRECTOR (CSIR-CMERI)</BASICBUYERADDRESS>
+                            <BASICBUYERADDRESS>M.G.AVENUE</BASICBUYERADDRESS>
+                            <BASICBUYERADDRESS>DURGAPUR - 713209</BASICBUYERADDRESS>
+                        </BASICBUYERADDRESS.LIST>
+                        <BASICORDERTERMS.LIST TYPE="String">
+                            <BASICORDERTERMS>Immediate</BASICORDERTERMS>
+                        </BASICORDERTERMS.LIST>
+                        <OLDAUDITENTRYIDS.LIST TYPE="Number">
+                            <OLDAUDITENTRYIDS>-1</OLDAUDITENTRYIDS>
+                        </OLDAUDITENTRYIDS.LIST>
+                        <DATE>20200401</DATE>
+                        <STATENAME>WEST BENGAL</STATENAME>
+                        <COUNTRYOFRESIDENCE>INDIA</COUNTRYOFRESIDENCE>
+                        <PARTYGSTIN />
+                        <PARTYNAME>CSIR-CMERI (DR)</PARTYNAME>
+                        <VOUCHERTYPENAME>Sales</VOUCHERTYPENAME>
+                        <VOUCHERNUMBER>AIC/GST-02/20-21</VOUCHERNUMBER>
+                        <PARTYLEDGERNAME>CSIR-CMERI (DR)</PARTYLEDGERNAME>
+                        <BASICBASEPARTYNAME>CSIR-CMERI (DR)</BASICBASEPARTYNAME>
+                        <CSTFORMISSUETYPE />
+                        <CSTFORMRECVTYPE />
+                        <FBTPAYMENTTYPE>Default</FBTPAYMENTTYPE>
+                        <PERSISTEDVIEW>Invoice Voucher View</PERSISTEDVIEW>
+                        <PLACEOFSUPPLY>WEST BENGAL</PLACEOFSUPPLY>
+                        <CONSIGNEEGSTIN />
+                        <BASICSHIPPEDBY>Han Delivery</BASICSHIPPEDBY>
+                        <BASICBUYERNAME>CSIR-CMERI (DR)</BASICBUYERNAME>
+                        <BASICFINALDESTINATION>Kolkata</BASICFINALDESTINATION>
+                        <BASICDUEDATEOFPYMT>100% on Order</BASICDUEDATEOFPYMT>
+                        <VCHGSTCLASS />
+                        <CONSIGNEESTATENAME>WEST BENGAL</CONSIGNEESTATENAME>
+                        <EFFECTIVEDATE>20200401</EFFECTIVEDATE>
+                        <ISINVOICE>Yes</ISINVOICE>
+                        <HASDISCOUNTS>Yes</HASDISCOUNTS>
+                        <INVOICEORDERLIST.LIST>
+                            <BASICORDERDATE>20200401</BASICORDERDATE>
+                            <BASICPURCHASEORDERNO>XYZ123</BASICPURCHASEORDERNO>
+                        </INVOICEORDERLIST.LIST>
+                        <OLDAUDITENTRYIDS>-1</OLDAUDITENTRYIDS>
+                        <LEDGERENTRIES.LIST>
+                            <LEDGERNAME>CSIR-CMERI (DR)</LEDGERNAME>
+                            <AMOUNT>-23376.00</AMOUNT>
+                        </LEDGERENTRIES.LIST>
+                        <LEDGERENTRIES.LIST>
+                            <LEDGERNAME>OUTPUT CGST</LEDGERNAME>
+                            <ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE>
+                            <LEDGERFROMITEM>No</LEDGERFROMITEM>
+                            <REMOVEZEROENTRIES>No</REMOVEZEROENTRIES>
+                            <ISPARTYLEDGER>No</ISPARTYLEDGER>
+                            <ISLASTDEEMEDPOSITIVE>No</ISLASTDEEMEDPOSITIVE>
+                            <ISCAPVATTAXALTERED>No</ISCAPVATTAXALTERED>
+                            <ISCAPVATNOTCLAIMED>No</ISCAPVATNOTCLAIMED>
+                            <AMOUNT>1782.9</AMOUNT>
+                            <VATEXPAMOUNT>1782.9</VATEXPAMOUNT>
+                        </LEDGERENTRIES.LIST>
+                        <LEDGERENTRIES.LIST>
+                            <LEDGERNAME>OUTPUT SGST</LEDGERNAME>
+                            <ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE>
+                            <LEDGERFROMITEM>No</LEDGERFROMITEM>
+                            <REMOVEZEROENTRIES>No</REMOVEZEROENTRIES>
+                            <ISPARTYLEDGER>No</ISPARTYLEDGER>
+                            <ISLASTDEEMEDPOSITIVE>No</ISLASTDEEMEDPOSITIVE>
+                            <ISCAPVATTAXALTERED>No</ISCAPVATTAXALTERED>
+                            <ISCAPVATNOTCLAIMED>No</ISCAPVATNOTCLAIMED>
+                            <AMOUNT>1782.9</AMOUNT>
+                            <VATEXPAMOUNT>1782.9</VATEXPAMOUNT>
+                        </LEDGERENTRIES.LIST>
+                        <LEDGERENTRIES.LIST>
+                            <LEDGERNAME>ROUND OFF SALES (+/-)</LEDGERNAME>
+                            <ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE>
+                            <LEDGERFROMITEM>No</LEDGERFROMITEM>
+                            <REMOVEZEROENTRIES>No</REMOVEZEROENTRIES>
+                            <ISPARTYLEDGER>No</ISPARTYLEDGER>
+                            <ISLASTDEEMEDPOSITIVE>No</ISLASTDEEMEDPOSITIVE>
+                            <ISCAPVATTAXALTERED>No</ISCAPVATTAXALTERED>
+                            <ISCAPVATNOTCLAIMED>No</ISCAPVATNOTCLAIMED>
+                            <AMOUNT>0.2</AMOUNT>
+                            <VATEXPAMOUNT>0.2</VATEXPAMOUNT>
+                        </LEDGERENTRIES.LIST>
+                        <ALLINVENTORYENTRIES.LIST>
+                            <BASICUSERDESCRIPTION.LIST TYPE="String">
+                                <BASICUSERDESCRIPTION>PRECISION REGULATOR</BASICUSERDESCRIPTION>
+                            </BASICUSERDESCRIPTION.LIST>
+                            <STOCKITEMNAME>IR2010-02BG1-A</STOCKITEMNAME>
+                            <ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE>
+                            <ISLASTDEEMEDPOSITIVE>No</ISLASTDEEMEDPOSITIVE>
+                            <ISAUTONEGATE>No</ISAUTONEGATE>
+                            <ISCUSTOMSCLEARANCE>No</ISCUSTOMSCLEARANCE>
+                            <ISTRACKCOMPONENT>No</ISTRACKCOMPONENT>
+                            <ISTRACKPRODUCTION>No</ISTRACKPRODUCTION>
+                            <ISPRIMARYITEM>No</ISPRIMARYITEM>
+                            <ISSCRAP>No</ISSCRAP>
+                            <RATE>7500</RATE>
+                            <DISCOUNT> </DISCOUNT>
+                            <AMOUNT>7500</AMOUNT>
+                            <ACTUALQTY> 1</ACTUALQTY>
+                            <BILLEDQTY> 1</BILLEDQTY>
+                            <BATCHALLOCATIONS.LIST>
+                                <GODOWNNAME>Main Location</GODOWNNAME>
+                                <BATCHNAME>Primary Batch</BATCHNAME>
+                                <INDENTNO />
+                                <ORDERNO />
+                                <AMOUNT>7500</AMOUNT>
+                                <ACTUALQTY> 1</ACTUALQTY>
+                                <BILLEDQTY> 1</BILLEDQTY>
+                            </BATCHALLOCATIONS.LIST>
+                            <ACCOUNTINGALLOCATIONS.LIST>
+                                <OLDAUDITENTRYIDS.LIST TYPE="Number">
+                                    <OLDAUDITENTRYIDS>-1</OLDAUDITENTRYIDS>
+                                </OLDAUDITENTRYIDS.LIST>
+                                <LEDGERNAME>SALES LOCAL</LEDGERNAME>
+                                <GSTCLASS />
+                                <AMOUNT>7500</AMOUNT>
+                            </ACCOUNTINGALLOCATIONS.LIST>
+                        </ALLINVENTORYENTRIES.LIST>
+                        <ALLINVENTORYENTRIES.LIST>
+                            <BASICUSERDESCRIPTION.LIST TYPE="String">
+                                <BASICUSERDESCRIPTION>DIGITAL PRESSURE GAUGE 0-1 BAR</BASICUSERDESCRIPTION>
+                            </BASICUSERDESCRIPTION.LIST>
+                            <STOCKITEMNAME>PRESSURE GAUGE</STOCKITEMNAME>
+                            <ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE>
+                            <ISLASTDEEMEDPOSITIVE>No</ISLASTDEEMEDPOSITIVE>
+                            <ISAUTONEGATE>No</ISAUTONEGATE>
+                            <ISCUSTOMSCLEARANCE>No</ISCUSTOMSCLEARANCE>
+                            <ISTRACKCOMPONENT>No</ISTRACKCOMPONENT>
+                            <ISTRACKPRODUCTION>No</ISTRACKPRODUCTION>
+                            <ISPRIMARYITEM>No</ISPRIMARYITEM>
+                            <ISSCRAP>No</ISSCRAP>
+                            <RATE>8500</RATE>
+                            <DISCOUNT> </DISCOUNT>
+                            <AMOUNT>8500</AMOUNT>
+                            <ACTUALQTY> 1</ACTUALQTY>
+                            <BILLEDQTY> 1</BILLEDQTY>
+                            <BATCHALLOCATIONS.LIST>
+                                <GODOWNNAME>Main Location</GODOWNNAME>
+                                <BATCHNAME>Primary Batch</BATCHNAME>
+                                <INDENTNO />
+                                <ORDERNO />
+                                <AMOUNT>8500</AMOUNT>
+                                <ACTUALQTY> 1</ACTUALQTY>
+                                <BILLEDQTY> 1</BILLEDQTY>
+                            </BATCHALLOCATIONS.LIST>
+                            <ACCOUNTINGALLOCATIONS.LIST>
+                                <OLDAUDITENTRYIDS.LIST TYPE="Number">
+                                    <OLDAUDITENTRYIDS>-1</OLDAUDITENTRYIDS>
+                                </OLDAUDITENTRYIDS.LIST>
+                                <LEDGERNAME>SALES LOCAL</LEDGERNAME>
+                                <GSTCLASS />
+                                <AMOUNT>8500</AMOUNT>
+                            </ACCOUNTINGALLOCATIONS.LIST>
+                        </ALLINVENTORYENTRIES.LIST>
+                        <ALLINVENTORYENTRIES.LIST>
+                            <BASICUSERDESCRIPTION.LIST TYPE="String">
+                                <BASICUSERDESCRIPTION>1/4 QUICK EXHAUST VALVE RD</BASICUSERDESCRIPTION>
+                            </BASICUSERDESCRIPTION.LIST>
+                            <STOCKITEMNAME>SE 10</STOCKITEMNAME>
+                            <ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE>
+                            <ISLASTDEEMEDPOSITIVE>No</ISLASTDEEMEDPOSITIVE>
+                            <ISAUTONEGATE>No</ISAUTONEGATE>
+                            <ISCUSTOMSCLEARANCE>No</ISCUSTOMSCLEARANCE>
+                            <ISTRACKCOMPONENT>No</ISTRACKCOMPONENT>
+                            <ISTRACKPRODUCTION>No</ISTRACKPRODUCTION>
+                            <ISPRIMARYITEM>No</ISPRIMARYITEM>
+                            <ISSCRAP>No</ISSCRAP>
+                            <RATE>650</RATE>
+                            <DISCOUNT> </DISCOUNT>
+                            <AMOUNT>650</AMOUNT>
+                            <ACTUALQTY> 1</ACTUALQTY>
+                            <BILLEDQTY> 1</BILLEDQTY>
+                            <BATCHALLOCATIONS.LIST>
+                                <GODOWNNAME>Main Location</GODOWNNAME>
+                                <BATCHNAME>Primary Batch</BATCHNAME>
+                                <INDENTNO />
+                                <ORDERNO />
+                                <AMOUNT>650</AMOUNT>
+                                <ACTUALQTY> 1</ACTUALQTY>
+                                <BILLEDQTY> 1</BILLEDQTY>
+                            </BATCHALLOCATIONS.LIST>
+                            <ACCOUNTINGALLOCATIONS.LIST>
+                                <OLDAUDITENTRYIDS.LIST TYPE="Number">
+                                    <OLDAUDITENTRYIDS>-1</OLDAUDITENTRYIDS>
+                                </OLDAUDITENTRYIDS.LIST>
+                                <LEDGERNAME>SALES LOCAL</LEDGERNAME>
+                                <GSTCLASS />
+                                <AMOUNT>650</AMOUNT>
+                            </ACCOUNTINGALLOCATIONS.LIST>
+                        </ALLINVENTORYENTRIES.LIST>
+                        <ALLINVENTORYENTRIES.LIST>
+                            <BASICUSERDESCRIPTION.LIST TYPE="String">
+                                <BASICUSERDESCRIPTION>SS BALL BALVE 1/4</BASICUSERDESCRIPTION>
+                            </BASICUSERDESCRIPTION.LIST>
+                            <STOCKITEMNAME>SSBV-14-SNT</STOCKITEMNAME>
+                            <ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE>
+                            <ISLASTDEEMEDPOSITIVE>No</ISLASTDEEMEDPOSITIVE>
+                            <ISAUTONEGATE>No</ISAUTONEGATE>
+                            <ISCUSTOMSCLEARANCE>No</ISCUSTOMSCLEARANCE>
+                            <ISTRACKCOMPONENT>No</ISTRACKCOMPONENT>
+                            <ISTRACKPRODUCTION>No</ISTRACKPRODUCTION>
+                            <ISPRIMARYITEM>No</ISPRIMARYITEM>
+                            <ISSCRAP>No</ISSCRAP>
+                            <RATE>750</RATE>
+                            <DISCOUNT> </DISCOUNT>
+                            <AMOUNT>750</AMOUNT>
+                            <ACTUALQTY> 1</ACTUALQTY>
+                            <BILLEDQTY> 1</BILLEDQTY>
+                            <BATCHALLOCATIONS.LIST>
+                                <GODOWNNAME>Main Location</GODOWNNAME>
+                                <BATCHNAME>Primary Batch</BATCHNAME>
+                                <INDENTNO />
+                                <ORDERNO />
+                                <AMOUNT>750</AMOUNT>
+                                <ACTUALQTY> 1</ACTUALQTY>
+                                <BILLEDQTY> 1</BILLEDQTY>
+                            </BATCHALLOCATIONS.LIST>
+                            <ACCOUNTINGALLOCATIONS.LIST>
+                                <OLDAUDITENTRYIDS.LIST TYPE="Number">
+                                    <OLDAUDITENTRYIDS>-1</OLDAUDITENTRYIDS>
+                                </OLDAUDITENTRYIDS.LIST>
+                                <LEDGERNAME>SALES LOCAL</LEDGERNAME>
+                                <GSTCLASS />
+                                <AMOUNT>750</AMOUNT>
+                            </ACCOUNTINGALLOCATIONS.LIST>
+                        </ALLINVENTORYENTRIES.LIST>
+                        <ALLINVENTORYENTRIES.LIST>
+                            <BASICUSERDESCRIPTION.LIST TYPE="String">
+                                <BASICUSERDESCRIPTION>PUSH MALE CONNECTOR 6 X 1/4</BASICUSERDESCRIPTION>
+                            </BASICUSERDESCRIPTION.LIST>
+                            <STOCKITEMNAME>PC0602-CDC</STOCKITEMNAME>
+                            <ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE>
+                            <ISLASTDEEMEDPOSITIVE>No</ISLASTDEEMEDPOSITIVE>
+                            <ISAUTONEGATE>No</ISAUTONEGATE>
+                            <ISCUSTOMSCLEARANCE>No</ISCUSTOMSCLEARANCE>
+                            <ISTRACKCOMPONENT>No</ISTRACKCOMPONENT>
+                            <ISTRACKPRODUCTION>No</ISTRACKPRODUCTION>
+                            <ISPRIMARYITEM>No</ISPRIMARYITEM>
+                            <ISSCRAP>No</ISSCRAP>
+                            <RATE>160</RATE>
+                            <DISCOUNT> </DISCOUNT>
+                            <AMOUNT>160</AMOUNT>
+                            <ACTUALQTY> 1</ACTUALQTY>
+                            <BILLEDQTY> 1</BILLEDQTY>
+                            <BATCHALLOCATIONS.LIST>
+                                <GODOWNNAME>Main Location</GODOWNNAME>
+                                <BATCHNAME>Primary Batch</BATCHNAME>
+                                <INDENTNO />
+                                <ORDERNO />
+                                <AMOUNT>160</AMOUNT>
+                                <ACTUALQTY> 1</ACTUALQTY>
+                                <BILLEDQTY> 1</BILLEDQTY>
+                            </BATCHALLOCATIONS.LIST>
+                            <ACCOUNTINGALLOCATIONS.LIST>
+                                <OLDAUDITENTRYIDS.LIST TYPE="Number">
+                                    <OLDAUDITENTRYIDS>-1</OLDAUDITENTRYIDS>
+                                </OLDAUDITENTRYIDS.LIST>
+                                <LEDGERNAME>SALES LOCAL</LEDGERNAME>
+                                <GSTCLASS />
+                                <AMOUNT>160</AMOUNT>
+                            </ACCOUNTINGALLOCATIONS.LIST>
+                        </ALLINVENTORYENTRIES.LIST>
+                        <ALLINVENTORYENTRIES.LIST>
+                            <BASICUSERDESCRIPTION.LIST TYPE="String">
+                                <BASICUSERDESCRIPTION>1/4 (5FT LONG)</BASICUSERDESCRIPTION>
+                            </BASICUSERDESCRIPTION.LIST>
+                            <STOCKITEMNAME>PNEUMATIC HOSE</STOCKITEMNAME>
+                            <ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE>
+                            <ISLASTDEEMEDPOSITIVE>No</ISLASTDEEMEDPOSITIVE>
+                            <ISAUTONEGATE>No</ISAUTONEGATE>
+                            <ISCUSTOMSCLEARANCE>No</ISCUSTOMSCLEARANCE>
+                            <ISTRACKCOMPONENT>No</ISTRACKCOMPONENT>
+                            <ISTRACKPRODUCTION>No</ISTRACKPRODUCTION>
+                            <ISPRIMARYITEM>No</ISPRIMARYITEM>
+                            <ISSCRAP>No</ISSCRAP>
+                            <RATE>625</RATE>
+                            <DISCOUNT> </DISCOUNT>
+                            <AMOUNT>1250</AMOUNT>
+                            <ACTUALQTY> 2</ACTUALQTY>
+                            <BILLEDQTY> 2</BILLEDQTY>
+                            <BATCHALLOCATIONS.LIST>
+                                <GODOWNNAME>Main Location</GODOWNNAME>
+                                <BATCHNAME>Primary Batch</BATCHNAME>
+                                <INDENTNO />
+                                <ORDERNO />
+                                <AMOUNT>1250</AMOUNT>
+                                <ACTUALQTY> 2</ACTUALQTY>
+                                <BILLEDQTY> 2</BILLEDQTY>
+                            </BATCHALLOCATIONS.LIST>
+                            <ACCOUNTINGALLOCATIONS.LIST>
+                                <OLDAUDITENTRYIDS.LIST TYPE="Number">
+                                    <OLDAUDITENTRYIDS>-1</OLDAUDITENTRYIDS>
+                                </OLDAUDITENTRYIDS.LIST>
+                                <LEDGERNAME>SALES LOCAL</LEDGERNAME>
+                                <GSTCLASS />
+                                <AMOUNT>1250</AMOUNT>
+                            </ACCOUNTINGALLOCATIONS.LIST>
+                        </ALLINVENTORYENTRIES.LIST>
+                        <ALLINVENTORYENTRIES.LIST>
+                            <BASICUSERDESCRIPTION.LIST TYPE="String">
+                                <BASICUSERDESCRIPTION>HOSE NOZZLES / TEE / NIPPLES / CONNECTORS</BASICUSERDESCRIPTION>
+                            </BASICUSERDESCRIPTION.LIST>
+                            <STOCKITEMNAME>SS FITTING</STOCKITEMNAME>
+                            <ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE>
+                            <ISLASTDEEMEDPOSITIVE>No</ISLASTDEEMEDPOSITIVE>
+                            <ISAUTONEGATE>No</ISAUTONEGATE>
+                            <ISCUSTOMSCLEARANCE>No</ISCUSTOMSCLEARANCE>
+                            <ISTRACKCOMPONENT>No</ISTRACKCOMPONENT>
+                            <ISTRACKPRODUCTION>No</ISTRACKPRODUCTION>
+                            <ISPRIMARYITEM>No</ISPRIMARYITEM>
+                            <ISSCRAP>No</ISSCRAP>
+                            <RATE>1000</RATE>
+                            <DISCOUNT> </DISCOUNT>
+                            <AMOUNT>1000</AMOUNT>
+                            <ACTUALQTY> 1</ACTUALQTY>
+                            <BILLEDQTY> 1</BILLEDQTY>
+                            <BATCHALLOCATIONS.LIST>
+                                <GODOWNNAME>Main Location</GODOWNNAME>
+                                <BATCHNAME>Primary Batch</BATCHNAME>
+                                <INDENTNO />
+                                <ORDERNO />
+                                <AMOUNT>1000</AMOUNT>
+                                <ACTUALQTY> 1</ACTUALQTY>
+                                <BILLEDQTY> 1</BILLEDQTY>
+                            </BATCHALLOCATIONS.LIST>
+                            <ACCOUNTINGALLOCATIONS.LIST>
+                                <OLDAUDITENTRYIDS.LIST TYPE="Number">
+                                    <OLDAUDITENTRYIDS>-1</OLDAUDITENTRYIDS>
+                                </OLDAUDITENTRYIDS.LIST>
+                                <LEDGERNAME>SALES LOCAL</LEDGERNAME>
+                                <GSTCLASS />
+                                <AMOUNT>1000</AMOUNT>
+                            </ACCOUNTINGALLOCATIONS.LIST>
+                        </ALLINVENTORYENTRIES.LIST>
+                    </VOUCHER>
+                </TALLYMESSAGE>
+            </REQUESTDATA>
+        </IMPORTDATA>
+    </BODY>
+</ENVELOPE>

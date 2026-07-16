@@ -1,0 +1,168 @@
+@charset "UTF-8";
+
+ select[readonly].select2-hidden-accessible + .select2-container {
+  pointer-events: none;
+  touch-action: none;
+
+  .select2-selection {
+    background: #eee;
+    box-shadow: none;
+  }
+
+  .select2-selection__arrow,
+  .select2-selection__clear {
+    display: none;
+  }
+}
+
+/*body {
+  font-size: 64px;
+  background-color: black;
+}
+
+button {
+  font-size: 26px;
+}*/
+
+.background-green {
+  background: green;
+  background-color: green;
+}
+
+.background-420 {
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0px;
+  top: 0px;
+  background-color: green;
+  background-image: url("https://media.giphy.com/media/SGxf0hqfi5pXW/giphy.gif");
+  //background-repeat: no-repeat;
+  background-size: cover;
+  overflow: hidden;
+}
+
+.background-666 {
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0px;
+  top: 0px;
+  background-color: red;
+  background-image: url("https://media.giphy.com/media/qpR1oB5EvsRuo/giphy.gif");
+  //background-repeat: no-repeat;
+  background-size: cover;
+  overflow: hidden;
+}
+
+.background-1999 {
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0px;
+  top: 0px;
+  background-color: purple;
+  background-image: url("https://media.giphy.com/media/3o6ZtnC9g3XGctIHL2/giphy.gif");
+  //background-repeat: no-repeat;
+  background-size: cover;
+  overflow: hidden;
+}
+
+.container-calculator {
+  display: grid;
+  justify-content: center;
+  grid-template-columns: 80px 80px 80px 80px;
+  grid-template-rows: 80px 80px;
+  grid-template-areas: 
+  "header header header header" 
+  "main main main main" 
+  "main main main main" 
+  "main main main main" 
+  "main main main main" 
+  "main main main main";
+}
+
+.item-header {
+  grid-area: header;
+  color: white;
+}
+
+#globalAnswer {
+  background-color: black;
+  font-size: 1px;
+}
+
+#currentValue {
+  background-color: white;
+  grid-column-start: 1;
+  grid-column-end: span 4;
+  text-align: right;
+  color: black;
+  font-size: 50px;
+  border-bottom: 1px solid black;
+  margin-bottom: 10px;
+}
+
+button.btn-calculator {
+  background-color: dimgray;
+  border: none;
+  color: white;
+  padding: 20px;
+  text-align: center;
+  margin: 4px 2px;
+  font-size: 25px;
+  /*border-radius: 50%;*/
+}
+
+button.orange {
+  background-color: orange;
+}
+
+/*button.orange:focus {
+  background-color: white;
+  color: gold
+}*/
+
+button.silver {
+  background-color: silver;
+  color: black;
+}
+
+/*button.silver:focus {
+  background-color: white;
+  color: black
+}*/
+
+button.equals {
+  background-color: orange;
+}
+
+/*button.equals:focus {
+  background-color: white;
+  color: gold
+}*/
+
+button.zero {
+  text-align: left;
+  padding-left: 32px;
+  grid-row: 6;
+  grid-column-start: 1;
+  grid-column-end: span 2;
+  /*border-radius: 50px;*/
+}
+
+.image_picker_image{
+  width:  75px;
+}
+
+.form-group label {
+  color: #0069D9 !important;
+}
+
+#invoice_details, #payment_list{
+  width: 100%!important;
+}
+

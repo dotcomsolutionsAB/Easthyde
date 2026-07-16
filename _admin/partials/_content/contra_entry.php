@@ -1,0 +1,1 @@
+<?php include("../+master/_contra_entry.php"); ?>

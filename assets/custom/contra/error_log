@@ -1,0 +1,50 @@
+[28-Jul-2020 11:41:30 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 9
+[28-Jul-2020 11:41:30 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php:24
+Stack trace:
+#0 {main}
+  thrown in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 24
+[28-Jul-2020 11:42:40 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 9
+[28-Jul-2020 11:42:40 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php:24
+Stack trace:
+#0 {main}
+  thrown in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 24
+[28-Jul-2020 11:51:52 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 9
+[28-Jul-2020 11:51:52 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php:24
+Stack trace:
+#0 {main}
+  thrown in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 24
+[28-Jul-2020 11:52:28 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 9
+[28-Jul-2020 11:52:28 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php:24
+Stack trace:
+#0 {main}
+  thrown in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 24
+[28-Jul-2020 11:53:04 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 9
+[28-Jul-2020 11:53:04 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php:24
+Stack trace:
+#0 {main}
+  thrown in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 24
+[28-Jul-2020 11:53:35 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 9
+[28-Jul-2020 11:53:35 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php:24
+Stack trace:
+#0 {main}
+  thrown in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 24
+[28-Jul-2020 11:54:26 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 9
+[28-Jul-2020 11:56:22 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 9
+[28-Jul-2020 11:56:43 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 9
+[28-Jul-2020 11:57:32 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 9
+[28-Jul-2020 11:59:50 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 9
+[28-Jul-2020 12:00:56 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 9
+[28-Jul-2020 12:01:14 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 9
+[28-Jul-2020 12:01:24 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 9
+[28-Jul-2020 12:01:32 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 9
+[28-Jul-2020 12:01:45 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 9
+[28-Jul-2020 12:02:19 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 9
+[28-Jul-2020 12:02:28 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 9
+[28-Jul-2020 12:02:56 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 9
+[28-Jul-2020 12:04:27 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 9
+[28-Jul-2020 12:04:34 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 9
+[28-Jul-2020 21:30:50 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 9
+[01-Aug-2020 17:42:38 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 9
+[02-Aug-2020 17:26:00 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 9
+[02-Aug-2020 17:26:18 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 9
+[02-Aug-2020 17:26:57 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/smart59s/public_html/asmacrm.com/assets/custom/contra/retrieve.php on line 9

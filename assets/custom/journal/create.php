@@ -1,0 +1,75 @@
+<?php
+    include ("../connect.php");
+    include ("../php_replace_improper.php");
+
+    session_start();
+
+    $validator = array("success"=>true, "messages"=>"There was some error saving the records", "q_no"=>"");
+
+    $id = $_REQUEST['journal_edit_id'];
+
+    $log_user = $_SESSION['username'];
+    $log_date = date('Y-m-d', strtotime("today"));
+
+    $date = date('Y-m-d', strtotime($_REQUEST['journal_date']));
+    
+    $array = $_REQUEST['journal'];
+    $l = sizeof($array);
+
+    $items=array();
+
+    for($i=0;$i<$l;$i++){
+        if($array[$i]['journal_master'] != ''){
+
+            $temp = array();
+
+            $temp['master']      = replace_improper($array[$i]['journal_master']);
+            $temp['particular']  = replace_improper($array[$i]['journal_particular']);
+            $temp['debit']       = replace_improper($array[$i]['journal_debit']);
+            $temp['credit']      = replace_improper($array[$i]['journal_credit']);
+
+            $items[] = $temp;
+        }
+    }
+    $item=json_encode($items);
+
+
+    if($id == '')
+    {
+
+        $sql = "INSERT INTO journal (`date`,`items`,`log_user`,`log_date`) VALUES ('$date','$item','$log_user','$log_date')";
+        $query = $db->query($sql);
+
+        if($query===true)
+        {
+
+            $validator['success'] = true;
+            $validator['messages'] = "Successfully Added";
+            $validator['q_no'] = $quotation_no;
+        }
+        else
+        {
+            $validator['success'] = false;
+            $validator['messages'] = "There was some error saving the records";
+
+        }
+    }
+    else{
+        $sql = "UPDATE journal SET `date` = '$date', `items`='$item', `log_user`='$log_user', `log_date`='$log_date' WHERE `id`='$id'";
+        $query = $db->query($sql);
+
+        if($query===true)
+        {
+            $validator['success'] = true;
+            $validator['messages'] = "Successfully Updated";
+        }
+        else
+        {
+            $validator['success'] = false;
+            $validator['messages'] = "There was some error saving the records";
+
+        }
+    }
+
+    echo json_encode($validator);
+?>

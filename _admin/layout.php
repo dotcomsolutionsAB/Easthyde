@@ -1,0 +1,750 @@
+<?php
+	$page = $_REQUEST['page'];
+?>
+<!-- begin:: Page -->
+
+<?php include("partials/_header/base-mobile.php"); ?>		
+
+<div class="kt-grid kt-grid--hor kt-grid--root">
+	<div class="kt-grid__item kt-grid__item--fluid kt-grid kt-grid--ver kt-page">
+
+		<?php include("partials/_aside/base.php"); ?>		
+		<div class="kt-grid__item kt-grid__item--fluid kt-grid kt-grid--hor kt-wrapper" id="kt_wrapper">
+
+			<?php include("partials/_header/base.php"); ?>		
+			<div class="kt-content  kt-grid__item kt-grid__item--fluid kt-grid kt-grid--hor" id="kt_content">
+
+				<?php include("partials/_subheader/subheader-v1.php"); ?>		
+
+				<?php 
+				if($page == 'index' || $page == '')
+					include("partials/_content/base.php"); 
+				else
+					include("partials/_content/".$page.".php");
+				?>	
+
+				<!--begin::Product Modal-->
+				<form class="kt-form kt-form--label-right" id="add_product">
+					<div class="modal fade" id="kt_modal_product" tabindex="-1" role="dialog" aria-labelledby="addProductModal" aria-hidden="true">
+						<div class="modal-dialog modal-xl" role="document">
+							<div class="modal-content">
+								<div class="modal-header">
+									<h5 class="modal-title" id="addProductModal">Add New Product</h5>
+									<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+									</button>
+								</div>
+								<div class="modal-body">
+									<!--begin::Form-->
+										<div class="kt-portlet__body">
+											<div class="form-group form-group-last kt-hide">
+												<div class="alert alert-danger" role="alert" id="add_product_msg">
+													<div class="alert-icon"><i class="flaticon-warning"></i></div>
+													<div class="alert-text">
+														Oh snap! Change a few things up and try submitting again.
+													</div>
+													<div class="alert-close">
+														<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+															<span aria-hidden="true"><i class="la la-close"></i></span>
+														</button>
+													</div>
+												</div>
+											</div>
+											<div class="form-group row">
+												<div class="col-lg-6">
+													<label class="">Product Name:</label>
+													<div class="kt-input-icon">
+														<select class="form-control kt-select2" id="product_name" name="product_name"></select>
+													</div>
+													<span class="form-text text-muted">Please enter name of the product..</span>
+												</div>
+												<div class="col-lg-3">
+													<label class="">Group Name:</label>
+													<div class="kt-input-icon">
+														<select class="form-control kt-select2" id="product_group_name" name="product_group_name"></select>
+													</div>
+													<span class="form-text text-muted">Please enter group name of the product..</span>
+												</div>
+												<div class="col-lg-3">
+													<label class="">Vendor Name:</label>
+													<div class="kt-input-icon">
+														<select class="form-control kt-select2" id="product_vendor_name" name="product_vendor_name"></select>
+													</div>
+													<span class="form-text text-muted">Please enter group name of the product..</span>
+												</div>
+											</div>
+											<div class="form-group row">
+												<div class="col-lg-6">
+													<label>Description</label>
+													<div class="kt-input-icon">
+														<input type="text"  class="form-control" placeholder="Product Description" id="product_description" name="product_description">
+													</div>
+													<span class="form-text text-muted">Please enter description of the product..</span>
+												</div>
+												<div class="col-lg-3">
+													<label>Alias</label>
+													<div class="kt-input-icon">
+														<input type="text"  class="form-control" placeholder="Product Alias" id="product_alias" name="product_alias">
+													</div>
+													<span class="form-text text-muted">Please enter alias name of the product..</span>
+												</div>
+												<div class="col-lg-3">
+													<label>Reorder Point</label>
+													<div class="kt-input-icon">
+														<input type="text"  class="form-control" placeholder="Reorder Point" id="product_moq" name="product_moq">
+													</div>
+													<span class="form-text text-muted">Please enter the ROP..</span>
+												</div>
+											</div>
+											<div class="form-group row">
+												<div class="col-lg-3">
+													<label class="">Product Category:</label>
+													<div class="kt-input-icon">
+														<select class="form-control kt-select2" id="product_category" name="product_category"></select>
+													</div>
+													<span class="form-text text-muted">Please select the appropriate category..</span>
+												</div>
+												<div class="col-lg-3">
+													<label class="">Sub Category:</label>
+													<div class="kt-input-icon">
+														<select class="form-control kt-select2" id="product_sub_category" name="product_sub_category"></select>
+													</div>
+													<span class="form-text text-muted">Please select the appropriate sub category..</span>
+												</div>
+												<div class="col-lg-3">
+													<label class="">Opening Stock</label>
+													<div class="kt-input-icon">
+														<input type="text" class="form-control" placeholder="Enter Opening Stock"  id="product_opening_stock" name="product_opening_stock">
+													</div>
+													<span class="form-text text-muted">Please enter opening stock..</span>
+												</div>
+												<div class="col-lg-3">
+													<label>Unit:</label><br/>
+													<div class="kt-input-icon">
+														<select class="form-control kt-select2" id="product_unit" name="product_unit">
+															<option></option>
+															<option value='PCS'>PCS</option>
+															<option value='NOS'>NOS</option>
+															<option value='SETS'>SETS</option>
+															<option value='MTR'>MTR</option>
+														</select>
+													</div>
+													<span class="form-text text-muted">Please select the unit..</span>
+												</div>
+											</div>
+											<div class="form-group row">
+												<div class="col-lg-3">
+													<label class="">Cost Price:</label>
+													<div class="kt-input-icon">
+														<input type="text" class="form-control" placeholder="Enter cost price"  id="product_cost" name="product_cost">
+													</div>
+													<span class="form-text text-muted">Please enter cost price..</span>
+												</div>
+												<div class="col-lg-3">
+													<label class="">Sale Price:</label>
+													<div class="kt-input-icon">
+														<input type="text" class="form-control" placeholder="Enter sale price"  id="product_rate" name="product_rate">
+													</div>
+													<span class="form-text text-muted">Please enter sale price..</span>
+												</div>
+												<div class="col-lg-3">
+													<label>Tax:</label><br/>
+													<div class="kt-input-icon">
+														<select class="form-control kt-select2" id="product_tax" name="product_tax">
+															<option></option>
+															<option value='5'>5%</option>
+															<option value='12'>12%</option>
+															<option value='18'>18%</option>
+															<option value='28'>28%</option>
+														</select>
+													</div>
+													<span class="form-text text-muted">Please select tax category..</span>
+												</div>
+												<div class="col-lg-3">
+													<label class="">HSN:</label>
+													<div class="kt-input-icon">
+														<input type="text" class="form-control" placeholder="Enter HSN code" id="product_hsn" name="product_hsn">
+													</div>
+													<span class="form-text text-muted">Please hsn code..</span>
+												</div>
+											</div>
+										</div>
+									<!--end::Form-->
+								</div>
+								<div class="modal-footer">
+									<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+									<button id="add_product_submit" type="submit" class="btn btn-primary">Save</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</form>
+
+				<!--end::Product Modal-->
+
+				<!--begin::Client Modal-->
+				<form class="kt-form kt-form--label-right" id="dcs_add_client">
+					<div class="modal fade" id="kt_modal_client" tabindex="-1" role="dialog" aria-labelledby="addClientModal" aria-hidden="true">
+						<div class="modal-dialog modal-xl" role="document">
+							<div class="modal-content">
+								<div class="modal-header">
+									<h5 class="modal-title" id="addClientModal">Add New Client</h5>
+									<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+									</button>
+								</div>
+								<div class="modal-body">
+									<!--begin::Form-->
+										<div class="kt-portlet__body">
+											<div class="form-group row">
+												<div class="col-lg-3">
+													<label>Client Name:</label>
+													<div class="kt-input-icon">
+														<input type="text" class="form-control" placeholder="Enter Client Name" id="client_name" name="client_name">
+													</div>
+													<span class="form-text text-muted">Please enter name of the client..</span>
+												</div>
+												<div class="col-lg-3">
+													<label>Printed Name:</label>
+													<div class="kt-input-icon">
+														<input type="text" class="form-control" placeholder="Enter Print Name" id="client_print_name" name="client_print_name">
+													</div>
+													<span class="form-text text-muted">Please enter name to be printed..</span>
+												</div>
+												<div class="col-lg-2">
+													<label class="">Client Category:</label><br/>
+													<div class="kt-input-icon">
+														<select class="form-control kt-select2" id="client_category" name="client_category">
+															<option></option>
+														</select>
+													</div>
+													<span class="form-text text-muted">Please select the appropriate category..</span>
+												</div>
+												<div class="col-lg-2">
+													<label class="">Vendor Code:</label><br/>
+													<div class="kt-input-icon">
+														<input type="text"  placeholder="Enter Vendor Code" class="form-control" id="vendor_code" name="vendor_code">
+															
+													</div>
+													<span class="form-text text-muted">Please enter the Vendor Code</span>
+												</div>
+												<div class="col-lg-2">
+												<label class="">Vendor Discount:</label><br/>
+												<div class="kt-input-icon">
+												<input type="text" class="form-control" placeholder="Enter Vendor Discount:" id="vendor_discount" name="vendor_discount">
+														
+												</div>
+												<span class="form-text text-muted">Please enter Vendor Discount:</span>
+											</div>
+											</div>
+											<div class="form-group row">
+												<div class="col-lg-3">
+													<label>Address Line 1:</label>
+													<input type="text" class="form-control" placeholder="Enter Address Line 1"  id="client_add_1" name="client_add_1">
+												</div>
+												<div class="col-lg-3">
+													<label>Address Line 2:</label>
+													<div class="kt-input-icon">
+														<input type="text" class="form-control" placeholder="Enter Address Line 2"  id="client_add_2" name="client_add_2">
+													</div>
+												</div>
+												<div class="col-lg-3">
+													<label>City:</label>
+													<div class="kt-input-icon">
+														<input type="text" class="form-control" placeholder="Enter City"  id="client_city" name="client_city">
+													</div>
+												</div>
+												<div class="col-lg-3">
+													<label>Pincode:</label>
+													<div class="kt-input-icon">
+														<input type="text" class="form-control" placeholder="Enter Pincode"  id="client_pincode" name="client_pincode">
+													</div>
+												</div>
+											</div>
+											<div class="form-group row">
+												<div class="col-lg-3">
+													<label>GSTIN:</label>
+													<div class="kt-input-icon">
+														<input type="text" class="form-control" placeholder="Enter GSTIN"  id="client_gstin" name="client_gstin" maxlength="15">
+													</div>
+													<!-- <span class="form-text text-muted">Please enter GSTIN of the client..</span> -->
+												</div>
+												<div class="col-lg-3">
+													<label>GSTIN Type:</label>
+													<div class="kt-input-icon">
+														<select class="form-control kt-select2 client_gstin_type-select2" id="client_gstin_type" name="client_gstin_type">
+															<option value="Registered" selected="">Registered(Regular)</option>
+															<option value="Unregistered">Un Registered</option>c
+															<option value="Consumer">Consumer</option>
+															<option value="Composite">Composite</option>
+														</select>
+													</div>
+												</div>
+												<div class="col-lg-3">
+													<label>State:</label>
+													<div class="kt-input-icon">
+														<select class="form-control kt-select2 client_state-select2" id="client_state" name="client_state">
+														</select>
+													</div>
+												</div>
+												<div class="col-lg-3">
+													<label>Country:</label>
+													<div class="kt-input-icon">
+														<input type="text" class="form-control" placeholder="Enter Country"  id="client_country" name="client_country" value="INDIA">
+													</div>
+												</div>
+											</div>
+											<div class="form-group row">
+												<div class="col-md-12">
+													<label>Contact Persons:</label>
+												</div>
+												<div id="kt_repeater_client" class="col-lg-12">
+													<div class="form-group form-group-last row" id="kt_repeater_1">
+														<div data-repeater-list="client" class="col-lg-12">
+															<div data-repeater-item class="form-group row align-items-center">
+																<div class="col-md-3">
+																		<input placeholder="Name" name="client_person" id="client_person" class="form-control" type="text">
+																</div>
+																<div class="col-md-3">
+																		<input placeholder="Designation" name="client_designation" id="client_designation" class="form-control" type="text">
+																</div>
+																<div class="col-md-2">
+																		<input placeholder="Mobile" name="client_mobile" id="client_mobile" class="form-control" type="text">
+																</div>
+																<div class="col-md-3">
+																		<input placeholder="Email" name="client_email" id="client_email" class="form-control" type="text">
+																</div>
+																<div class="col-md-1">
+																	<a href="javascript:;" data-repeater-delete="" class="btn-sm btn btn-label-danger btn-bold">
+																		<i class="la la-trash-o"></i>
+																	</a>
+																</div>
+															</div>
+														</div>
+													</div>
+													<div class="form-group form-group-last row">
+														<div class="col-lg-4">
+															<a href="javascript:;" data-repeater-create="add_client_contact" class="btn btn-bold btn-sm btn-label-brand">
+																<i class="la la-plus"></i> Add
+															</a>
+														</div>
+													</div>
+												</div>
+											</div>
+											
+											<div class="form-group row col-lg-12">
+												<div class="col-md-12">
+													<label>Bank Details:</label>
+												</div>
+												<div class="col-md-3">
+													<label>Name:</label>
+													<div class="kt-input-icon">
+														<input placeholder="Enter Account Name" name="bank_client" id="bank_client" class="form-control" type="text">
+													</div>
+												</div>
+												<div class="col-md-3">
+													<label>Bank:</label>
+													<div class="kt-input-icon">
+														<input placeholder="Enter Bank Name" name="bank_name" id="bank_name" class="form-control" type="text">
+													</div>
+												</div>
+												<div class="col-md-3">
+													<label>Account Number:</label>
+													<div class="kt-input-icon">
+														<input placeholder="Enter Account Number" name="bank_account" id="bank_account" class="form-control" type="text">
+													</div>
+												</div>
+												<div class="col-md-3">
+													<label>IFSC Code:</label>
+													<div class="kt-input-icon">
+														<input placeholder="Enter IFSC Code" name="bank_ifsc" id="bank_ifsc" class="form-control" type="text">
+													</div>
+												</div>
+											</div>
+										</div>
+									<!--end::Form-->
+								</div>
+								<div class="modal-footer">
+									<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+									<button id="dcs_add_client_submit" type="submit" class="btn btn-primary">Save</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</form>
+				<!--end::Client Modal-->
+
+				<!--begin::Supplier Modal-->
+				<form class="kt-form kt-form--label-right" id="dcs_add_supplier">
+					<div class="modal fade" id="kt_modal_supplier" tabindex="-1" role="dialog" aria-labelledby="addSupplierModal" aria-hidden="true">
+						<div class="modal-dialog modal-xl" role="document">
+							<div class="modal-content">
+								<div class="modal-header">
+									<h5 class="modal-title" id="addSupplierModal">Add New Supplier</h5>
+									<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+									</button>
+								</div>
+								<div class="modal-body">
+									<!--begin::Form-->
+										<div class="kt-portlet__body">
+											<div class="form-group row">
+												<div class="col-lg-4">
+													<label>Supplier Name:</label>
+													<div class="kt-input-icon">
+														<input type="text" class="form-control" placeholder="Enter Supplier Name" id="supplier_name" name="supplier_name">
+													</div>
+													<span class="form-text text-muted">Please enter name of the supplier..</span>
+												</div>
+												<div class="col-lg-4">
+													<label>Printed Name:</label>
+													<div class="kt-input-icon">
+														<input type="text" class="form-control" placeholder="Enter Print Name" id="supplier_print_name" name="supplier_print_name">
+													</div>
+													<span class="form-text text-muted">Please enter name to be printed..</span>
+												</div>
+												<div class="col-lg-4">
+													<label class="">Supplier Category:</label><br/>
+													<div class="kt-input-icon">
+														<select class="form-control kt-select2" id="supplier_category" name="supplier_category">
+															<option></option>
+														</select>
+													</div>
+													<span class="form-text text-muted">Please select the appropriate category..</span>
+												</div>
+											</div>
+											<div class="form-group row">
+												<div class="col-lg-3">
+													<label>Address Line 1:</label>
+													<input type="text" class="form-control" placeholder="Enter Address Line 1"  id="supplier_add_1" name="supplier_add_1">
+												</div>
+												<div class="col-lg-3">
+													<label>Address Line 2:</label>
+													<div class="kt-input-icon">
+														<input type="text" class="form-control" placeholder="Enter Address Line 2"  id="supplier_add_2" name="supplier_add_2">
+													</div>
+												</div>
+												<div class="col-lg-3">
+													<label>City:</label>
+													<div class="kt-input-icon">
+														<input type="text" class="form-control" placeholder="Enter City"  id="supplier_city" name="supplier_city">
+													</div>
+												</div>
+												<div class="col-lg-3">
+													<label>Pincode:</label>
+													<div class="kt-input-icon">
+														<input type="text" class="form-control" placeholder="Enter Pincode"  id="supplier_pincode" name="supplier_pincode">
+													</div>
+												</div>
+											</div>
+											<div class="form-group row">
+												<div class="col-lg-3">
+													<label>GSTIN:</label>
+													<div class="kt-input-icon">
+														<input type="text" class="form-control" placeholder="Enter GSTIN"  id="supplier_gstin" name="supplier_gstin" maxlength="15">
+													</div>
+													<!-- <span class="form-text text-muted">Please enter GSTIN of the client..</span> -->
+												</div>
+												<div class="col-lg-3">
+													<label>GSTIN Type:</label>
+													<div class="kt-input-icon">
+														<select class="form-control kt-select2 supplier_gstin_type-select2" id="supplier_gstin_type" name="supplier_gstin_type">
+															<option value="Registered" selected="">Registered(Regular)</option>
+															<option value="Unregistered">Un Registered</option>c
+															<option value="Consumer">Consumer</option>
+															<option value="Composite">Composite</option>
+														</select>
+													</div>
+												</div>
+												<div class="col-lg-3">
+													<label>State:</label>
+													<div class="kt-input-icon">
+														<select class="form-control kt-select2 supplier_state-select2" id="supplier_state" name="supplier_state">
+														</select>
+													</div>
+												</div>
+												<div class="col-lg-3">
+													<label>Country:</label>
+													<div class="kt-input-icon">
+														<input type="text" class="form-control" placeholder="Enter Country"  id="supplier_country" name="supplier_country" value="INDIA">
+													</div>
+												</div>
+											</div>
+											<div class="form-group row">
+												<div class="col-md-12">
+													<label>Contact Persons:</label>
+												</div>
+												<div id="kt_repeater_supplier" class="col-lg-12">
+													<div class="form-group form-group-last row" id="kt_repeater_1">
+														<div data-repeater-list="supplier" class="col-lg-12">
+															<div data-repeater-item class="form-group row align-items-center">
+																<div class="col-md-3">
+																		<input placeholder="Name" name="supplier_person" id="supplier_person" class="form-control" type="text">
+																</div>
+																<div class="col-md-3">
+																		<input placeholder="Designation" name="supplier_designation" id="supplier_designation" class="form-control" type="text">
+																</div>
+																<div class="col-md-2">
+																		<input placeholder="Mobile" name="supplier_mobile" id="supplier_mobile" class="form-control" type="text">
+																</div>
+																<div class="col-md-3">
+																		<input placeholder="Email" name="supplier_email" id="supplier_email" class="form-control" type="text">
+																</div>
+																<div class="col-md-1">
+																	<a href="javascript:;" data-repeater-delete="" class="btn-sm btn btn-label-danger btn-bold">
+																		<i class="la la-trash-o"></i>
+																	</a>
+																</div>
+															</div>
+														</div>
+													</div>
+													<div class="form-group form-group-last row">
+														<div class="col-lg-4">
+															<a href="javascript:;" data-repeater-create="add_supplier_contact" class="btn btn-bold btn-sm btn-label-brand">
+																<i class="la la-plus"></i> Add
+															</a>
+														</div>
+													</div>
+												</div>
+											</div>
+											
+											<div class="form-group row col-lg-12">
+												<div class="col-md-12">
+													<label>Bank Details:</label>
+												</div>
+												<div class="col-md-3">
+													<label>Name:</label>
+													<div class="kt-input-icon">
+														<input placeholder="Enter Account Name" name="bank_supplier" id="bank_supplier" class="form-control" type="text">
+													</div>
+												</div>
+												<div class="col-md-3">
+													<label>Bank:</label>
+													<div class="kt-input-icon">
+														<input placeholder="Enter Bank Name" name="bank_name" id="bank_name" class="form-control" type="text">
+													</div>
+												</div>
+												<div class="col-md-3">
+													<label>Account Number:</label>
+													<div class="kt-input-icon">
+														<input placeholder="Enter Account Number" name="bank_account" id="bank_account" class="form-control" type="text">
+													</div>
+												</div>
+												<div class="col-md-3">
+													<label>IFSC Code:</label>
+													<div class="kt-input-icon">
+														<input placeholder="Enter IFSC Code" name="bank_ifsc" id="bank_ifsc" class="form-control" type="text">
+													</div>
+												</div>
+											</div>
+										</div>
+									<!--end::Form-->
+								</div>
+								<div class="modal-footer">
+									<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+									<button id="dcs_add_supplier_submit" type="submit" class="btn btn-primary">Save</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</form>
+
+
+				<!--end::Supplier Modal-->
+
+				<!--begin::Calculator Modal-->
+				<div class="modal fade" id="kt_modal_calculator" tabindex="-1" role="dialog" aria-labelledby="calculatorModal" aria-hidden="true">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="calculatorModal">Calculator</h5>
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+								</button>
+							</div>
+							<div class="modal-body">
+								<div class="container-calculator">
+
+									  <span class="item item-header" id="currentValue">0</span>
+
+									  <button class="btn-calculator silver clear">AC</button>
+									  <button class="btn-calculator silver negative">+/-</button>
+									  <button class="btn-calculator orange silver">%</button>
+									  <button class="btn-calculator orange">÷</button>
+
+									  <button class="btn-calculator num">7</button>
+									  <button class="btn-calculator num">8</button>
+									  <button class="btn-calculator num">9</button>
+									  <button class="btn-calculator orange">x</button>
+
+									  <button class="btn-calculator num">4</button>
+									  <button class="btn-calculator num">5</button>
+									  <button class="btn-calculator num">6</button>
+									  <button class="btn-calculator orange subtract">-</button>
+
+									  <button class="btn-calculator num">1</button>
+									  <button class="btn-calculator num">2</button>
+									  <button class="btn-calculator num">3</button>
+									  <button class="btn-calculator orange add">+</button>
+
+									  <button class="btn-calculator num zero">0</button>
+									  <button class="btn-calculator num">.</button>
+									  <button class="btn-calculator equals">=</button>
+
+									</div>
+								
+							</div>
+						</div>
+					</div>
+				</div>
+				<!--end::Calculator Modal-->
+
+			</div>
+
+			<?php include("partials/_footer/base.php"); ?>		
+		</div>
+	</div>
+</div>
+<!--begin::Product History Modal-->
+<form class="kt-form kt-form--label-right" id="product_history_form">
+    <div class="modal fade" id="kt_modal_product_history" tabindex="-1" role="dialog" aria-labelledby="productHistoryModal" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="productHistoryModal">Product History</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!--begin::Form-->
+                    <div class="kt-portlet__body">
+                        <div class="form-group row">
+                            <div class="col-lg-6">
+                                <label>Select Product:</label>
+                                <div class="kt-input-icon">
+                                    <select class="form-control kt-select2 history_product-select2" id="history_product" name="history_product">
+                                        <!-- Options will be loaded dynamically via backend -->
+										 <opton></opton>
+                                    </select>
+                                </div>
+                                <span class="form-text text-muted">Please select a product to view its history.</span>
+                            </div>
+                        </div>
+						<!--begin: Datatable -->
+							<div class="kt-datatable" id="product_history_datatable"></div>
+
+								<!--end: Datatable -->
+
+                        
+                    </div>
+                    <!--end::Form-->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<!--end::Product History Modal-->
+
+<!--begin::Client History Modal-->
+<form class="kt-form kt-form--label-right" id="client_history_form">
+    <div class="modal fade" id="kt_modal_client_history" tabindex="-1" role="dialog" aria-labelledby="clientHistoryModal" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="clientHistoryModal">Client History</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!--begin::Form-->
+                    <div class="kt-portlet__body">
+                        <div class="form-group row">
+                            <div class="col-lg-6">
+                                <label>Select Client:</label>
+                                <div class="kt-input-icon">
+                                    <select class="form-control kt-select2 history_client-select2" id="history_client" name="history_client">
+                                        <!-- Options will be loaded dynamically via backend -->
+										<option></option>
+                                    </select>
+                                </div>
+                                <span class="form-text text-muted">Please select a client to view their history.</span>
+                            </div>
+                            <div class="col-lg-6">
+                                <label for="history_client_series">Primary / Secondary:</label>
+                                <select class="form-control" id="history_client_series" name="history_client_series">
+                                    <option value="">All</option>
+                                    <option value="primary">Primary</option>
+                                    <option value="secondary">Secondary</option>
+                                </select>
+                                <span class="form-text text-muted">Filter sales and purchase rows by invoice series.</span>
+                            </div>
+                        </div>
+						<!--begin: Datatable -->
+						<div class="kt-datatable" id="client_history_datatable"></div>
+						<!--end: Datatable -->
+                    </div>
+                    <!--end::Form-->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<!--end::Client History Modal-->
+
+
+<!--begin::Send whatsapp Modal-->
+<form class="kt-form kt-form--label-right" id="send_whatsapp">
+	<div class="modal fade" id="kt_modal_whatsapp" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog modal-lg" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Send Whatsapp</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					</button>
+				</div>
+				<div class="modal-body">
+					<!--begin::Form-->
+						<div class="kt-portlet__body">
+							<div class="form-group row" style="margin-bottom: 0">
+								<div class="col-sm-6">
+	                                <div class="form-group">
+	                                    <label>Mobile No (Separted by comma)</label>
+										<div class="kt-input-icon">
+	                                    	<input name="whatsapp_number" id="whatsapp_number" placeholder="Enter Whatsapp Number(s)" class="form-control" type="text">
+	                                    </div>
+	                                </div>
+	                            </div>
+	                        </div>
+							<div class="form-group row">
+	                                
+								<div class="col-md-12" >
+									<div class="form-group">
+										<label>Message</label>
+										<textarea class="form-control" placeholder="Whatsapp Message" name="whatsapp_message" id="whatsapp_message" rows='15'></textarea>
+									</div>
+								</div>
+	                        </div>
+						</div>
+					<!--end::Form-->
+				</div>
+				<div class="modal-footer">
+					<button id="whatsapp_submit" type="submit" class="btn btn-primary">Send</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</form>
+<!--end::Send whatapp Modal-->
+
+<!-- end:: Page -->
+
+<?php include("partials/_quick-panel.php"); ?>		
+<?php include("partials/_scrolltop.php"); ?>		
+<?php include("partials/_toolbar.php"); ?>		
+<?php //include("partials/_demo-panel.php"); ?>		
+<?php //include("partials/_chat.php"); ?>	
+<script>
+	
+</script>

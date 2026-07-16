@@ -1,0 +1,2 @@
+[18-Feb-2020 06:46:35 Asia/Kolkata] PHP Warning:  mysqli::__construct(): (28000/1045): Access denied for user 'asmaijt9_burhan'@'localhost' (using password: YES) in /home/ammarhm7/public_html/crm/assets/custom/connect.php on line 3
+[08-May-2020 07:02:32 Asia/Kolkata] PHP Warning:  mysqli::__construct(): (28000/1045): Access denied for user 'ammarhm7_burhan'@'localhost' (using password: YES) in /home/ammaryfw/public_html/assets/custom/connect.php on line 3

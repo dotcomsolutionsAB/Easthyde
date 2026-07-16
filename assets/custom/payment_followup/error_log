@@ -1,0 +1,271 @@
+[16-Jul-2020 18:33:23 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 18:33:23 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function query() on null in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php:31
+Stack trace:
+#0 {main}
+  thrown in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 31
+[16-Jul-2020 18:33:38 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 18:33:38 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function query() on null in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php:31
+Stack trace:
+#0 {main}
+  thrown in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 31
+[16-Jul-2020 18:35:20 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 18:35:20 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function query() on null in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php:31
+Stack trace:
+#0 {main}
+  thrown in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 31
+[16-Jul-2020 18:36:02 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 18:36:27 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 18:36:57 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 18:37:41 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 18:37:52 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 18:40:02 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 18:40:06 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 18:40:20 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 18:40:22 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 18:40:24 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 18:41:26 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 18:41:33 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 18:41:34 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 18:47:31 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 18:47:31 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php:32
+Stack trace:
+#0 {main}
+  thrown in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 32
+[16-Jul-2020 18:47:39 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 18:47:39 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php:32
+Stack trace:
+#0 {main}
+  thrown in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 32
+[16-Jul-2020 18:47:50 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 18:47:50 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php:32
+Stack trace:
+#0 {main}
+  thrown in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 32
+[16-Jul-2020 18:48:35 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 18:48:35 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php:32
+Stack trace:
+#0 {main}
+  thrown in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 32
+[16-Jul-2020 18:49:00 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 18:49:38 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 18:50:09 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 18:51:15 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 18:51:15 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php:32
+Stack trace:
+#0 {main}
+  thrown in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 32
+[16-Jul-2020 18:51:38 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 18:51:38 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php:32
+Stack trace:
+#0 {main}
+  thrown in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 32
+[16-Jul-2020 18:52:07 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 18:52:07 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php:32
+Stack trace:
+#0 {main}
+  thrown in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 32
+[16-Jul-2020 20:02:19 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 20:02:19 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php:32
+Stack trace:
+#0 {main}
+  thrown in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 32
+[16-Jul-2020 20:04:26 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 20:04:26 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php:32
+Stack trace:
+#0 {main}
+  thrown in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 32
+[16-Jul-2020 20:04:48 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 20:04:48 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php:32
+Stack trace:
+#0 {main}
+  thrown in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 32
+[16-Jul-2020 20:04:59 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 20:04:59 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php:32
+Stack trace:
+#0 {main}
+  thrown in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 32
+[16-Jul-2020 20:06:25 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 9
+[16-Jul-2020 20:06:25 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php:33
+Stack trace:
+#0 {main}
+  thrown in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 33
+[16-Jul-2020 20:07:51 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php:34
+Stack trace:
+#0 {main}
+  thrown in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 34
+[16-Jul-2020 20:09:35 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php:34
+Stack trace:
+#0 {main}
+  thrown in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 34
+[16-Jul-2020 20:09:49 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php:34
+Stack trace:
+#0 {main}
+  thrown in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 34
+[16-Jul-2020 20:10:07 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php:34
+Stack trace:
+#0 {main}
+  thrown in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 34
+[16-Jul-2020 20:12:01 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php:34
+Stack trace:
+#0 {main}
+  thrown in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 34
+[16-Jul-2020 20:12:46 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php:34
+Stack trace:
+#0 {main}
+  thrown in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 34
+[16-Jul-2020 20:17:28 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php:19
+Stack trace:
+#0 {main}
+  thrown in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 19
+[16-Jul-2020 20:19:50 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php:19
+Stack trace:
+#0 {main}
+  thrown in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 19
+[16-Jul-2020 20:21:02 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php:19
+Stack trace:
+#0 {main}
+  thrown in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 19
+[04-Aug-2020 11:12:35 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Aug-2020 11:21:04 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Aug-2020 17:11:34 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Aug-2020 22:05:54 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[05-Aug-2020 10:54:06 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[05-Aug-2020 11:32:43 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[05-Aug-2020 19:41:41 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[05-Aug-2020 20:16:29 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[07-Aug-2020 16:51:51 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[08-Aug-2020 19:35:42 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[09-Aug-2020 13:18:08 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[10-Aug-2020 18:06:58 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[11-Aug-2020 16:46:11 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[11-Aug-2020 18:17:43 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[14-Aug-2020 16:49:51 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[14-Aug-2020 18:32:44 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[14-Aug-2020 18:33:57 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[14-Aug-2020 18:34:19 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[15-Aug-2020 09:39:46 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[15-Aug-2020 09:57:45 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[15-Aug-2020 09:58:50 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[15-Aug-2020 10:27:27 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[15-Aug-2020 15:18:13 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[23-Aug-2020 11:54:32 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[25-Aug-2020 15:06:20 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[26-Aug-2020 09:28:09 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 07:28:34 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 07:29:20 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 07:31:59 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 07:32:18 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 07:44:36 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 07:45:29 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 07:47:43 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 07:50:25 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 07:51:29 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 07:51:49 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 07:52:27 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 07:53:11 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 07:53:25 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 07:53:55 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 07:54:31 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 07:56:39 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:02:26 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:04:52 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:10:54 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:13:52 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:14:18 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:15:21 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:15:42 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:16:49 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:18:52 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:19:22 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:22:10 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:24:21 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:26:07 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:26:47 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:27:12 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:28:08 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:28:45 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:29:40 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:30:00 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:31:13 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:32:24 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:32:51 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:33:26 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:34:13 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:34:51 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:35:04 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:41:17 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:42:34 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:45:07 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:48:24 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:48:57 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:49:17 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:49:52 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:50:33 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:51:14 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:51:31 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:52:02 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:52:45 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:53:44 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 08:53:49 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 11:57:09 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[04-Sep-2020 13:09:01 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[05-Sep-2020 08:15:54 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[05-Sep-2020 08:16:55 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[05-Sep-2020 08:17:21 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[05-Sep-2020 08:18:01 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[05-Sep-2020 08:18:26 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[05-Sep-2020 08:20:20 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[05-Sep-2020 08:20:55 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[05-Sep-2020 08:21:36 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[05-Sep-2020 08:21:46 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[05-Sep-2020 08:22:28 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[05-Sep-2020 08:23:48 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[05-Sep-2020 08:24:08 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[05-Sep-2020 08:24:32 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[05-Sep-2020 08:27:25 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[05-Sep-2020 15:53:09 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[05-Sep-2020 15:56:35 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 13:38:21 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 13:41:35 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 13:44:03 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 13:45:51 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 13:46:34 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 13:48:53 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 13:50:41 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 13:50:58 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 13:54:00 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 13:55:30 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 13:56:47 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 14:02:04 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 14:04:51 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 14:10:11 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 15:47:49 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 15:49:01 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 15:50:16 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 15:51:31 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 15:51:55 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 15:53:11 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 15:54:38 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 15:56:07 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 15:58:52 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 16:00:03 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 16:01:40 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 16:04:28 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[12-Sep-2020 16:38:41 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[16-Sep-2020 15:09:26 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[16-Sep-2020 15:10:49 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[16-Sep-2020 15:11:44 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[19-Sep-2020 12:16:54 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[19-Sep-2020 15:49:54 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[26-Sep-2020 15:30:44 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[26-Sep-2020 15:31:20 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[26-Sep-2020 15:31:51 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[26-Sep-2020 15:32:32 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[26-Sep-2020 15:51:58 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[26-Sep-2020 16:00:21 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[26-Sep-2020 16:07:23 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[26-Sep-2020 16:10:05 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[26-Sep-2020 16:16:09 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[26-Sep-2020 16:21:11 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[26-Sep-2020 16:21:56 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
+[26-Sep-2020 16:23:04 Asia/Kolkata] PHP Warning:  Illegal string offset 'generalSearch' in /home/ammaryfw/public_html/assets/custom/payment_followup/retrieve.php on line 10
