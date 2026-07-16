@@ -73,27 +73,27 @@ $total_sgst = 0;
 $total_igst = 0;
 $grand_total = 0;
 
+if ($query) {
 while ($row = $query->fetch_assoc()) {
-    $invoice = $row['pi_no'];
-    $invoice_pno = $row['spi_no']; // Supplier Invoice No.
-    $supplier = $row['supplier_name'];
-    $invoice_date = date('Y-m-d', strtotime($row['pi_date']));
+    $invoice = $row['pi_no'] ?? '';
+    $invoice_pno = $row['spi_no'] ?? ''; // Supplier Invoice No.
+    $supplier = $row['supplier_name'] ?? '';
+    $invoice_date = !empty($row['pi_date']) ? date('Y-m-d', strtotime($row['pi_date'])) : '';
 
     // Fetch supplier details
     $sql_pull = "SELECT * FROM suppliers WHERE name = '$supplier'";
     $query_pull = $db->query($sql_pull);
-    $row_pull = $query_pull->fetch_assoc();
-
-    $state = $row_pull['state'];
-    $gstin = $row_pull['gstin'];
+    $row_pull = ($query_pull && ($tmp = $query_pull->fetch_assoc())) ? $tmp : [];
+    $state = $row_pull['state'] ?? '';
+    $gstin = $row_pull['gstin'] ?? '';
 
     // Decode items and addons
-    $item_details = json_decode($row['items'], true);
-    $addons = json_decode($row['addons'], true);
+    $item_details = json_decode($row['items'], true) ?: [];
+    $addons = json_decode($row['addons'], true) ?: [];
 
     // HSN-wise breakdown
     $hsn_data = [];
-    foreach ($item_details['product'] as $index => $product) {
+    foreach (($item_details['product'] ?? []) as $index => $product) {
         $hsn_code = $item_details['hsn'][$index] ?? '';
         $quantity = $item_details['quantity'][$index] ?? 0;
         $rate = $item_details['price'][$index] ?? 0;
@@ -168,6 +168,7 @@ while ($row = $query->fetch_assoc()) {
     }
 
     $sn++;
+}
 }
 
 // Add totals row

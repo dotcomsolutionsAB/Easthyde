@@ -79,22 +79,23 @@ $total_sgst = 0;
 $total_igst = 0;
 $grand_total = 0;
 
+if ($query) {
 while ($row = $query->fetch_assoc()) {
-    $invoice = $row['si_no'];
-    $client = $row['client_name'];
-    $invoice_date = date('Y-m-d', strtotime($row['si_date']));
+    $invoice = $row['si_no'] ?? '';
+    $client = $row['client_name'] ?? '';
+    $invoice_date = !empty($row['si_date']) ? date('Y-m-d', strtotime($row['si_date'])) : '';
     $total_invoice = $row['total']; // Total amount for the invoice (inclusive of GST)
-    $state = $row['state']; // Fetch the state from the invoice table
+    $state = $row['state'] ?? ''; // Fetch the state from the invoice table
 
     // Fetch client details to get GSTIN
     $sql_pull = "SELECT gstin FROM clients WHERE name = '$client'";
     $query_pull = $db->query($sql_pull);
-    $row_pull = $query_pull->fetch_assoc();
-    $gstin = $row_pull['gstin'];
+    $row_pull = ($query_pull && ($tmp = $query_pull->fetch_assoc())) ? $tmp : [];
+    $gstin = $row_pull['gstin'] ?? '';
 
     // Decode the 'items' JSON for multiple HSN codes and their breakdown
-    $item_details = json_decode($row['items'], true);
-    $l = sizeof($item_details['product']); // Number of products in the invoice
+    $item_details = json_decode($row['items'], true) ?: [];
+    $l = sizeof($item_details['product'] ?? []); // Number of products in the invoice
 
     // Combine amounts and GST for similar HSNs
     $hsn_data = [];
@@ -166,6 +167,7 @@ while ($row = $query->fetch_assoc()) {
     }
 
     $sn++; // Increment serial number for each invoice
+}
 }
 
 // Add totals row

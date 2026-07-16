@@ -64,26 +64,27 @@ if ($isAll) {
 $query = $db->query($sql);
 
 // Loop through the query results and write data to the Excel file
+if ($query) {
 while ($row = $query->fetch_assoc()) {
-    $receipt = $row['r_no'];
+    $receipt = $row['r_no'] ?? '';
 
-    $si_arr = json_decode($row['sales_invoice'], true);
-    $l = sizeof($si_arr['si_no']);
+    $si_arr = json_decode($row['sales_invoice'], true) ?: [];
+    $l = sizeof($si_arr['si_no'] ?? []);
     $si_nos = "";
     for ($i = 0; $i < $l; $i++) {
-        $si_nos .= $si_arr['si_no'][$i] . ', ';
+        $si_nos .= ($si_arr['si_no'][$i] ?? '') . ', ';
     }
     $si_nos = rtrim($si_nos, ', ');
 
     $invoice = $si_nos;
-    $client = htmlspecialchars($row['client'], ENT_QUOTES, 'UTF-8');
-    $amount = number_format((float)$row['amount'], 2, '.', ''); // Format amount to 2 decimal places
-    $date = date('d-m-Y', strtotime($row['date'])); // Format date as dd-mm-yyyy
-    $account = $row['account'];
-    $mode = $row['mode'];
-    $instrument = $row['instrument'];
-    $bank = htmlspecialchars($row['bank_name'], ENT_QUOTES, 'UTF-8');
-    $insdate = date('d-m-Y', strtotime($row['ins_date']));
+    $client = htmlspecialchars((string)($row['client'] ?? ''), ENT_QUOTES, 'UTF-8');
+    $amount = number_format((float)($row['amount'] ?? 0), 2, '.', ''); // Format amount to 2 decimal places
+    $date = !empty($row['date']) ? date('d-m-Y', strtotime($row['date'])) : ''; // Format date as dd-mm-yyyy
+    $account = $row['account'] ?? '';
+    $mode = $row['mode'] ?? '';
+    $instrument = $row['instrument'] ?? '';
+    $bank = htmlspecialchars((string)($row['bank_name'] ?? ''), ENT_QUOTES, 'UTF-8');
+    $insdate = !empty($row['ins_date']) ? date('d-m-Y', strtotime($row['ins_date'])) : '';
 
     // Populate rows in the spreadsheet
     $sheet->setCellValue("A$rowNum", $receipt);
@@ -99,6 +100,7 @@ while ($row = $query->fetch_assoc()) {
     $sheet->setCellValue("J$rowNum", $insdate);
 
     $rowNum++;
+}
 }
 
 // Save the Excel file

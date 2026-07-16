@@ -4,11 +4,7 @@ require '../../vendor/autoload.php';
 require_once "../connect.php";
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Reader\IReader;
-use PhpOffice\PhpSpreadsheet\Writer\IWriter;
 
 $spreadsheet = new Spreadsheet();
 $sheet = $spreadsheet->getActiveSheet();
@@ -24,51 +20,41 @@ $sheet->setCellValue('H1', 'City');
 $sheet->setCellValue('I1', 'State');
 $sheet->setCellValue('J1', 'GSTIN');
 
-$ex_row=2;
-$i=1;
-
-
+$ex_row = 2;
+$i = 1;
 
 $sql_main = "SELECT * FROM clients";
 $query_main = $db->query($sql_main);
-while($row_main = $query_main->fetch_assoc())
-{
+if ($query_main) {
+	while ($row_main = $query_main->fetch_assoc()) {
+		$add = json_decode($row_main['address'] ?? '', true);
+		if (!is_array($add)) {
+			$add = [];
+		}
 
-	$add = json_decode($row_main['address'], true);
-
-
-	$tmp = 'A'.$ex_row;
-	$sheet->setCellValue($tmp, $i);
-	$tmp = 'B'.$ex_row;
-	$sheet->setCellValue($tmp, $row_main['name']);
-	$tmp = 'C'.$ex_row;
-	$sheet->setCellValue($tmp, $row_main['print_name']);
-	$tmp = 'D'.$ex_row;
-	$sheet->setCellValue($tmp, $row_main['type']);
-	$tmp = 'E'.$ex_row;
-	$sheet->setCellValue($tmp, $add['address1']);
-	$tmp = 'F'.$ex_row;
-	$sheet->setCellValue($tmp, $add['address2']);
-	$tmp = 'G'.$ex_row;
-	$sheet->setCellValue($tmp, $add['address3']);
-	$tmp = 'H'.$ex_row;
-	$sheet->setCellValue($tmp, '');
-	$tmp = 'I'.$ex_row;
-	$sheet->setCellValue($tmp, $row_main['state']);
-	$tmp = 'J'.$ex_row;
-	$sheet->setCellValue($tmp, $row_main['gstin']);
-	$ex_row++;
-	$i++;
-}
-foreach(range('A','J') as $columnID) {
-    $sheet->getColumnDimension($columnID)->setAutoSize(true);
+		$sheet->setCellValue('A' . $ex_row, $i);
+		$sheet->setCellValue('B' . $ex_row, $row_main['name'] ?? '');
+		$sheet->setCellValue('C' . $ex_row, $row_main['print_name'] ?? '');
+		$sheet->setCellValue('D' . $ex_row, $row_main['type'] ?? '');
+		$sheet->setCellValue('E' . $ex_row, $add['address1'] ?? ($add['address_1'] ?? ''));
+		$sheet->setCellValue('F' . $ex_row, $add['address2'] ?? ($add['address_2'] ?? ''));
+		$sheet->setCellValue('G' . $ex_row, $add['address3'] ?? ($add['pincode'] ?? ''));
+		$sheet->setCellValue('H' . $ex_row, $add['city'] ?? '');
+		$sheet->setCellValue('I' . $ex_row, $row_main['state'] ?? '');
+		$sheet->setCellValue('J' . $ex_row, $row_main['gstin'] ?? '');
+		$ex_row++;
+		$i++;
+	}
 }
 
-$writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+foreach (range('A', 'J') as $columnID) {
+	$sheet->getColumnDimension($columnID)->setAutoSize(true);
+}
+
+$writer = new Xlsx($spreadsheet);
 $writer->save('export.xlsx');
 header('Content-Type: application/vnd.ms-excel');
 header('Content-Disposition: attachment; filename="clients.xlsx"');
 $writer->save("php://output");
 exit;
-
-?> 
+?>

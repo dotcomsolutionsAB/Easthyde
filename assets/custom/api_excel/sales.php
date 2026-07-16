@@ -81,103 +81,101 @@ $total_igst = 0;
 $grand_total = 0;
 $total_discount = 0;
 
+if ($query) {
 while ($row = $query->fetch_assoc()) {
-    $invoice = $row['si_no'];
-    $client = $row['client_name'];
-    $invoice_date = date('Y-m-d', strtotime($row['si_date']));
+    $invoice = $row['si_no'] ?? '';
+    $client = $row['client_name'] ?? '';
+    $invoice_date = !empty($row['si_date']) ? date('Y-m-d', strtotime($row['si_date'])) : '';
     $total_invoice = $row['total']; // Total amount for the invoice (inclusive of GST)
-    $state = $row['state']; // Fetch the state from the invoice table
+    $state = $row['state'] ?? ''; // Fetch the state from the invoice table
 
     // Fetch client details to get GSTIN
     $sql_pull = "SELECT gstin FROM clients WHERE name = '$client'";
     $query_pull = $db->query($sql_pull);
-    $row_pull = $query_pull->fetch_assoc();
-    $gstin = $row_pull['gstin'];
+    $row_pull = ($query_pull && ($tmp = $query_pull->fetch_assoc())) ? $tmp : [];
+    $gstin = $row_pull['gstin'] ?? '';
 
     // Decode the 'items' JSON for multiple HSN codes and their breakdown
-    $item_details = json_decode($row['items'], true);
-    $l = sizeof($item_details['product']); // Number of products in the invoice
+    $item_details = json_decode($row['items'], true) ?: [];
+    $l = sizeof($item_details['product'] ?? []); // Number of products in the invoice
 
     // Combine amounts and GST for similar HSNs
     $hsn_data = [];
 
     for ($i = 0; $i < $l; $i++) {
-       // Iterate over items in the invoice to process each HSN code
-for ($i = 0; $i < $l; $i++) {
-    $hsn_code = isset($item_details['hsn'][$i]) ? $item_details['hsn'][$i] : '';
-    $quantity = isset($item_details['quantity'][$i]) ? $item_details['quantity'][$i] : 0;
-    $rate = isset($item_details['price'][$i]) ? $item_details['price'][$i] : 0;
-    $discount_percent = isset($item_details['discount'][$i]) ? (float)$item_details['discount'][$i] : 0;
+        $hsn_code = isset($item_details['hsn'][$i]) ? $item_details['hsn'][$i] : '';
+        $quantity = isset($item_details['quantity'][$i]) ? $item_details['quantity'][$i] : 0;
+        $rate = isset($item_details['price'][$i]) ? $item_details['price'][$i] : 0;
+        $discount_percent = isset($item_details['discount'][$i]) ? (float)$item_details['discount'][$i] : 0;
 
-    // Calculate discount amount as a percentage of rate
-    $discount_amount = $rate * ($discount_percent / 100);
+        // Calculate discount amount as a percentage of rate
+        $discount_amount = $rate * ($discount_percent / 100);
 
-    // Calculate the amount after applying the discount and multiply by quantity
-    $amount_excl_gst = $quantity * ($rate - $discount_amount);
+        // Calculate the amount after applying the discount and multiply by quantity
+        $amount_excl_gst = $quantity * ($rate - $discount_amount);
 
-    $cgst = isset($item_details['cgst'][$i]) ? round($item_details['cgst'][$i], 2) : 0;
-    $sgst = isset($item_details['sgst'][$i]) ? round($item_details['sgst'][$i], 2) : 0;
-    $igst = isset($item_details['igst'][$i]) ? round($item_details['igst'][$i], 2) : 0;
+        $cgst = isset($item_details['cgst'][$i]) ? round($item_details['cgst'][$i], 2) : 0;
+        $sgst = isset($item_details['sgst'][$i]) ? round($item_details['sgst'][$i], 2) : 0;
+        $igst = isset($item_details['igst'][$i]) ? round($item_details['igst'][$i], 2) : 0;
 
-    // If HSN already exists, sum the values
-    if (isset($hsn_data[$hsn_code])) {
-        $hsn_data[$hsn_code]['amount'] += $amount_excl_gst;
-        $hsn_data[$hsn_code]['cgst'] += $cgst;
-        $hsn_data[$hsn_code]['sgst'] += $sgst;
-        $hsn_data[$hsn_code]['igst'] += $igst;
-    } else {
-        // If HSN is new, add it to the data array
-        $hsn_data[$hsn_code] = [
-            'amount' => $amount_excl_gst,
-            'cgst' => $cgst,
-            'sgst' => $sgst,
-            'igst' => $igst
-        ];
+        // If HSN already exists, sum the values
+        if (isset($hsn_data[$hsn_code])) {
+            $hsn_data[$hsn_code]['amount'] += $amount_excl_gst;
+            $hsn_data[$hsn_code]['cgst'] += $cgst;
+            $hsn_data[$hsn_code]['sgst'] += $sgst;
+            $hsn_data[$hsn_code]['igst'] += $igst;
+        } else {
+            // If HSN is new, add it to the data array
+            $hsn_data[$hsn_code] = [
+                'amount' => $amount_excl_gst,
+                'cgst' => $cgst,
+                'sgst' => $sgst,
+                'igst' => $igst
+            ];
+        }
     }
-}
-}
-
 
     // Write data to the spreadsheet
-$first_row = true; // Flag to track the first row for each invoice
-foreach ($hsn_data as $hsn_code => $data) {
-    // Calculate the total amount including GST
-    $total_with_gst = $data['amount'] + $data['cgst'] + $data['sgst'] + $data['igst'];
+    $first_row = true; // Flag to track the first row for each invoice
+    foreach ($hsn_data as $hsn_code => $data) {
+        // Calculate the total amount including GST
+        $total_with_gst = $data['amount'] + $data['cgst'] + $data['sgst'] + $data['igst'];
 
-    // Only fill the first row with invoice details, skip for subsequent rows
-    if ($first_row) {
-        $sheet->setCellValue('A' . $rowIndex, $sn) // Serial number
-              ->setCellValue('B' . $rowIndex, $invoice)
-              ->setCellValue('C' . $rowIndex, $invoice_date)
-              ->setCellValue('D' . $rowIndex, $client)
-              ->setCellValue('E' . $rowIndex, $state)
-              ->setCellValue('F' . $rowIndex, $hsn_code)
-              ->setCellValue('G' . $rowIndex, $gstin)
-              ->setCellValueExplicit('H' . $rowIndex, $data['amount'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC)
-              ->setCellValueExplicit('I' . $rowIndex, $data['cgst'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC)
-              ->setCellValueExplicit('J' . $rowIndex, $data['sgst'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC)
-              ->setCellValueExplicit('K' . $rowIndex, $data['igst'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC)
-              ->setCellValueExplicit('L' . $rowIndex, round($total_with_gst, 2), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC);
+        // Only fill the first row with invoice details, skip for subsequent rows
+        if ($first_row) {
+            $sheet->setCellValue('A' . $rowIndex, $sn) // Serial number
+                  ->setCellValue('B' . $rowIndex, $invoice)
+                  ->setCellValue('C' . $rowIndex, $invoice_date)
+                  ->setCellValue('D' . $rowIndex, $client)
+                  ->setCellValue('E' . $rowIndex, $state)
+                  ->setCellValue('F' . $rowIndex, $hsn_code)
+                  ->setCellValue('G' . $rowIndex, $gstin)
+                  ->setCellValueExplicit('H' . $rowIndex, $data['amount'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC)
+                  ->setCellValueExplicit('I' . $rowIndex, $data['cgst'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC)
+                  ->setCellValueExplicit('J' . $rowIndex, $data['sgst'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC)
+                  ->setCellValueExplicit('K' . $rowIndex, $data['igst'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC)
+                  ->setCellValueExplicit('L' . $rowIndex, round($total_with_gst, 2), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC);
 
-        $first_row = false; // Subsequent rows for this invoice will skip redundant details
-    } else {
-        // Only display HSN and amount details for additional rows of the same invoice
-        $sheet->setCellValue('F' . $rowIndex, $hsn_code)
-              ->setCellValueExplicit('H' . $rowIndex, $data['amount'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC)
-              ->setCellValueExplicit('I' . $rowIndex, $data['cgst'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC)
-              ->setCellValueExplicit('J' . $rowIndex, $data['sgst'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC)
-              ->setCellValueExplicit('K' . $rowIndex, $data['igst'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC)
-              ->setCellValueExplicit('L' . $rowIndex, round($total_with_gst, 2), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC);
+            $first_row = false; // Subsequent rows for this invoice will skip redundant details
+        } else {
+            // Only display HSN and amount details for additional rows of the same invoice
+            $sheet->setCellValue('F' . $rowIndex, $hsn_code)
+                  ->setCellValueExplicit('H' . $rowIndex, $data['amount'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC)
+                  ->setCellValueExplicit('I' . $rowIndex, $data['cgst'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC)
+                  ->setCellValueExplicit('J' . $rowIndex, $data['sgst'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC)
+                  ->setCellValueExplicit('K' . $rowIndex, $data['igst'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC)
+                  ->setCellValueExplicit('L' . $rowIndex, round($total_with_gst, 2), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC);
+        }
+
+        // Accumulate totals for each column
+        $total_amount += $data['amount'];
+        $total_cgst += $data['cgst'];
+        $total_sgst += $data['sgst'];
+        $total_igst += $data['igst'];
+        $grand_total += $total_with_gst;
+
+        $rowIndex++; // Move to the next row
     }
-
-    // Accumulate totals for each column
-    $total_amount += $data['amount'];
-    $total_cgst += $data['cgst'];
-    $total_sgst += $data['sgst'];
-    $total_igst += $data['igst'];
-    $grand_total += $total_with_gst;
-
-    $rowIndex++; // Move to the next row
 }
 }
 // Add totals row at the end of the sheet
