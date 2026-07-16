@@ -1,14 +1,53 @@
 
 
 <?php
-// error_reporting(E_ALL); 
-// ini_set('display_errors', 1);
-// ini_set('display_errors', 1);
+// TEMP DEBUG — remove after sales print is fixed
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+ini_set('html_errors', '1');
+
+register_shutdown_function(function () {
+	$err = error_get_last();
+	if ($err && in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR], true)) {
+		if (!headers_sent()) {
+			header('Content-Type: text/html; charset=UTF-8');
+		}
+		echo '<pre style="color:#b00020;background:#fff3f3;padding:12px;border:1px solid #f5c2c7;white-space:pre-wrap;">';
+		echo "FATAL ERROR\n";
+		echo htmlspecialchars($err['message'] ?? '', ENT_QUOTES, 'UTF-8') . "\n";
+		echo 'File: ' . htmlspecialchars($err['file'] ?? '', ENT_QUOTES, 'UTF-8') . "\n";
+		echo 'Line: ' . htmlspecialchars((string)($err['line'] ?? ''), ENT_QUOTES, 'UTF-8') . "\n";
+		echo '</pre>';
+	}
+});
+
+set_exception_handler(function ($e) {
+	if (!headers_sent()) {
+		header('Content-Type: text/html; charset=UTF-8');
+	}
+	echo '<pre style="color:#b00020;background:#fff3f3;padding:12px;border:1px solid #f5c2c7;white-space:pre-wrap;">';
+	echo "UNCAUGHT EXCEPTION\n";
+	echo htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8') . "\n";
+	echo 'File: ' . htmlspecialchars($e->getFile(), ENT_QUOTES, 'UTF-8') . "\n";
+	echo 'Line: ' . $e->getLine() . "\n\n";
+	echo htmlspecialchars($e->getTraceAsString(), ENT_QUOTES, 'UTF-8');
+	echo '</pre>';
+});
 
 require('pdf_js.php');
 include ("connect.php");
 session_start();
 setlocale(LC_MONETARY, 'en_IN');
+
+// Visible breadcrumb so we know the updated file is live
+if (isset($_GET['debug']) || isset($_REQUEST['debug'])) {
+	echo '<pre>sales_print.php debug bootstrap OK\n';
+	echo 'PHP: ' . PHP_VERSION . "\n";
+	echo 'REQUEST id=' . htmlspecialchars((string)($_REQUEST['id'] ?? ''), ENT_QUOTES, 'UTF-8') . "\n";
+	echo 'REQUEST type=' . htmlspecialchars((string)($_REQUEST['type'] ?? ''), ENT_QUOTES, 'UTF-8') . "\n";
+	echo '</pre>';
+}
 
 
 class PDF_AutoPrint extends PDF_JavaScript
