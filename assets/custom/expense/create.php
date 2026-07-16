@@ -6,16 +6,16 @@ include ("../php_replace_improper.php");
 session_start();
 
 // Assume the username comes from a session
-$log_user = $_SESSION['username'];
+$log_user = $_SESSION['username'] ?? '';
 
 // Retrieve form data
 $id = isset($_POST['id']) ? replace_improper($_POST['id']) : ''; // Optional ID for edit functionality
-$description = replace_improper($_POST['description']);
-$amount = replace_improper($_POST['amount']);
-$bank = replace_improper($_POST['bank']);
-$category = replace_improper($_POST['category']);
-$date = replace_improper($_POST['date']);
-$date = date('Y-m-d', strtotime($date)); // Convert to database date format
+$description = replace_improper($_POST['description'] ?? '');
+$amount = replace_improper($_POST['amount'] ?? '');
+$bank = replace_improper($_POST['bank'] ?? '');
+$category = replace_improper($_POST['category'] ?? '');
+$date_raw = $_POST['date'] ?? '';
+$date = ($date_raw !== '') ? date('Y-m-d', strtotime((string)$date_raw)) : '';
 
 // Initialize the response array
 $validator = array("success" => false, "messages" => "There was some error saving the record");

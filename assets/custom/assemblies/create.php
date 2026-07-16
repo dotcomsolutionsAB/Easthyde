@@ -4,11 +4,11 @@
 
     session_start();
 
-    $array = $_REQUEST['assemblies'];
+    $array = $_REQUEST['assemblies'] ?? [];
     $l = sizeof($array);
 
-    $composite = replace_improper($_REQUEST['composite_product_2']);
-    $log_user = $_SESSION['username'];
+    $composite = replace_improper($_REQUEST['composite_product_2'] ?? '');
+    $log_user = $_SESSION['username'] ?? '';
     $log_date = date('Y-m-d', strtotime("today"));
     $validator = array("success"=>true, "messages"=>"There was some error saving the records");
 
@@ -20,7 +20,7 @@
             $pr = $array[$i]['e_product_name'];
             $sql_temp = "SELECT * FROM product WHERE name = '$pr'";
             $query_temp = $db->query($sql_temp);
-            $row_temp = $query_temp->fetch_assoc();
+            $row_temp = ($query_temp && $query_temp->num_rows > 0) ? $query_temp->fetch_assoc() : null;
 
             $spares['product'][] =replace_improper($array[$i]['a_product_name']);
             $spares['quantity'][] = replace_improper($array[$i]['a_qty']);

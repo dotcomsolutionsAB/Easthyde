@@ -6,14 +6,16 @@
 
     $validator = array("success"=>true, "messages"=>"There was some error saving the records", "q_no"=>"");
 
-    $id = $_REQUEST['journal_edit_id'];
+    $id = $_REQUEST['journal_edit_id'] ?? '';
+    $quotation_no = $_REQUEST['quotation_no'] ?? '';
 
-    $log_user = $_SESSION['username'];
+    $log_user = $_SESSION['username'] ?? '';
     $log_date = date('Y-m-d', strtotime("today"));
 
-    $date = date('Y-m-d', strtotime($_REQUEST['journal_date']));
+    $journal_date_raw = $_REQUEST['journal_date'] ?? '';
+    $date = ($journal_date_raw !== '') ? date('Y-m-d', strtotime((string)$journal_date_raw)) : '';
     
-    $array = $_REQUEST['journal'];
+    $array = $_REQUEST['journal'] ?? [];
     $l = sizeof($array);
 
     $items=array();

@@ -2,17 +2,20 @@
     include ("../connect.php");
     include ("../php_replace_improper.php");
     session_start();
-	$log_user       = $_SESSION['username'];
-    $log_date       = date('Y-m-d', strtotime($_REQUEST['assembly_date']));
+	$log_user       = $_SESSION['username'] ?? '';
+    $assembly_date_raw = $_REQUEST['assembly_date'] ?? '';
+    $log_date       = ($assembly_date_raw !== '') ? date('Y-m-d', strtotime((string)$assembly_date_raw)) : '';
     $validator      = array("success"=>true, "messages"=>"There was some error saving the records");
-    $edit_as_id     = $_REQUEST['edit_as_id'];
+    $edit_as_id     = $_REQUEST['edit_as_id'] ?? '';
 
-	$composite      = $_REQUEST['composite_product'];
-    $quantity       = $_REQUEST['composite_qty'];
-    $operation      = $_REQUEST['as_type'];
+	$composite      = $_REQUEST['composite_product'] ?? '';
+    $quantity       = $_REQUEST['composite_qty'] ?? '';
+    $operation      = $_REQUEST['as_type'] ?? '';
 
-	$array      = $_REQUEST['assembly'];
+	$array      = $_REQUEST['assembly'] ?? [];
     $l          = sizeof($array);
+
+    $items = array('product'=>array(),'quantity'=>array(),'place'=>array());
 
     for($i=0;$i<$l;$i++){
         if($array[$i]['as_product_name'] != '' && $array[$i]['as_qty'] != ''){

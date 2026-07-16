@@ -4,21 +4,41 @@
 
     session_start();
 
-    $so_id = $_REQUEST['member_id'];
-    $log_user = $_SESSION['username'];
+    $validator = array("success"=>true, "messages"=>"There was some error saving the records", "so"=>"");
+
+    $so_id = $_REQUEST['member_id'] ?? '';
+    $log_user = $_SESSION['username'] ?? '';
     $log_date = date('Y-m-d', strtotime("today"));
 
     $sql_counter = "SELECT * FROM counter WHERE `key` = 'proforma'";
     $query_counter = $db->query($sql_counter);
-    $row_counter = $query_counter -> fetch_assoc();
-    $row_counter_arr = json_decode($row_counter['value'], true);
+    if (!$query_counter || $query_counter->num_rows === 0) {
+        $validator['success'] = false;
+        $validator['messages'] = "Counter not found";
+        echo json_encode($validator);
+        exit;
+    }
+    $row_counter = $query_counter->fetch_assoc();
+    $row_counter_arr = json_decode($row_counter['value'] ?? '', true);
+    if (!is_array($row_counter_arr) || !isset($row_counter_arr['prefix'][0], $row_counter_arr['number'][0], $row_counter_arr['postfix'][0])) {
+        $validator['success'] = false;
+        $validator['messages'] = "Counter not found";
+        echo json_encode($validator);
+        exit;
+    }
 
     $order_no = $row_counter_arr['prefix'][0].str_pad($row_counter_arr['number'][0],3,'0', STR_PAD_LEFT).$row_counter_arr['postfix'][0];
     $row_counter_arr['number'][0] = $row_counter_arr['number'][0] + 1;
 
     $sql_fetch = "SELECT * FROM sales_order WHERE so_no = '$so_id'";
     $query_fetch = $db->query($sql_fetch);
-    $row_fetch = $query_fetch->fetch_assoc();
+    $row_fetch = ($query_fetch && ($tmp = $query_fetch->fetch_assoc())) ? $tmp : null;
+    if (!$row_fetch) {
+        $validator['success'] = false;
+        $validator['messages'] = "Record not found";
+        echo json_encode($validator);
+        exit;
+    }
 
     $client         = $row_fetch['client_name'];
     $order_no       = $order_no;

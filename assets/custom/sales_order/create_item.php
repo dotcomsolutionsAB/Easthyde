@@ -6,41 +6,48 @@
 
     $validator = array("success"=>true, "messages"=>"There was some error saving the records", 'so'=>'');
 
-    $so_id = $_REQUEST['ai_so_id'];
-    $product = replace_improper($_REQUEST['ai_so_product']);
-    $description = replace_improper($_REQUEST['ai_so_description']);
-    $long_description = $_REQUEST['ai_so_product_add_description'];
-    $quantity = replace_improper($_REQUEST['ai_so_quantity']);
-    $unit = replace_improper($_REQUEST['ai_so_unit']);
-    $price = replace_improper($_REQUEST['ai_so_price']);
-    $discount = replace_improper($_REQUEST['ai_so_dsc']);
-    $hsn = replace_improper($_REQUEST['ai_so_hsn']);
-    $tax = replace_improper($_REQUEST['ai_so_tax']);
+    $so_id = $_REQUEST['ai_so_id'] ?? '';
+    $product = replace_improper($_REQUEST['ai_so_product'] ?? '');
+    $description = replace_improper(trim((string)($_REQUEST['ai_so_description'] ?? '')));
+    $long_description = $_REQUEST['ai_so_product_add_description'] ?? '';
+    $quantity = replace_improper($_REQUEST['ai_so_quantity'] ?? '');
+    $unit = replace_improper($_REQUEST['ai_so_unit'] ?? '');
+    $price = replace_improper($_REQUEST['ai_so_price'] ?? '');
+    $discount = replace_improper($_REQUEST['ai_so_dsc'] ?? '');
+    $hsn = replace_improper($_REQUEST['ai_so_hsn'] ?? '');
+    $tax = replace_improper($_REQUEST['ai_so_tax'] ?? '');
 
     $group=0;
 
-    $s = $long_description;
+    $s = trim((string)$long_description);
     $s=str_replace("\"","",$s);
     $s=str_replace("'","",$s);
-    $add_description = str_replace(array("\r\n","\r","\n"),'|',trim($s));
+    $add_description = str_replace(array("\r\n","\r","\n"),'|',$s);
 
     $amount = ($quantity * $price) * (100-$discount) / 100;
     $tax_amount = $amount * $tax / 100;
 
     $sql = "SELECT * FROM sales_order WHERE `so_no` = '$so_id'";
     $query = $db->query($sql);
-    $row = $query->fetch_assoc();
+    $row = ($query && ($tmp = $query->fetch_assoc())) ? $tmp : null;
+    if (!$row) {
+        $validator['success'] = false;
+        $validator['messages'] = "Record not found";
+        echo json_encode($validator);
+        exit;
+    }
 
     $so = $row['so_no'];
 
-    $items = json_decode($row['items'], true);
+    $items = json_decode($row['items'] ?? '', true);
+    if (!is_array($items)) { $items = ['product'=>[], 'group'=>[], 'quantity'=>[], 'received'=>[], 'unit'=>[], 'price'=>[], 'discount'=>[], 'hsn'=>[], 'tax'=>[], 'desc'=>[], 'long_desc'=>[], 'tax_amount'=>[], 'amount'=>[]]; }
 
     if($product != '' && $quantity != ''){
         $sql_temp = "SELECT * FROM product WHERE name = '$product'";
         $query_temp = $db->query($sql_temp);
-        $row_temp = $query_temp->fetch_assoc();
+        $row_temp = ($query_temp && ($tmp = $query_temp->fetch_assoc())) ? $tmp : null;
 
-        $group = $row_temp['default_make'];
+        $group = $row_temp['default_make'] ?? 0;
 
         $items['product'][] = $product;
         $items['group'][] = $group;

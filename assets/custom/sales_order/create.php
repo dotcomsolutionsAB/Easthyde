@@ -7,36 +7,37 @@
 
     $validator      = array("success"=>true, "messages"=>"There was some error saving the records", "so"=>"");
 
-    $so_id          = $_REQUEST['edit_so_id'];
+    $so_id          = $_REQUEST['edit_so_id'] ?? '';
 
-    $log_user       = $_SESSION['username'];
+    $log_user       = $_SESSION['username'] ?? '';
     $log_date       = date('Y-m-d', strtotime("today"));
 
-    $client         = replace_improper($_REQUEST['so_client']);
+    $client         = replace_improper($_REQUEST['so_client'] ?? '');
 
     $sql_pull = "SELECT * FROM clients WHERE name = '$client'";
     $query_pull = $db->query($sql_pull);
-    $row_pull = $query_pull->fetch_assoc();
-    $state = $row_pull['state'];
+    $row_pull = ($query_pull && $query_pull->num_rows > 0) ? $query_pull->fetch_assoc() : null;
+    $state = $row_pull['state'] ?? '';
     
-    $order_date     = date('Y-m-d', strtotime($_REQUEST['sales_date']));
-    $order_no       = $_REQUEST['sales'];
-    $mobile         = $_REQUEST['mobile'];
-    $q_no           = $_REQUEST['so_quotation'];
-    $collected      = $_REQUEST['so_collected'];
-    $client_so_no   = $_REQUEST['client_so_no'];
-    $so_pf                = replace_improper_amount($_REQUEST['so_pf']);    
-    $so_pf_cgst           = replace_improper_amount($_REQUEST['so_pf_cgst']);    
-    $so_pf_sgst           = replace_improper_amount($_REQUEST['so_pf_sgst']);    
-    $so_pf_igst           = replace_improper_amount($_REQUEST['so_pf_igst']);    
-    $so_freight           = replace_improper_amount($_REQUEST['so_freight']);   
-    $so_freight_cgst      = replace_improper_amount($_REQUEST['so_freight_cgst']);   
-    $so_freight_sgst      = replace_improper_amount($_REQUEST['so_freight_sgst']);   
-    $so_freight_igst      = replace_improper_amount($_REQUEST['so_freight_igst']);   
+    $sales_date_raw = $_REQUEST['sales_date'] ?? '';
+    $order_date     = ($sales_date_raw !== '') ? date('Y-m-d', strtotime((string)$sales_date_raw)) : '';
+    $order_no       = $_REQUEST['sales'] ?? '';
+    $mobile         = $_REQUEST['mobile'] ?? '';
+    $q_no           = $_REQUEST['so_quotation'] ?? [];
+    $collected      = $_REQUEST['so_collected'] ?? '';
+    $client_so_no   = $_REQUEST['client_so_no'] ?? '';
+    $so_pf                = replace_improper_amount($_REQUEST['so_pf'] ?? '');    
+    $so_pf_cgst           = replace_improper_amount($_REQUEST['so_pf_cgst'] ?? '');    
+    $so_pf_sgst           = replace_improper_amount($_REQUEST['so_pf_sgst'] ?? '');    
+    $so_pf_igst           = replace_improper_amount($_REQUEST['so_pf_igst'] ?? '');    
+    $so_freight           = replace_improper_amount($_REQUEST['so_freight'] ?? '');   
+    $so_freight_cgst      = replace_improper_amount($_REQUEST['so_freight_cgst'] ?? '');   
+    $so_freight_sgst      = replace_improper_amount($_REQUEST['so_freight_sgst'] ?? '');   
+    $so_freight_igst      = replace_improper_amount($_REQUEST['so_freight_igst'] ?? '');   
 
     $tax            = array("cgst"=>'0', "sgst"=>'0', "igst"=>'0');
 
-    $array          = $_REQUEST['sales_order'];
+    $array          = $_REQUEST['sales_order'] ?? [];
     $l              = sizeof($array);
 
     $items=array('product'=>array(),'desc'=>array(),'long_desc'=>array(),'group'=>array(),'quantity'=>array(),'received'=>array(),'unit'=>array(),'price'=>array(),'discount'=>array(),'hsn'=>array(),'tax'=>array());
@@ -49,7 +50,7 @@
             $items['product'][]     = replace_improper($array[$i]['so_product_name']);
             $items['desc'][]        = replace_improper($array[$i]['so_product_description']);
             $items['long_desc'][]   = replace_improper_textarea($array[$i]['so_product_add_description']);
-            $items['group'][]       = $array[$i]['so_display_make'][0];
+            $items['group'][]       = $array[$i]['so_display_make'][0] ?? '';
             $items['quantity'][]    = replace_improper($array[$i]['so_qty']);
             $items['received'][]    = '0';
             $items['unit'][]        = replace_improper($array[$i]['so_unit']);
@@ -95,8 +96,8 @@
 
     }
 
-    $tot_amount = replace_improper_amount($_REQUEST['so_total_final']);
-    $addons['roundoff'] = replace_improper_amount($_REQUEST['so_round']);
+    $tot_amount = replace_improper_amount($_REQUEST['so_total_final'] ?? '');
+    $addons['roundoff'] = replace_improper_amount($_REQUEST['so_round'] ?? '');
 
     $addon      = json_encode($addons);
 
@@ -112,11 +113,13 @@
     {
         $sql_counter = "SELECT * FROM counter WHERE `key` = 'sales_order'";
         $query_counter = $db->query($sql_counter);
-        $row_counter = $query_counter -> fetch_assoc();
-        $row_counter_arr = json_decode($row_counter['value'], true);
+        $row_counter = ($query_counter && $query_counter->num_rows > 0) ? $query_counter->fetch_assoc() : null;
+        $row_counter_arr = ($row_counter && isset($row_counter['value'])) ? json_decode($row_counter['value'], true) : null;
 
-        $order_no = $row_counter_arr['prefix'][0].str_pad($row_counter_arr['number'][0],3,'0', STR_PAD_LEFT).$row_counter_arr['postfix'][0];
-        $row_counter_arr['number'][0] = $row_counter_arr['number'][0] + 1;
+        if(is_array($row_counter_arr) && isset($row_counter_arr['prefix'][0]) && isset($row_counter_arr['number'][0]) && isset($row_counter_arr['postfix'][0])){
+            $order_no = $row_counter_arr['prefix'][0].str_pad($row_counter_arr['number'][0],3,'0', STR_PAD_LEFT).$row_counter_arr['postfix'][0];
+            $row_counter_arr['number'][0] = $row_counter_arr['number'][0] + 1;
+        }
 
         $sql = "INSERT INTO sales_order (`client_name`,`mobile`,`so_no`,`so_date`,`q_no`,`client_so_no`,`items`,`addons`,`collected`,`total`,`tax`,`status`,`log_user`,`log_date`) VALUES ('$client','$mobile','$order_no', '$order_date','$quotation','$client_so_no','$item','$addon','$collected','$tot_amount','$tax_json','$status','$log_user','$log_date')";
         $query = $db->query($sql);
@@ -124,9 +127,11 @@
 
         if($query===true)
         {
-            $counter_array = json_encode($row_counter_arr);
-            $sql_counter = "UPDATE counter SET `value` = '$counter_array' WHERE `key` = 'sales_order'";
-            $query_counter = $db->query($sql_counter);
+            if(is_array($row_counter_arr) && isset($row_counter_arr['prefix'][0])){
+                $counter_array = json_encode($row_counter_arr);
+                $sql_counter = "UPDATE counter SET `value` = '$counter_array' WHERE `key` = 'sales_order'";
+                $query_counter = $db->query($sql_counter);
+            }
 
             $validator['success'] = true;
             $validator['messages'] = "Successfully Added";

@@ -4,27 +4,30 @@
 
     session_start();
 
-    $id                     = $_REQUEST['edit_dn_id'];
+    $id                     = $_REQUEST['edit_dn_id'] ?? '';
 
-    $log_user               = $_SESSION['username'];
+    $log_user               = $_SESSION['username'] ?? '';
     $log_date               = date('Y-m-d', strtotime("today"));
 
     $validator              = array("success"=>true, "messages"=>"There was some error saving the records","si"=>"");
 
-    $array                  = $_REQUEST['debit_note'];
+    $array                  = $_REQUEST['debit_note'] ?? [];
     $l                      = sizeof($array);
 
-    $supplier                 = replace_improper($_REQUEST['dn_supplier']);
-    $purchase_invoice          = replace_improper($_REQUEST['dn_pi_no']);
-    $dn_no                  = replace_improper($_REQUEST['dn_dn_no']);
-    $dn_date                = date('Y-m-d', strtotime($_REQUEST['dn_date']));
+    $supplier                 = replace_improper($_REQUEST['dn_supplier'] ?? '');
+    $purchase_invoice          = replace_improper($_REQUEST['dn_pi_no'] ?? '');
+    $dn_no                  = replace_improper($_REQUEST['dn_dn_no'] ?? '');
+    $dn_date_raw            = $_REQUEST['dn_date'] ?? '';
+    $dn_date                = ($dn_date_raw !== '') ? date('Y-m-d', strtotime((string)$dn_date_raw)) : '';
 
-    $dn_pi_date                = date('Y-m-d', strtotime($_REQUEST['dn_pi_date']));
+    $dn_pi_date_raw         = $_REQUEST['dn_pi_date'] ?? '';
+    $dn_pi_date             = ($dn_pi_date_raw !== '') ? date('Y-m-d', strtotime((string)$dn_pi_date_raw)) : '';
 
 
-    $state                  = $_REQUEST['dn_state'];
+    $state                  = $_REQUEST['dn_state'] ?? '';
 
     $tot_amount             = 0;
+    $order_no               = '';
 
     $items=array('product'=>array(),'desc'=>array(),'long_desc'=>array(),'group'=>array(),'quantity'=>array(),'unit'=>array(),'price'=>array(),'discount'=>array(),'hsn'=>array(),'tax'=>array());
 
@@ -84,8 +87,8 @@
     }
     $item       = json_encode($items);
 
-    $dn_pf      = replace_improper($_REQUEST['dn_pf']);    
-    $dn_freight = replace_improper($_REQUEST['dn_freight']);    
+    $dn_pf      = replace_improper($_REQUEST['dn_pf'] ?? '');    
+    $dn_freight = replace_improper($_REQUEST['dn_freight'] ?? '');    
    
 
     $dn_pf           = str_replace(',', '', $dn_pf);
@@ -148,11 +151,11 @@
     }
 
     if($tax['cgst'] != '')
-        $tax['cgst'] = number_format($tax['cgst'],2, '.', '');
+        $tax['cgst'] = number_format((float)$tax['cgst'],2, '.', '');
     if($tax['sgst'] != '')
-        $tax['sgst'] = number_format($tax['sgst'],2, '.', '');
+        $tax['sgst'] = number_format((float)$tax['sgst'],2, '.', '');
     if($tax['igst'] != '')
-        $tax['igst'] = number_format($tax['igst'],2, '.', '');
+        $tax['igst'] = number_format((float)$tax['igst'],2, '.', '');
 
     $decimal = floor($tot_amount);
     $fraction = $tot_amount - $decimal;
@@ -164,11 +167,11 @@
         $add_fraction = -1 * $fraction;
         $tot_amount += $add_fraction;
     }
-    $tot_amount = TrimTrailingZeroes(number_format($tot_amount,2, '.', ''));
+    $tot_amount = TrimTrailingZeroes(number_format((float)$tot_amount,2, '.', ''));
 
     $addons['roundoff'] = $add_fraction;
     if($addons['roundoff'] != '')
-        $addons['roundoff'] = number_format($addons['roundoff'],2, '.', '');
+        $addons['roundoff'] = number_format((float)$addons['roundoff'],2, '.', '');
 
     $addon      = json_encode($addons);
     $tax_json   = json_encode($tax);
@@ -180,11 +183,13 @@
         
         $sql_counter = "SELECT * FROM counter WHERE `key` = 'debit_note'";
         $query_counter = $db->query($sql_counter);
-        $row_counter = $query_counter -> fetch_assoc();
-        $row_counter_arr = json_decode($row_counter['value'], true);
+        $row_counter = ($query_counter && $query_counter->num_rows > 0) ? $query_counter->fetch_assoc() : null;
+        $row_counter_arr = ($row_counter && isset($row_counter['value'])) ? json_decode($row_counter['value'], true) : null;
 
-        $order_no = $row_counter_arr['prefix'][0].str_pad($row_counter_arr['number'][0],4,'0', STR_PAD_LEFT).$row_counter_arr['postfix'][0];
-        $row_counter_arr['number'][0] = $row_counter_arr['number'][0] + 1;  
+        if(is_array($row_counter_arr) && isset($row_counter_arr['prefix'][0]) && isset($row_counter_arr['number'][0]) && isset($row_counter_arr['postfix'][0])){
+            $order_no = $row_counter_arr['prefix'][0].str_pad($row_counter_arr['number'][0],4,'0', STR_PAD_LEFT).$row_counter_arr['postfix'][0];
+            $row_counter_arr['number'][0] = $row_counter_arr['number'][0] + 1;
+        }
 
         $sql = "INSERT INTO debit_note (`supplier`,`purchase_invoice`,`dn_pi_date`,`dn_no`,`dn_date`,`state`,`items`,`addons`,`total`,`tax`,`status`,`log_user`,`log_date`) VALUES ('$supplier','$purchase_invoice','$dn_pi_date','$dn_no', '$dn_date','$state','$item','$addon','$tot_amount','$tax_json','$status','$log_user','$log_date')";
         $query = $db->query($sql);
@@ -192,9 +197,11 @@
         if($query===true)
         {
            
-            $counter_array = json_encode($row_counter_arr);
-            $sql_counter = "UPDATE counter SET `value` = '$counter_array' WHERE `key` = 'debit_note'";
-            $query_counter = $db->query($sql_counter);
+            if(is_array($row_counter_arr) && isset($row_counter_arr['prefix'][0])){
+                $counter_array = json_encode($row_counter_arr);
+                $sql_counter = "UPDATE counter SET `value` = '$counter_array' WHERE `key` = 'debit_note'";
+                $query_counter = $db->query($sql_counter);
+            }
             
             $validator['success'] = true;
             $validator['messages'] = "Successfully Added";
@@ -209,6 +216,7 @@
     }
     else
     {
+        $order_no = $dn_no;
         $sql = "UPDATE debit_note SET `supplier` = '$supplier', `purchase_invoice`='$purchase_invoice',`dn_pi_date`='$dn_pi_date',`dn_no`='$dn_no', `dn_date`='$dn_date',`state`='$state',`items`='$item',`addons`='$addon',`total`='$tot_amount',`tax`='$tax_json',`log_user`='$log_user',`log_date`='$log_date' WHERE `id`='$id'";
         $query = $db->query($sql);
 

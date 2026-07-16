@@ -2,12 +2,12 @@
 	include ("../connect.php");
 	session_start();
 	//Entered Value in login Page
-	$name = $_REQUEST['name'];	
-	$username = $_REQUEST['username'];	
-	$password = $_REQUEST['password'];
-	$mobile = $_REQUEST['mobile'];
-	$email = $_REQUEST['email'];
-	$userlevel = $_REQUEST['userlevel'];
+	$name = $_REQUEST['name'] ?? '';	
+	$username = $_REQUEST['username'] ?? '';	
+	$password = $_REQUEST['password'] ?? '';
+	$mobile = $_REQUEST['mobile'] ?? '';
+	$email = $_REQUEST['email'] ?? '';
+	$userlevel = $_REQUEST['userlevel'] ?? '';
 	$allowed_fy = isset($_REQUEST['allowed_fy']) ? $_REQUEST['allowed_fy'] : '';
 	if($allowed_fy == ''){
 		$sql_fy = "SELECT year FROM year WHERE current = '1' LIMIT 1";

@@ -1,6 +1,7 @@
 <?php
 
 function replace_improper($s){
+	$s = (string)($s ?? '');
 	$s=str_replace("\"","",$s);
 	$s=str_replace("'","",$s);
 	$s=strtoupper($s);
@@ -8,6 +9,7 @@ function replace_improper($s){
 }
 
 function replace_improper_amount($s){
+	$s = (string)($s ?? '');
 	$s=str_replace("\"","",$s);
 	$s=str_replace("'","",$s);
 	$s=str_replace(",","",$s);
@@ -16,12 +18,14 @@ function replace_improper_amount($s){
 }
 
 function replace_improper_same($s){
+	$s = (string)($s ?? '');
 	$s=str_replace("\"","",$s);
 	$s=str_replace("'","",$s);
 	return $s;
 }
 
 function replace_improper_proper($s){
+	$s = (string)($s ?? '');
 	$s=str_replace("\"","",$s);
 	$s=str_replace("'","",$s);
 	$s=ucwords(strtolower($s));
@@ -29,6 +33,7 @@ function replace_improper_proper($s){
 }
 
 function replace_improper_textarea($s){
+	$s = (string)($s ?? '');
 	$s=str_replace("\"","",$s);
 	$s=str_replace("'","",$s);
 	$s=str_replace(array("\r\n","\r","\n"),'|',trim($s));
@@ -36,6 +41,7 @@ function replace_improper_textarea($s){
 }
 
 function replace_tax($s){
+	$s = (string)($s ?? '');
 	$s=str_replace("%","",$s);
 	return $s;
 }

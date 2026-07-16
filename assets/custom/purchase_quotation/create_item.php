@@ -7,45 +7,52 @@
     $input = json_decode($request);
     $array = json_decode($request, true);
 
+    if (!$input || !is_array($array)) {
+        echo json_encode(array("success" => false, "messages" => "Invalid request"));
+        exit;
+    }
+
     session_start();
 
     $validator = array("success"=>true, "messages"=>"There was some error saving the records","pi"=>"");
 
-    $pi_qd = $input->edit_pq_id;
-    $log_user = $_SESSION['username'];
+    $pi_qd = $input->edit_pq_id ?? '';
+    $log_user = $_SESSION['username'] ?? '';
     $log_date = date('Y-m-d', strtotime("today"));
 
-    $order_no = $input->purchase_quotation_no;
-    $series = $input->series;
-    $mobile = $input->mobile;
-    $order_date = date('Y-m-d', strtotime($input->purchase_invoice_date));
-    $supplier = replace_improper($input->pi_supplier);
-    $po_no = $input->pi_purchase_order;
+    $order_no = $input->purchase_quotation_no ?? '';
+    $series = $input->series ?? '';
+    $mobile = $input->mobile ?? '';
+    $pq_date_raw = $input->purchase_invoice_date ?? '';
+    $order_date = ($pq_date_raw !== '') ? date('Y-m-d', strtotime($pq_date_raw)) : '';
+    $supplier = replace_improper($input->pi_supplier ?? '');
+    $po_no = $input->pi_purchase_order ?? [];
+    if (!is_array($po_no)) { $po_no = []; }
 
-    $pi_pf = replace_improper_amount($input->pi_pf);
-    $pi_pf_cgst = replace_improper_amount($input->pi_pf_cgst);
-    $pi_pf_sgst = replace_improper_amount($input->pi_pf_sgst);
-    $pi_pf_igst = replace_improper_amount($input->pi_pf_igst);
+    $pi_pf = replace_improper_amount($input->pi_pf ?? '');
+    $pi_pf_cgst = replace_improper_amount($input->pi_pf_cgst ?? '');
+    $pi_pf_sgst = replace_improper_amount($input->pi_pf_sgst ?? '');
+    $pi_pf_igst = replace_improper_amount($input->pi_pf_igst ?? '');
 
-    $pi_freight = replace_improper_amount($input->pi_freight);
-    $pi_freight_cgst = replace_improper_amount($input->pi_freight_cgst);
-    $pi_freight_sgst = replace_improper_amount($input->pi_freight_sgst);
-    $pi_freight_igst = replace_improper_amount($input->pi_freight_igst);
+    $pi_freight = replace_improper_amount($input->pi_freight ?? '');
+    $pi_freight_cgst = replace_improper_amount($input->pi_freight_cgst ?? '');
+    $pi_freight_sgst = replace_improper_amount($input->pi_freight_sgst ?? '');
+    $pi_freight_igst = replace_improper_amount($input->pi_freight_igst ?? '');
 
-    $pi_tcs = replace_improper_amount($input->pi_tcs);
+    $pi_tcs = replace_improper_amount($input->pi_tcs ?? '');
 
     // Fetch supplier details
     $sql_pull = "SELECT * FROM suppliers WHERE name = '$supplier'";
     $query_pull = $db->query($sql_pull);
-    $row_pull = $query_pull->fetch_assoc();
-    $state = $row_pull['state'];
+    $row_pull = ($query_pull && ($tmp = $query_pull->fetch_assoc())) ? $tmp : [];
+    $state = strtoupper((string)($row_pull['state'] ?? ''));
 
     $pi_pf = str_replace(",","",$pi_pf);
     $pi_freight = str_replace(",","",$pi_freight);
     $pi_tcs = str_replace(",","",$pi_tcs);
 
-    $tot_amount = replace_improper_amount($input->pi_total_final);
-    $tot_amount = TrimTrailingZeroes(number_format($tot_amount, 2, '.', ''));
+    $tot_amount = replace_improper_amount($input->pi_total_final ?? '');
+    $tot_amount = TrimTrailingZeroes(number_format((float)$tot_amount, 2, '.', ''));
 
     $tax = array("cgst"=>'', "sgst"=>'', "igst"=>'');
 
@@ -55,14 +62,16 @@
 
     // Shipping address
     $address = array('address1'=>'', 'address2'=>'', 'address3'=>'');
-    $address['address1'] = replace_improper($input->shipping_add_1);
-    $address['address2'] = replace_improper($input->shipping_add_2);
-    $address['address3'] = replace_improper($input->shipping_add_3);
+    $address['address1'] = replace_improper($input->shipping_add_1 ?? '');
+    $address['address2'] = replace_improper($input->shipping_add_2 ?? '');
+    $address['address3'] = replace_improper($input->shipping_add_3 ?? '');
     $address = json_encode($address);
 
     $secondary_total = 0;
 
-    foreach($array['purchase_invoice'] as $item) {
+    $purchase_invoice_items = $array['purchase_invoice'] ?? [];
+    if (!is_array($purchase_invoice_items)) { $purchase_invoice_items = []; }
+    foreach($purchase_invoice_items as $item) {
         if($item['pi_product_name'] != '' && $item['pi_qty'] != '') {
             $items['product'][] = replace_improper($item['pi_product_name']);
             $items['desc'][] = replace_improper($item['pi_product_description']);
@@ -112,16 +121,16 @@
     }
 
     if($tax['cgst'] != '') {
-        $tax['cgst'] = number_format($tax['cgst'],2, '.', '');
+        $tax['cgst'] = number_format((float)$tax['cgst'],2, '.', '');
     }
     if($tax['sgst'] != '') {
-        $tax['sgst'] = number_format($tax['sgst'],2, '.', '');
+        $tax['sgst'] = number_format((float)$tax['sgst'],2, '.', '');
     }
     if($tax['igst'] != '') {
-        $tax['igst'] = number_format($tax['igst'],2, '.', '');
+        $tax['igst'] = number_format((float)$tax['igst'],2, '.', '');
     }
 
-    $addons['roundoff'] = $input->pi_round;
+    $addons['roundoff'] = $input->pi_round ?? '';
     $addon = json_encode($addons);
     $tax_json = json_encode($tax);
 

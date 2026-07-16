@@ -6,50 +6,51 @@
 
     $validator      = array("success"=>true, "messages"=>"There was some error saving the records", "so"=>"");
 
-    $pr_id          = $_REQUEST['edit_pr_id'];
+    $pr_id          = $_REQUEST['edit_pr_id'] ?? '';
 
-    $log_user       = $_SESSION['username'];
+    $log_user       = $_SESSION['username'] ?? '';
     $log_date       = date('Y-m-d', strtotime("today"));
 
-    $client         = replace_improper($_REQUEST['pr_client']);
+    $client         = replace_improper($_REQUEST['pr_client'] ?? '');
 
     $sql_pull = "SELECT * FROM clients WHERE name = '$client'";
     $query_pull = $db->query($sql_pull);
-    $row_pull = $query_pull->fetch_assoc();
-    $state = $row_pull['state'];
+    $row_pull = ($query_pull && $query_pull->num_rows > 0) ? $query_pull->fetch_assoc() : null;
+    $state = $row_pull['state'] ?? '';
 
-    $client_so_no   = $_REQUEST['client_so_no'];
-    $mobile   = $_REQUEST['mobile'];
+    $client_so_no   = $_REQUEST['client_so_no'] ?? '';
+    $mobile   = $_REQUEST['mobile'] ?? '';
 
 
-    $address_1      = replace_improper_same(strtoupper($_REQUEST['address_1']));
-    $address_2      = replace_improper_same(strtoupper($_REQUEST['address_2']));
-    $country        = replace_improper_same(strtoupper($_REQUEST['country']));
+    $address_1      = replace_improper_same(strtoupper((string)($_REQUEST['address_1'] ?? '')));
+    $address_2      = replace_improper_same(strtoupper((string)($_REQUEST['address_2'] ?? '')));
+    $country        = replace_improper_same(strtoupper((string)($_REQUEST['country'] ?? '')));
     if($state == '')
     {
-        $state          = replace_improper_same(strtoupper($_REQUEST['state']));
+        $state          = replace_improper_same(strtoupper((string)($_REQUEST['state'] ?? '')));
     }
-    $city           = replace_improper_same(strtoupper($_REQUEST['city']));
-    $pincode        = replace_improper_same($_REQUEST['pincode']);
+    $city           = replace_improper_same(strtoupper((string)($_REQUEST['city'] ?? '')));
+    $pincode        = replace_improper_same($_REQUEST['pincode'] ?? '');
 
     $address        = array("address_1"=>$address_1, "address_2"=>$address_2, "country"=>$country, "state"=>$state, "city"=>$city, "pincode"=>$pincode);
     $address        = json_encode($address);
     
-    $order_date     = date('Y-m-d', strtotime($_REQUEST['pr_date']));
-    $order_no        = $_REQUEST['pr_no'];
-    $so_no           = $_REQUEST['pr_sales_order'];
-    $pr_pf                = replace_improper_amount($_REQUEST['pr_pf']);    
-    $pr_pf_cgst           = replace_improper_amount($_REQUEST['pr_pf_cgst']);    
-    $pr_pf_sgst           = replace_improper_amount($_REQUEST['pr_pf_sgst']);    
-    $pr_pf_igst           = replace_improper_amount($_REQUEST['pr_pf_igst']);    
-    $pr_freight           = replace_improper_amount($_REQUEST['pr_freight']);  
-    $pr_freight_cgst      = replace_improper_amount($_REQUEST['pr_freight_cgst']);  
-    $pr_freight_sgst      = replace_improper_amount($_REQUEST['pr_freight_sgst']);  
-    $pr_freight_igst      = replace_improper_amount($_REQUEST['pr_freight_igst']);  
+    $pr_date_raw    = $_REQUEST['pr_date'] ?? '';
+    $order_date     = ($pr_date_raw !== '') ? date('Y-m-d', strtotime((string)$pr_date_raw)) : '';
+    $order_no        = $_REQUEST['pr_no'] ?? '';
+    $so_no           = $_REQUEST['pr_sales_order'] ?? [];
+    $pr_pf                = replace_improper_amount($_REQUEST['pr_pf'] ?? '');    
+    $pr_pf_cgst           = replace_improper_amount($_REQUEST['pr_pf_cgst'] ?? '');    
+    $pr_pf_sgst           = replace_improper_amount($_REQUEST['pr_pf_sgst'] ?? '');    
+    $pr_pf_igst           = replace_improper_amount($_REQUEST['pr_pf_igst'] ?? '');    
+    $pr_freight           = replace_improper_amount($_REQUEST['pr_freight'] ?? '');  
+    $pr_freight_cgst      = replace_improper_amount($_REQUEST['pr_freight_cgst'] ?? '');  
+    $pr_freight_sgst      = replace_improper_amount($_REQUEST['pr_freight_sgst'] ?? '');  
+    $pr_freight_igst      = replace_improper_amount($_REQUEST['pr_freight_igst'] ?? '');  
 
     $tax            = array("cgst"=>'0', "sgst"=>'0', "igst"=>'0');
 
-    $array          = $_REQUEST['proforma_invoice'];
+    $array          = $_REQUEST['proforma_invoice'] ?? [];
     $l              = sizeof($array);
 
     $items=array('product'=>array(),'desc'=>array(),'long_desc'=>array(),'group'=>array(),'quantity'=>array(),'received'=>array(),'unit'=>array(),'price'=>array(),'discount'=>array(),'hsn'=>array(),'tax'=>array());
@@ -62,7 +63,7 @@
             $items['product'][]     = replace_improper($array[$i]['pr_product_name']);
             $items['desc'][]        = replace_improper($array[$i]['pr_product_description']);
             $items['long_desc'][]   = replace_improper_textarea($array[$i]['pr_product_add_description']);
-            $items['group'][]       = $array[$i]['pr_display_make'][0];
+            $items['group'][]       = $array[$i]['pr_display_make'][0] ?? '';
             $items['quantity'][]    = replace_improper($array[$i]['pr_qty']);
             $items['received'][]    = '0';
             $items['unit'][]        = replace_improper($array[$i]['pr_unit']);
@@ -116,8 +117,8 @@
     }
     $sales_order=json_encode($sales_order);
 
-    $tot_amount = replace_improper_amount($_REQUEST['pr_total_final']);
-    $addons['roundoff'] = replace_improper_amount($_REQUEST['pr_round']);
+    $tot_amount = replace_improper_amount($_REQUEST['pr_total_final'] ?? '');
+    $addons['roundoff'] = replace_improper_amount($_REQUEST['pr_round'] ?? '');
 
     $addon      = json_encode($addons);
     $tax_json   = json_encode($tax);
@@ -126,20 +127,24 @@
     {
         $sql_counter = "SELECT * FROM counter WHERE `key` = 'proforma'";
         $query_counter = $db->query($sql_counter);
-        $row_counter = $query_counter -> fetch_assoc();
-        $row_counter_arr = json_decode($row_counter['value'], true);
+        $row_counter = ($query_counter && $query_counter->num_rows > 0) ? $query_counter->fetch_assoc() : null;
+        $row_counter_arr = ($row_counter && isset($row_counter['value'])) ? json_decode($row_counter['value'], true) : null;
 
-        $order_no = $row_counter_arr['prefix'][0].str_pad($row_counter_arr['number'][0],3,'0', STR_PAD_LEFT).$row_counter_arr['postfix'][0];
-        $row_counter_arr['number'][0] = $row_counter_arr['number'][0] + 1;
+        if(is_array($row_counter_arr) && isset($row_counter_arr['prefix'][0]) && isset($row_counter_arr['number'][0]) && isset($row_counter_arr['postfix'][0])){
+            $order_no = $row_counter_arr['prefix'][0].str_pad($row_counter_arr['number'][0],3,'0', STR_PAD_LEFT).$row_counter_arr['postfix'][0];
+            $row_counter_arr['number'][0] = $row_counter_arr['number'][0] + 1;
+        }
 
         $sql = "INSERT INTO proforma (`client_name`,`mobile`,`pr_no`,`pr_date`,`client_so_no`,`so_no`,`items`,`address`,`addons`,`total`,`tax`,`status`,`log_user`,`log_date`) VALUES ('$client','$mobile','$order_no', '$order_date','$client_so_no','$sales_order','$item','$address','$addon','$tot_amount','$tax_json','$status','$log_user','$log_date')";
         $query = $db->query($sql);
 
         if($query===true)
         {
-            $counter_array = json_encode($row_counter_arr);
-            $sql_counter = "UPDATE counter SET `value` = '$counter_array' WHERE `key` = 'proforma'";
-            $query_counter = $db->query($sql_counter);
+            if(is_array($row_counter_arr) && isset($row_counter_arr['prefix'][0])){
+                $counter_array = json_encode($row_counter_arr);
+                $sql_counter = "UPDATE counter SET `value` = '$counter_array' WHERE `key` = 'proforma'";
+                $query_counter = $db->query($sql_counter);
+            }
 
             $validator['success'] = true;
             $validator['messages'] = "Successfully Added";

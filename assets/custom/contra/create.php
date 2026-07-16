@@ -4,19 +4,20 @@
 
     session_start();
 
-    $log_user = $_SESSION['username'];
+    $log_user = $_SESSION['username'] ?? '';
     $log_date = date('Y-m-d', strtotime("today"));
 
     $validator = array("success"=>true, "messages"=>"There was some error saving the records");
 
     //Edit Switch Variable
-    $id = $_REQUEST['contra_edit_id'];
+    $id = $_REQUEST['contra_edit_id'] ?? '';
  
     // Form Fields
-    $date               = date('Y-m-d', strtotime($_REQUEST['contra_date']));
-    $transfer_from      = replace_improper_same($_REQUEST['contra_bank_1']);
-    $transfer_to        = replace_improper_same($_REQUEST['contra_bank_2']);
-    $amount             = replace_improper_same($_REQUEST['contra_amount']);
+    $contra_date_raw    = $_REQUEST['contra_date'] ?? '';
+    $date               = ($contra_date_raw !== '') ? date('Y-m-d', strtotime((string)$contra_date_raw)) : '';
+    $transfer_from      = replace_improper_same($_REQUEST['contra_bank_1'] ?? '');
+    $transfer_to        = replace_improper_same($_REQUEST['contra_bank_2'] ?? '');
+    $amount             = replace_improper_same($_REQUEST['contra_amount'] ?? '');
 
     if($id == '')
     {

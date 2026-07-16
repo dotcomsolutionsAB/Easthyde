@@ -4,18 +4,19 @@
 
 	session_start();
 
-	$array = $_REQUEST['supplier'];
+	$array = $_REQUEST['supplier'] ?? [];
+	if (!is_array($array)) { $array = []; }
 	$l = sizeof($array);
 
-	$supplier = replace_improper($_REQUEST['supplier_name']);
-	$print_name = replace_improper($_REQUEST['supplier_print_name']);
-	$gstin = replace_improper($_REQUEST['supplier_gstin']);
-	$gstin_type = replace_improper_same($_REQUEST['supplier_gstin_type']);
-	$type = replace_improper($_REQUEST['supplier_category']);
-	$state = replace_improper($_REQUEST['supplier_state']);
-	$country = replace_improper($_REQUEST['supplier_country']);
+	$supplier = replace_improper($_REQUEST['supplier_name'] ?? '');
+	$print_name = replace_improper($_REQUEST['supplier_print_name'] ?? '');
+	$gstin = replace_improper($_REQUEST['supplier_gstin'] ?? '');
+	$gstin_type = replace_improper_same($_REQUEST['supplier_gstin_type'] ?? '');
+	$type = replace_improper($_REQUEST['supplier_category'] ?? '');
+	$state = replace_improper($_REQUEST['supplier_state'] ?? '');
+	$country = replace_improper($_REQUEST['supplier_country'] ?? '');
 
-	$log_user = $_SESSION['username'];
+	$log_user = $_SESSION['username'] ?? '';
 	$log_date = date('Y-m-d', strtotime("today"));
 	$portal_token = bin2hex(random_bytes(24));
 	$token_created_at = date('Y-m-d H:i:s');
@@ -25,15 +26,15 @@
 	$contacts=array('name'=>array(),'designation'=>array(),'mobile'=>array(),'email'=>array());
 	$bank_details=array('name'=>'','bank_name'=>'','account'=>'','ifsc'=>'');
 
-	$bank_details['name']=replace_improper($_REQUEST['bank_supplier']);
-	$bank_details['bank_name']=replace_improper($_REQUEST['bank_name']);
-	$bank_details['account']=replace_improper($_REQUEST['bank_account']);
-	$bank_details['ifsc']=replace_improper($_REQUEST['bank_ifsc']);
+	$bank_details['name']=replace_improper($_REQUEST['bank_supplier'] ?? '');
+	$bank_details['bank_name']=replace_improper($_REQUEST['bank_name'] ?? '');
+	$bank_details['account']=replace_improper($_REQUEST['bank_account'] ?? '');
+	$bank_details['ifsc']=replace_improper($_REQUEST['bank_ifsc'] ?? '');
 
-	$address['address_1']=replace_improper($_REQUEST['supplier_add_1']);
-	$address['address_2']=replace_improper($_REQUEST['supplier_add_2']);
-	$address['city']=replace_improper($_REQUEST['supplier_city']);
-	$address['pincode']=replace_improper($_REQUEST['supplier_pincode']);
+	$address['address_1']=replace_improper($_REQUEST['supplier_add_1'] ?? '');
+	$address['address_2']=replace_improper($_REQUEST['supplier_add_2'] ?? '');
+	$address['city']=replace_improper($_REQUEST['supplier_city'] ?? '');
+	$address['pincode']=replace_improper($_REQUEST['supplier_pincode'] ?? '');
 
 	for($i=0;$i<$l;$i++){
         $contacts['name'][] =replace_improper($array[$i]['supplier_person']);

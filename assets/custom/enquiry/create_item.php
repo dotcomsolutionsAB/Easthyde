@@ -6,21 +6,28 @@
 
     $validator = array("success"=>true, "messages"=>"There was some error saving the records");
 
-    $e_id = $_REQUEST['ai_e_id'];
-    $product = replace_improper($_REQUEST['ai_e_product']);
-    $description = replace_improper($_REQUEST['ai_e_description']);
-    $quantity = replace_improper($_REQUEST['ai_e_quantity']);
-    $long_description = replace_improper($_REQUEST['ai_e_add_description']);
-    $stock = replace_improper($_REQUEST['ai_e_stock']);
+    $e_id = $_REQUEST['ai_e_id'] ?? '';
+    $product = replace_improper($_REQUEST['ai_e_product'] ?? '');
+    $description = replace_improper(trim((string)($_REQUEST['ai_e_description'] ?? '')));
+    $quantity = replace_improper($_REQUEST['ai_e_quantity'] ?? '');
+    $long_description = replace_improper(trim((string)($_REQUEST['ai_e_add_description'] ?? '')));
+    $stock = replace_improper($_REQUEST['ai_e_stock'] ?? '');
 
 
     $sql = "SELECT * FROM enquiry WHERE `id` = '$e_id'";
     $query = $db->query($sql);
-    $row = $query->fetch_assoc();
+    $row = ($query && ($tmp = $query->fetch_assoc())) ? $tmp : null;
+    if (!$row) {
+        $validator['success'] = false;
+        $validator['messages'] = "Record not found";
+        echo json_encode($validator);
+        exit;
+    }
 
     // $po = $row['po_invoice'];
 
-    $items = json_decode($row['items'], true);
+    $items = json_decode($row['items'] ?? '', true);
+    if (!is_array($items)) { $items = ['product'=>[], 'quantity'=>[], 'desc'=>[], 'long_desc'=>[], 'stock'=>[]]; }
 
     if($product != '' && $quantity != ''){
         $items['product'][] = $product;

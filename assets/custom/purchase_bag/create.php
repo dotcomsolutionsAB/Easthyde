@@ -3,10 +3,10 @@
 	include ("../php_replace_improper.php");
 	session_start();
 
-	$user = $_SESSION['username'];
+	$user = $_SESSION['username'] ?? '';
 
-	$product = replace_improper($_REQUEST['pb_product']);
-	$quantity = replace_improper($_REQUEST['pb_quantity']);
+	$product = replace_improper($_REQUEST['pb_product'] ?? '');
+	$quantity = replace_improper($_REQUEST['pb_quantity'] ?? '');
 	if($quantity < 0){
 		$quantity = 0;
 	}
@@ -16,7 +16,7 @@
 
 	$sql_check = "SELECT * FROM purchase_bag WHERE product_name = '$product'";
 	$query_check = $db->query($sql_check);
-	$row_cnt = $query_check->num_rows;
+	$row_cnt = ($query_check && $query_check->num_rows > 0) ? $query_check->num_rows : 0;
 
 	if($row_cnt > 0){
 		$row_check = $query_check->fetch_assoc();

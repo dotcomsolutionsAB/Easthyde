@@ -10,7 +10,7 @@
         $query_counter = $db->query($sql_counter);
         if($query_counter && $query_counter->num_rows > 0){
             $row_counter = $query_counter->fetch_assoc();
-            $row_counter_arr = json_decode($row_counter['value'], true);
+            $row_counter_arr = json_decode($row_counter['value'] ?? '', true);
             if(is_array($row_counter_arr) && isset($row_counter_arr['prefix'][0]) && isset($row_counter_arr['number'][0]) && isset($row_counter_arr['postfix'][0])){
                 $voucher_no = $row_counter_arr['prefix'][0] . str_pad($row_counter_arr['number'][0], 4, '0', STR_PAD_LEFT) . $row_counter_arr['postfix'][0];
                 $row_counter_arr['number'][0] = $row_counter_arr['number'][0] + 1;
@@ -25,20 +25,22 @@
         return $fallback_prefix . date('y') . "-0001";
     }
 
-    $array = $_REQUEST['materials_received'];
+    $array = $_REQUEST['materials_received'] ?? [];
+    if (!is_array($array)) { $array = []; }
     $l = sizeof($array);
 
-    $id=$_REQUEST['mr_edit_id'];
+    $id = $_REQUEST['mr_edit_id'] ?? '';
 
-    $supplier_name = replace_improper($_REQUEST['mr_supplier_name']);
-    $voucher_type = isset($_REQUEST['mr_voucher_type']) ? strtoupper(replace_improper($_REQUEST['mr_voucher_type'])) : 'MRN';
+    $supplier_name = replace_improper($_REQUEST['mr_supplier_name'] ?? '');
+    $voucher_type = isset($_REQUEST['mr_voucher_type']) ? strtoupper(replace_improper($_REQUEST['mr_voucher_type'] ?? '')) : 'MRN';
     if($voucher_type !== 'MRN' && $voucher_type !== 'MRTN'){
         $voucher_type = 'MRN';
     }
-    $date = date('Y-m-d', strtotime($_REQUEST['mr_date']));
+    $mr_date = $_REQUEST['mr_date'] ?? '';
+    $date = ($mr_date !== '') ? date('Y-m-d', strtotime($mr_date)) : '';
     fy_assert_or_exit_json($date, "Material date");
 
-	$log_user = $_SESSION['username'];
+	$log_user = $_SESSION['username'] ?? '';
     $log_date = date('Y-m-d', strtotime("today"));
     $validator = array("success"=>true, "messages"=>"There was some error saving the records");
 
@@ -50,7 +52,7 @@
         	$pr = $array[$i]['mr_product_name'];
             $sql_temp = "SELECT * FROM product WHERE name = '$pr'";
             $query_temp = $db->query($sql_temp);
-            $row_temp = $query_temp->fetch_assoc();
+            $row_temp = ($query_temp && ($tmp = $query_temp->fetch_assoc())) ? $tmp : [];
 
             $items['product'][] =replace_improper($array[$i]['mr_product_name']);
             $items['desc'][] =replace_improper($array[$i]['mr_desc']);

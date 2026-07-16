@@ -4,24 +4,27 @@
 
     session_start();
 
-    $id                     = $_REQUEST['edit_cn_id'];
+    $id                     = $_REQUEST['edit_cn_id'] ?? '';
 
-    $log_user               = $_SESSION['username'];
+    $log_user               = $_SESSION['username'] ?? '';
     $log_date               = date('Y-m-d', strtotime("today"));
 
     $validator              = array("success"=>true, "messages"=>"There was some error saving the records","si"=>"");
 
-    $array                  = $_REQUEST['credit_note'];
+    $array                  = $_REQUEST['credit_note'] ?? [];
     $l                      = sizeof($array);
 
-    $client                 = replace_improper($_REQUEST['cn_client']);
-    $sales_invoice          = replace_improper($_REQUEST['cn_si_no']);
-    $cn_no                  = replace_improper($_REQUEST['cn_cn_no']);
-    $cn_date                = date('Y-m-d', strtotime($_REQUEST['cn_date']));
+    $client                 = replace_improper($_REQUEST['cn_client'] ?? '');
+    $sales_invoice          = replace_improper($_REQUEST['cn_si_no'] ?? '');
+    $cn_no                  = replace_improper($_REQUEST['cn_cn_no'] ?? '');
+    $cn_date_raw            = $_REQUEST['cn_date'] ?? '';
+    $cn_date                = ($cn_date_raw !== '') ? date('Y-m-d', strtotime((string)$cn_date_raw)) : '';
 
-    $state                  = $_REQUEST['cn_state'];
+    $state                  = $_REQUEST['cn_state'] ?? '';
 
     $tot_amount             = 0;
+    $order_no               = '';
+    $products_array         = '';
 
     $items=array('product'=>array(),'quantity'=>array(),'unit'=>array(),'price'=>array(),'discount'=>array(),'hsn'=>array(),'tax'=>array(),'desc'=>array(),'tax_amount'=>array(),'amount'=>array(),'place'=>array(),'profit'=>array());
 
@@ -41,13 +44,13 @@
                 $taxper = $array[$i]['cn_tax']/2;
                 $cgst = $total_temp * $taxper / 100;
                 $sgst = $total_temp * $taxper / 100;
-                $cgst = (float)number_format($cgst,2, '.', '');
-                $sgst = (float)number_format($sgst,2, '.', '');
+                $cgst = (float)number_format((float)$cgst,2, '.', '');
+                $sgst = (float)number_format((float)$sgst,2, '.', '');
             }
             else{
                 $taxper = $array[$i]['cn_tax'];
                 $igst = $total_temp * $taxper / 100;
-                $igst = (float)number_format($igst,2, '.', '');
+                $igst = (float)number_format((float)$igst,2, '.', '');
             }
 
             $ppr = replace_improper($array[$i]['cn_product_name']).',';
@@ -84,8 +87,8 @@
     }
     $item       = json_encode($items);
 
-    $cn_pf      = replace_improper($_REQUEST['cn_pf']);    
-    $cn_freight = replace_improper($_REQUEST['cn_freight']);    
+    $cn_pf      = replace_improper($_REQUEST['cn_pf'] ?? '');    
+    $cn_freight = replace_improper($_REQUEST['cn_freight'] ?? '');    
    
 
     $cn_pf           = str_replace(',', '', $cn_pf);
@@ -148,11 +151,11 @@
     }
 
     if($tax['cgst'] != '')
-        $tax['cgst'] = number_format($tax['cgst'],2, '.', '');
+        $tax['cgst'] = number_format((float)$tax['cgst'],2, '.', '');
     if($tax['sgst'] != '')
-        $tax['sgst'] = number_format($tax['sgst'],2, '.', '');
+        $tax['sgst'] = number_format((float)$tax['sgst'],2, '.', '');
     if($tax['igst'] != '')
-        $tax['igst'] = number_format($tax['igst'],2, '.', '');
+        $tax['igst'] = number_format((float)$tax['igst'],2, '.', '');
 
     $decimal = floor($tot_amount);
     $fraction = $tot_amount - $decimal;
@@ -164,11 +167,11 @@
         $add_fraction = -1 * $fraction;
         $tot_amount += $add_fraction;
     }
-    $tot_amount = TrimTrailingZeroes(number_format($tot_amount,2, '.', ''));
+    $tot_amount = TrimTrailingZeroes(number_format((float)$tot_amount,2, '.', ''));
 
     $addons['roundoff'] = $add_fraction;
     if($addons['roundoff'] != '')
-        $addons['roundoff'] = number_format($addons['roundoff'],2, '.', '');
+        $addons['roundoff'] = number_format((float)$addons['roundoff'],2, '.', '');
 
     $addon      = json_encode($addons);
     $tax_json   = json_encode($tax);
@@ -180,11 +183,13 @@
         
         $sql_counter = "SELECT * FROM counter WHERE `key` = 'credit_note'";
         $query_counter = $db->query($sql_counter);
-        $row_counter = $query_counter -> fetch_assoc();
-        $row_counter_arr = json_decode($row_counter['value'], true);
+        $row_counter = ($query_counter && $query_counter->num_rows > 0) ? $query_counter->fetch_assoc() : null;
+        $row_counter_arr = ($row_counter && isset($row_counter['value'])) ? json_decode($row_counter['value'], true) : null;
 
-        $order_no = $row_counter_arr['prefix'][0].str_pad($row_counter_arr['number'][0],4,'0', STR_PAD_LEFT).$row_counter_arr['postfix'][0];
-        $row_counter_arr['number'][0] = $row_counter_arr['number'][0] + 1;  
+        if(is_array($row_counter_arr) && isset($row_counter_arr['prefix'][0]) && isset($row_counter_arr['number'][0]) && isset($row_counter_arr['postfix'][0])){
+            $order_no = $row_counter_arr['prefix'][0].str_pad($row_counter_arr['number'][0],4,'0', STR_PAD_LEFT).$row_counter_arr['postfix'][0];
+            $row_counter_arr['number'][0] = $row_counter_arr['number'][0] + 1;
+        }
 
         $sql = "INSERT INTO credit_note (`client`,`sales_invoice`,`cn_no`,`cn_date`,`state`,`items`,`addons`,`total`,`tax`,`status`,`log_user`,`log_date`) VALUES ('$client','$sales_invoice','$cn_no', '$cn_date','$state','$item','$addon','$tot_amount','$tax_json','$status','$log_user','$log_date')";
         $query = $db->query($sql);
@@ -192,9 +197,11 @@
         if($query===true)
         {
            
-            $counter_array = json_encode($row_counter_arr);
-            $sql_counter = "UPDATE counter SET `value` = '$counter_array' WHERE `key` = 'credit_note'";
-            $query_counter = $db->query($sql_counter);
+            if(is_array($row_counter_arr) && isset($row_counter_arr['prefix'][0])){
+                $counter_array = json_encode($row_counter_arr);
+                $sql_counter = "UPDATE counter SET `value` = '$counter_array' WHERE `key` = 'credit_note'";
+                $query_counter = $db->query($sql_counter);
+            }
             
             $validator['success'] = true;
             $validator['messages'] = "Successfully Added";
@@ -209,6 +216,7 @@
     }
     else
     {
+        $order_no = $cn_no;
         $sql = "UPDATE credit_note SET `client` = '$client', `sales_invoice`='$sales_invoice',`cn_no`='$cn_no', `cn_date`='$cn_date',`state`='$state',`items`='$item',`addons`='$addon',`total`='$tot_amount',`tax`='$tax_json',`log_user`='$log_user',`log_date`='$log_date' WHERE `id`='$id'";
         $query = $db->query($sql);
 

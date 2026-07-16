@@ -5,38 +5,41 @@
 
     session_start();
 
-    $id         = $_REQUEST['edit_si_id'];
-    $log_user   = $_SESSION['username'];
+    $id         = $_REQUEST['edit_si_id'] ?? '';
+    $log_user   = $_SESSION['username'] ?? '';
     $log_date   = date('Y-m-d', strtotime("today"));
     $validator  = array("success"=>true, "messages"=>"There was some error saving the records","si"=>"");
 
-    $array      = $_REQUEST['sales_invoice'];
+    $array      = $_REQUEST['sales_invoice'] ?? [];
+    if (!is_array($array)) { $array = []; }
     $l          = sizeof($array);
 
-    $client         = replace_improper($_REQUEST['si_client']);
-    $order_no       = replace_improper($_REQUEST['sales_invoice_no']);
-    $invoice_date   = date('Y-m-d', strtotime($_REQUEST['sales_invoice_date']));
+    $client         = replace_improper($_REQUEST['si_client'] ?? '');
+    $order_no       = replace_improper($_REQUEST['sales_invoice_no'] ?? '');
+    $si_date_raw    = $_REQUEST['sales_invoice_date'] ?? '';
+    $invoice_date   = ($si_date_raw !== '') ? date('Y-m-d', strtotime($si_date_raw)) : '';
     fy_assert_or_exit_json($invoice_date, "Sales invoice date");
-    $series         = $_REQUEST['si_series'];
-    $mobile         = $_REQUEST['mobile'];
+    $series         = $_REQUEST['si_series'] ?? '';
+    $mobile         = $_REQUEST['mobile'] ?? '';
 
     $address                = array('name'=>'','address_1'=>'','address_2'=>'','city'=>'','pincode'=>'','country'=>'');
-    $address['name']        = replace_improper_same($_REQUEST['shipping_name']);
-    $address['address_1']   = replace_improper_same($_REQUEST['shipping_add_1']);
-    $address['address_2']   = replace_improper_same($_REQUEST['shipping_add_2']);
-    $address['city']        = replace_improper_same($_REQUEST['shipping_city']);
-    $address['pincode']     = replace_improper_same($_REQUEST['shipping_pincode']);
-    $address['country']     = replace_improper_same($_REQUEST['shipping_country']);
+    $address['name']        = replace_improper_same($_REQUEST['shipping_name'] ?? '');
+    $address['address_1']   = replace_improper_same($_REQUEST['shipping_add_1'] ?? '');
+    $address['address_2']   = replace_improper_same($_REQUEST['shipping_add_2'] ?? '');
+    $address['city']        = replace_improper_same($_REQUEST['shipping_city'] ?? '');
+    $address['pincode']     = replace_improper_same($_REQUEST['shipping_pincode'] ?? '');
+    $address['country']     = replace_improper_same($_REQUEST['shipping_country'] ?? '');
     $address                = json_encode($address);
-    $ship_state                  = strtoupper($_REQUEST['shipping_state']);
+    $ship_state                  = strtoupper($_REQUEST['shipping_state'] ?? '');
 
     $sql_client = "SELECT * FROM clients WHERE `name` = '$client'";
     $query_client = $db->query($sql_client);
-    $row_client = $query_client->fetch_assoc();
+    $row_client = ($query_client && ($tmp = $query_client->fetch_assoc())) ? $tmp : [];
 
-    $state = strtoupper($row_client['state']);
+    $state = strtoupper((string)($row_client['state'] ?? ''));
 
-    $so_no      = $_REQUEST['si_sales_order'];
+    $so_no      = $_REQUEST['si_sales_order'] ?? [];
+    if (!is_array($so_no)) { $so_no = []; }
     $sales_order= array();
     $e_len      = sizeof($so_no);
     for($i=0;$i<$e_len;$i++){
@@ -44,7 +47,8 @@
     }
     $sales_o=json_encode($sales_order);
     
-    $q_no       = $_REQUEST['si_quotation[]'];
+    $q_no       = $_REQUEST['si_quotation[]'] ?? [];
+    if (!is_array($q_no)) { $q_no = []; }
     $quotations = array();
     $e_len      = sizeof($q_no);
     for($i=0;$i<$e_len;$i++){
@@ -94,11 +98,13 @@
                     $ad_product2    = "\"".$ad_product."\"";
                     $sql_adj = "SELECT * FROM sales_invoice WHERE JSON_QUERY(`items`, '$.product') LIKE '%$ad_product2%' AND series = 'SECONDARY'";
                     $query_adj = $db->query($sql_adj);
+                    if ($query_adj) {
                     while($row_adj = $query_adj->fetch_assoc()){
 
                         $adj_id = $row_adj['id'];
-                        $adj_items = json_decode($row_adj['items'], true);
-                        $adj_len = sizeof($adj_items['product']);
+                        $adj_items = json_decode($row_adj['items'] ?? '', true);
+                        if (!is_array($adj_items)) { $adj_items = ['product'=>[]]; }
+                        $adj_len = is_array($adj_items['product'] ?? null) ? sizeof($adj_items['product']) : 0;
 
                         for($adj_i=0;$adj_i<$adj_len;$adj_i++){
                             if($adj_items['product'][$adj_i] == $ad_product){
@@ -121,6 +127,7 @@
                         if($adj_qty == 0){
                             break;
                         }
+                    }
                     }
                 }
             }
@@ -182,15 +189,15 @@
     }
     $item       = json_encode($items);
 
-    $si_pf              = replace_improper_amount($_REQUEST['si_pf']); 
-    $si_pf_cgst         = replace_improper_amount($_REQUEST['si_pf_cgst']);    
-    $si_pf_sgst         = replace_improper_amount($_REQUEST['si_pf_sgst']);    
-    $si_pf_igst         = replace_improper_amount($_REQUEST['si_pf_igst']);    
+    $si_pf              = replace_improper_amount($_REQUEST['si_pf'] ?? ''); 
+    $si_pf_cgst         = replace_improper_amount($_REQUEST['si_pf_cgst'] ?? '');    
+    $si_pf_sgst         = replace_improper_amount($_REQUEST['si_pf_sgst'] ?? '');    
+    $si_pf_igst         = replace_improper_amount($_REQUEST['si_pf_igst'] ?? '');    
 
-    $si_freight              = replace_improper_amount($_REQUEST['si_freight']); 
-    $si_freight_cgst         = replace_improper_amount($_REQUEST['si_freight_cgst']);    
-    $si_freight_sgst         = replace_improper_amount($_REQUEST['si_freight_sgst']);    
-    $si_freight_igst         = replace_improper_amount($_REQUEST['si_freight_igst']);     
+    $si_freight              = replace_improper_amount($_REQUEST['si_freight'] ?? ''); 
+    $si_freight_cgst         = replace_improper_amount($_REQUEST['si_freight_cgst'] ?? '');    
+    $si_freight_sgst         = replace_improper_amount($_REQUEST['si_freight_sgst'] ?? '');    
+    $si_freight_igst         = replace_improper_amount($_REQUEST['si_freight_igst'] ?? '');     
    
     $addons = array('freight'=>array('value'=>$si_freight,'cgst'=>'','sgst'=>'','igst'=>''),'pf'=>array('value'=>$si_pf,'cgst'=>'','sgst'=>'','igst'=>''),'roundoff'=>'');
 
@@ -237,16 +244,16 @@
     }
 
     if($tax['cgst'] != '')
-        $tax['cgst'] = number_format($tax['cgst'],2, '.', '');
+        $tax['cgst'] = number_format((float)$tax['cgst'],2, '.', '');
     if($tax['sgst'] != '')
-        $tax['sgst'] = number_format($tax['sgst'],2, '.', '');
+        $tax['sgst'] = number_format((float)$tax['sgst'],2, '.', '');
     if($tax['igst'] != '')
-        $tax['igst'] = number_format($tax['igst'],2, '.', '');
+        $tax['igst'] = number_format((float)$tax['igst'],2, '.', '');
 
-    $addons['roundoff'] = replace_improper_amount($_REQUEST['si_round']); 
+    $addons['roundoff'] = replace_improper_amount($_REQUEST['si_round'] ?? ''); 
 
-    $tot_amount = replace_improper_amount($_REQUEST['si_total_final']);
-    $tot_amount = TrimTrailingZeroes(number_format($tot_amount,2, '.', ''));
+    $tot_amount = replace_improper_amount($_REQUEST['si_total_final'] ?? '');
+    $tot_amount = TrimTrailingZeroes(number_format((float)$tot_amount,2, '.', ''));
 
     // if($series == 'SECONDARY')
     // {
@@ -259,23 +266,25 @@
 
     $invoice_details_arr = array("buyer_order"=>"","order_date"=>"","payment_terms"=>"","delivery_terms"=>"","other_ref"=>"","despatch_medium"=>"","despatch_doc_no"=>"","despatch_date"=>"","despatch_destination"=>"");
 
-    $invoice_details_arr["buyer_order"]         = replace_improper_same($_REQUEST['buyer_order_no']); 
-    if($_REQUEST['buyer_order_date'] != '')
-        $invoice_details_arr["order_date"]      = date('Y-m-d', strtotime($_REQUEST['buyer_order_date'])); 
+    $invoice_details_arr["buyer_order"]         = replace_improper_same($_REQUEST['buyer_order_no'] ?? ''); 
+    $buyer_order_date = $_REQUEST['buyer_order_date'] ?? '';
+    if($buyer_order_date != '')
+        $invoice_details_arr["order_date"]      = date('Y-m-d', strtotime($buyer_order_date)); 
     else
         $invoice_details_arr["order_date"]      = '';
 
-    $notes      = replace_improper_textarea($_REQUEST['notes']);;  
-    $invoice_details_arr["payment_terms"]       = replace_improper_same($_REQUEST['terms_payment']); 
-    $invoice_details_arr["delivery_terms"]      = replace_improper_same($_REQUEST['terms_delivery']); 
-    $invoice_details_arr["other_ref"]           = replace_improper_same($_REQUEST['other_ref']); 
-    $invoice_details_arr["despatch_medium"]     = replace_improper_same($_REQUEST['despatch_medium']); 
-    $invoice_details_arr["despatch_doc_no"]     = replace_improper_same($_REQUEST['despatch_doc_no']); 
-    if($_REQUEST['despatch_date'] != '')
-        $invoice_details_arr["despatch_date"]   = date('Y-m-d', strtotime($_REQUEST['despatch_date'])); 
+    $notes      = replace_improper_textarea($_REQUEST['notes'] ?? '');;  
+    $invoice_details_arr["payment_terms"]       = replace_improper_same($_REQUEST['terms_payment'] ?? ''); 
+    $invoice_details_arr["delivery_terms"]      = replace_improper_same($_REQUEST['terms_delivery'] ?? ''); 
+    $invoice_details_arr["other_ref"]           = replace_improper_same($_REQUEST['other_ref'] ?? ''); 
+    $invoice_details_arr["despatch_medium"]     = replace_improper_same($_REQUEST['despatch_medium'] ?? ''); 
+    $invoice_details_arr["despatch_doc_no"]     = replace_improper_same($_REQUEST['despatch_doc_no'] ?? ''); 
+    $despatch_date = $_REQUEST['despatch_date'] ?? '';
+    if($despatch_date != '')
+        $invoice_details_arr["despatch_date"]   = date('Y-m-d', strtotime($despatch_date)); 
     else
         $invoice_details_arr["despatch_date"]   = '';
-    $invoice_details_arr["despatch_destination"]= replace_improper_same($_REQUEST['despatch_destination']); 
+    $invoice_details_arr["despatch_destination"]= replace_improper_same($_REQUEST['despatch_destination'] ?? ''); 
 
     $invoice_details = json_encode($invoice_details_arr);
 
@@ -286,29 +295,38 @@
         if($series == 'PRIMARY'){
             $sql_counter = "SELECT * FROM counter WHERE `key` = 'sales_invoice'";
             $query_counter = $db->query($sql_counter);
-            $row_counter = $query_counter -> fetch_assoc();
-            $row_counter_arr = json_decode($row_counter['value'], true);
-
-            $order_no = $row_counter_arr['prefix'][0].str_pad($row_counter_arr['number'][0],4,'0', STR_PAD_LEFT).$row_counter_arr['postfix'][0];
-            $row_counter_arr['number'][0] = $row_counter_arr['number'][0] + 1;  
+            if ($query_counter && $query_counter->num_rows > 0) {
+                $row_counter = $query_counter->fetch_assoc();
+                $row_counter_arr = json_decode($row_counter['value'] ?? '', true);
+                if (is_array($row_counter_arr) && isset($row_counter_arr['prefix'][0], $row_counter_arr['number'][0], $row_counter_arr['postfix'][0])) {
+                    $order_no = $row_counter_arr['prefix'][0].str_pad($row_counter_arr['number'][0],4,'0', STR_PAD_LEFT).$row_counter_arr['postfix'][0];
+                    $row_counter_arr['number'][0] = $row_counter_arr['number'][0] + 1;
+                }
+            }
         }
         else if($series == 'SECONDARY'){
             $sql_counter = "SELECT * FROM counter WHERE `key` = 'Secondary'";
             $query_counter = $db->query($sql_counter);
-            $row_counter = $query_counter -> fetch_assoc();
-            $row_counter_arr = json_decode($row_counter['value'], true);
-
-            $order_no = $row_counter_arr['prefix'][0].str_pad($row_counter_arr['number'][0],4,'0', STR_PAD_LEFT).$row_counter_arr['postfix'][0];
-            $row_counter_arr['number'][0] = $row_counter_arr['number'][0] + 1;  
+            if ($query_counter && $query_counter->num_rows > 0) {
+                $row_counter = $query_counter->fetch_assoc();
+                $row_counter_arr = json_decode($row_counter['value'] ?? '', true);
+                if (is_array($row_counter_arr) && isset($row_counter_arr['prefix'][0], $row_counter_arr['number'][0], $row_counter_arr['postfix'][0])) {
+                    $order_no = $row_counter_arr['prefix'][0].str_pad($row_counter_arr['number'][0],4,'0', STR_PAD_LEFT).$row_counter_arr['postfix'][0];
+                    $row_counter_arr['number'][0] = $row_counter_arr['number'][0] + 1;
+                }
+            }
         }
         else{
             $sql_counter = "SELECT * FROM counter WHERE `key` = 'secondary'";
             $query_counter = $db->query($sql_counter);
-            $row_counter = $query_counter -> fetch_assoc();
-            $row_counter_arr = json_decode($row_counter['value'], true);
-
-            $order_no = $row_counter_arr['prefix'][0].$row_counter_arr['number'][0].$row_counter_arr['postfix'][0];
-            $row_counter_arr['number'][0] = $row_counter_arr['number'][0] + 1; 
+            if ($query_counter && $query_counter->num_rows > 0) {
+                $row_counter = $query_counter->fetch_assoc();
+                $row_counter_arr = json_decode($row_counter['value'] ?? '', true);
+                if (is_array($row_counter_arr) && isset($row_counter_arr['prefix'][0], $row_counter_arr['number'][0], $row_counter_arr['postfix'][0])) {
+                    $order_no = $row_counter_arr['prefix'][0].$row_counter_arr['number'][0].$row_counter_arr['postfix'][0];
+                    $row_counter_arr['number'][0] = $row_counter_arr['number'][0] + 1;
+                }
+            }
         }
 
         $sql = "INSERT INTO sales_invoice (`client_name`,`mobile`,`si_no`,`series`,`si_date`,`so_no`,`shipping`,`state`,`invoice_details`,`items`,`addons`,`hsn_table`,`total`,`notes`,`tax`,`status`,`log_user`,`log_date`) VALUES ('$client','$mobile','$order_no','$series', '$invoice_date','$sales_o','$address','$ship_state','$invoice_details','$item','$addon','1','$tot_amount','$notes','$tax_json','$status','$log_user','$log_date')";
@@ -317,6 +335,7 @@
 
         if($query===true)
         {
+            if(isset($row_counter_arr) && is_array($row_counter_arr)){
             if($series == 'PRIMARY'){
                 $counter_array = json_encode($row_counter_arr);
                 $sql_counter = "UPDATE counter SET `value` = '$counter_array' WHERE `key` = 'sales_invoice'";
@@ -331,6 +350,7 @@
                 $counter_array = json_encode($row_counter_arr);
                 $sql_counter = "UPDATE counter SET `value` = '$counter_array' WHERE `key` = 'secondary'";
                 $query_counter = $db->query($sql_counter);
+            }
             }
 
             $validator['success'] = true;

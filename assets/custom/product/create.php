@@ -6,23 +6,23 @@
 	session_start();
 	//Entered Value in login Page
 
-	$log_user = $_SESSION['username'];
+	$log_user = $_SESSION['username'] ?? '';
 	$log_date = date('Y-m-d', strtotime("today"));
 
-	$name = replace_improper($_REQUEST['product_name']);
-	$description = replace_improper_same($_REQUEST['product_description']);
-	$aliases = replace_improper_same($_REQUEST['product_alias']);
-	$moq = replace_improper_same($_REQUEST['product_moq']);
-	$group_name = replace_improper($_REQUEST['product_group_name']);
-	$vendor_name = replace_improper($_REQUEST['product_vendor_name']);
-	$category = replace_improper($_REQUEST['product_category']);
-	$sub_category = replace_improper($_REQUEST['product_sub_category']);
-	$unit = replace_improper($_REQUEST['product_unit']);
-	$rate = $_REQUEST['product_rate'];
-	$cost = $_REQUEST['product_cost'];
-	$tax = $_REQUEST['product_tax'];
-	$hsn = $_REQUEST['product_hsn'];
-	$opening_stock = $_REQUEST['product_opening_stock'];
+	$name = replace_improper($_REQUEST['product_name'] ?? '');
+	$description = replace_improper_same($_REQUEST['product_description'] ?? '');
+	$aliases = replace_improper_same($_REQUEST['product_alias'] ?? '');
+	$moq = replace_improper_same($_REQUEST['product_moq'] ?? '');
+	$group_name = replace_improper($_REQUEST['product_group_name'] ?? '');
+	$vendor_name = replace_improper($_REQUEST['product_vendor_name'] ?? '');
+	$category = replace_improper($_REQUEST['product_category'] ?? '');
+	$sub_category = replace_improper($_REQUEST['product_sub_category'] ?? '');
+	$unit = replace_improper($_REQUEST['product_unit'] ?? '');
+	$rate = $_REQUEST['product_rate'] ?? '';
+	$cost = $_REQUEST['product_cost'] ?? '';
+	$tax = $_REQUEST['product_tax'] ?? '';
+	$hsn = $_REQUEST['product_hsn'] ?? '';
+	$opening_stock = $_REQUEST['product_opening_stock'] ?? '';
 
 	$new_opening_stock = array('year' =>array(),'stock' =>array());
 
@@ -57,9 +57,9 @@
 	$default_make = '0';
 	$sql_check = "SELECT * FROM settings WHERE `group_name` = '$group_name'";
 	$query_check = $db->query($sql_check);
-	$row_check = $query_check->fetch_assoc();
+	$row_check = ($query_check && ($tmp = $query_check->fetch_assoc())) ? $tmp : [];
 
-	if($row_check['default_make'] != '')
+	if(($row_check['default_make'] ?? '') != '')
 		$default_make = $row_check['default_make'];
 	else{
 		$sql_update = "INSERT INTO settings (`group_name`,`default_make`) VALUES ('$group_name','0')";

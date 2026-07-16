@@ -4,21 +4,22 @@
 
 	session_start();
 
-	$array = $_REQUEST['client'];
+	$array = $_REQUEST['client'] ?? [];
+	if (!is_array($array)) { $array = []; }
 	$l = sizeof($array);
 
-	$client = replace_improper($_REQUEST['client_name']);
-	$print_name = replace_improper($_REQUEST['client_print_name']);
-	$gstin = replace_improper($_REQUEST['client_gstin']);
-	$gstin_type = replace_improper_same($_REQUEST['client_gstin_type']);
-	$type = replace_improper($_REQUEST['client_category']);
-	$state = replace_improper($_REQUEST['client_state']);
-	$country = replace_improper($_REQUEST['client_country']);
-	$vendor_code = replace_improper($_REQUEST['vendor_code']);
-	$vendor_discount = replace_improper($_REQUEST['vendor_discount']);
+	$client = replace_improper($_REQUEST['client_name'] ?? '');
+	$print_name = replace_improper($_REQUEST['client_print_name'] ?? '');
+	$gstin = replace_improper($_REQUEST['client_gstin'] ?? '');
+	$gstin_type = replace_improper_same($_REQUEST['client_gstin_type'] ?? '');
+	$type = replace_improper($_REQUEST['client_category'] ?? '');
+	$state = replace_improper($_REQUEST['client_state'] ?? '');
+	$country = replace_improper($_REQUEST['client_country'] ?? '');
+	$vendor_code = replace_improper($_REQUEST['vendor_code'] ?? '');
+	$vendor_discount = replace_improper($_REQUEST['vendor_discount'] ?? '');
 
 
-	$log_user = $_SESSION['username'];
+	$log_user = $_SESSION['username'] ?? '';
 	$log_date = date('Y-m-d', strtotime("today"));
 
 	$validator = array("success"=>true, "messages"=>"There was some error saving the records");
@@ -26,15 +27,15 @@
 	$contacts=array('name'=>array(),'designation'=>array(),'mobile'=>array(),'email'=>array());
 	$bank_details=array('name'=>'','bank_name'=>'','account'=>'','ifsc'=>'');
 
-	$bank_details['name']=replace_improper($_REQUEST['bank_client']);
-	$bank_details['bank_name']=replace_improper($_REQUEST['bank_name']);
-	$bank_details['account']=replace_improper($_REQUEST['bank_account']);
-	$bank_details['ifsc']=replace_improper($_REQUEST['bank_ifsc']);
+	$bank_details['name']=replace_improper($_REQUEST['bank_client'] ?? '');
+	$bank_details['bank_name']=replace_improper($_REQUEST['bank_name'] ?? '');
+	$bank_details['account']=replace_improper($_REQUEST['bank_account'] ?? '');
+	$bank_details['ifsc']=replace_improper($_REQUEST['bank_ifsc'] ?? '');
 
-	$address['address_1']=replace_improper($_REQUEST['client_add_1']);
-	$address['address_2']=replace_improper($_REQUEST['client_add_2']);
-	$address['city']=replace_improper($_REQUEST['client_city']);
-	$address['pincode']=replace_improper($_REQUEST['client_pincode']);
+	$address['address_1']=replace_improper($_REQUEST['client_add_1'] ?? '');
+	$address['address_2']=replace_improper($_REQUEST['client_add_2'] ?? '');
+	$address['city']=replace_improper($_REQUEST['client_city'] ?? '');
+	$address['pincode']=replace_improper($_REQUEST['client_pincode'] ?? '');
 
 	for($i=0;$i<$l;$i++){
         $contacts['name'][] =replace_improper($array[$i]['client_person']);
