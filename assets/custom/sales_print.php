@@ -1,54 +1,8 @@
-
-
 <?php
-// TEMP DEBUG — remove after sales print is fixed
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-ini_set('html_errors', '1');
-
-register_shutdown_function(function () {
-	$err = error_get_last();
-	if ($err && in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR], true)) {
-		if (!headers_sent()) {
-			header('Content-Type: text/html; charset=UTF-8');
-		}
-		echo '<pre style="color:#b00020;background:#fff3f3;padding:12px;border:1px solid #f5c2c7;white-space:pre-wrap;">';
-		echo "FATAL ERROR\n";
-		echo htmlspecialchars($err['message'] ?? '', ENT_QUOTES, 'UTF-8') . "\n";
-		echo 'File: ' . htmlspecialchars($err['file'] ?? '', ENT_QUOTES, 'UTF-8') . "\n";
-		echo 'Line: ' . htmlspecialchars((string)($err['line'] ?? ''), ENT_QUOTES, 'UTF-8') . "\n";
-		echo '</pre>';
-	}
-});
-
-set_exception_handler(function ($e) {
-	if (!headers_sent()) {
-		header('Content-Type: text/html; charset=UTF-8');
-	}
-	echo '<pre style="color:#b00020;background:#fff3f3;padding:12px;border:1px solid #f5c2c7;white-space:pre-wrap;">';
-	echo "UNCAUGHT EXCEPTION\n";
-	echo htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8') . "\n";
-	echo 'File: ' . htmlspecialchars($e->getFile(), ENT_QUOTES, 'UTF-8') . "\n";
-	echo 'Line: ' . $e->getLine() . "\n\n";
-	echo htmlspecialchars($e->getTraceAsString(), ENT_QUOTES, 'UTF-8');
-	echo '</pre>';
-});
-
 require('pdf_js.php');
 include ("connect.php");
 session_start();
 setlocale(LC_MONETARY, 'en_IN');
-
-// Visible breadcrumb so we know the updated file is live
-if (isset($_GET['debug']) || isset($_REQUEST['debug'])) {
-	echo '<pre>sales_print.php debug bootstrap OK\n';
-	echo 'PHP: ' . PHP_VERSION . "\n";
-	echo 'REQUEST id=' . htmlspecialchars((string)($_REQUEST['id'] ?? ''), ENT_QUOTES, 'UTF-8') . "\n";
-	echo 'REQUEST type=' . htmlspecialchars((string)($_REQUEST['type'] ?? ''), ENT_QUOTES, 'UTF-8') . "\n";
-	echo '</pre>';
-}
-
 
 class PDF_AutoPrint extends PDF_JavaScript
 {
@@ -333,6 +287,12 @@ if (!is_array($shipping)) { $shipping = []; }
 $client = $row['client_name'] ?? '';
 $items = json_decode($row['items'] ?? '', true);
 if (!is_array($items)) { $items = []; }
+foreach (['product', 'group', 'desc', 'hsn', 'quantity', 'unit', 'price', 'discount', 'tax', 'cgst', 'sgst', 'igst'] as $__item_key) {
+	if (!isset($items[$__item_key]) || !is_array($items[$__item_key])) {
+		$items[$__item_key] = [];
+	}
+}
+unset($__item_key);
 $invoice_details = json_decode($row['invoice_details'] ?? '', true);
 if (!is_array($invoice_details)) { $invoice_details = []; }
 
@@ -521,9 +481,9 @@ for($ij=1;$ij<=$copies;$ij++){
 		//$pdf->Cell(7,4,'HIiiii','R',0,C);
 		if($state_flag == 0)
 		{
-			$tax = $items['tax'][$i]/2;
-			$cgst = $items['cgst'][$i];
-			$sgst = $items['sgst'][$i];
+			$tax = ((float)($items['tax'][$i] ?? 0))/2;
+			$cgst = (float)($items['cgst'][$i] ?? 0);
+			$sgst = (float)($items['sgst'][$i] ?? 0);
 			$pr = $items['product'][$i];
 			$make = $items['group'][$i];
             
@@ -689,8 +649,8 @@ for($ij=1;$ij<=$copies;$ij++){
 			
 
 		}else{
-			$tax = $items['tax'][$i];
-			$igst = $items['igst'][$i];
+			$tax = (float)($items['tax'][$i] ?? 0);
+			$igst = (float)($items['igst'][$i] ?? 0);
 			$pr = $items['product'][$i];
 			$make = $items['group'][$i];
 
@@ -877,19 +837,19 @@ for($ij=1;$ij<=$copies;$ij++){
 
 		if($pos != '-1'){
 			$tax_details['taxable'][$pos] += $line_total;
-			$tax_details['cgst'][$pos] += $items['cgst'][$i];
-			$tax_details['sgst'][$pos] += $items['sgst'][$i];
-			$tax_details['igst'][$pos] += $items['igst'][$i];
-			$tax_details['total'][$pos] += $items['cgst'][$i] + $items['sgst'][$i] + $items['igst'][$i];
+			$tax_details['cgst'][$pos] += (float)($items['cgst'][$i] ?? 0);
+			$tax_details['sgst'][$pos] += (float)($items['sgst'][$i] ?? 0);
+			$tax_details['igst'][$pos] += (float)($items['igst'][$i] ?? 0);
+			$tax_details['total'][$pos] += (float)($items['cgst'][$i] ?? 0) + (float)($items['sgst'][$i] ?? 0) + (float)($items['igst'][$i] ?? 0);
 
 		}else{
-			$tax_details['hsn'][] = $items['hsn'][$i];
-			$tax_details['rate'][] = $items['tax'][$i];
+			$tax_details['hsn'][] = $items['hsn'][$i] ?? '';
+			$tax_details['rate'][] = (float)($items['tax'][$i] ?? 0);
 			$tax_details['taxable'][] = $line_total;
-			$tax_details['cgst'][] = $items['cgst'][$i];
-			$tax_details['sgst'][] = $items['sgst'][$i];
-			$tax_details['igst'][] = $items['igst'][$i];
-			$tax_details['total'][] = $items['cgst'][$i] + $items['sgst'][$i] + $items['igst'][$i];
+			$tax_details['cgst'][] = (float)($items['cgst'][$i] ?? 0);
+			$tax_details['sgst'][] = (float)($items['sgst'][$i] ?? 0);
+			$tax_details['igst'][] = (float)($items['igst'][$i] ?? 0);
+			$tax_details['total'][] = (float)($items['cgst'][$i] ?? 0) + (float)($items['sgst'][$i] ?? 0) + (float)($items['igst'][$i] ?? 0);
 		}
 
 	}
@@ -1046,7 +1006,7 @@ for($ij=1;$ij<=$copies;$ij++){
 
 	$pdf->Cell(80,7,'',0,0,R);
 	$pdf->Cell(40,7,'','',0,C);
-	$pdf->Cell(47,7,'GRAND TOTAL',LTB,0,L);
+	$pdf->Cell(47,7,'GRAND TOTAL','LTB',0,L);
 
 	if($state_flag == '0'){
 		$total_amount = (float)$GLOBALS["gross_total"] + (float)($addons_array['pf']['value'] ?? 0) + (float)($addons_array['freight']['value'] ?? 0) + (float)$sgst + (float)$cgst + (float)($addons_array['roundoff'] ?? 0);

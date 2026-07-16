@@ -209,6 +209,12 @@ $pi_no = $row['pi_no'] ?? '';
 $supplier = $row['supplier_name'] ?? '';
 $items = json_decode($row['items'] ?? '', true);
 if (!is_array($items)) { $items = []; }
+foreach (['product', 'group', 'desc', 'hsn', 'quantity', 'unit', 'price', 'discount', 'tax', 'cgst', 'sgst', 'igst'] as $__item_key) {
+	if (!isset($items[$__item_key]) || !is_array($items[$__item_key])) {
+		$items[$__item_key] = [];
+	}
+}
+unset($__item_key);
 
 $sql_temp = "SELECT * FROM suppliers WHERE name = '$supplier'";
 $query_temp = $db->query($sql_temp);

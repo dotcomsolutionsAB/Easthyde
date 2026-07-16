@@ -1,12 +1,31 @@
 <?php
 require("../plugins/global/fpdf/fpdf.php");
 
-// PHP 8+: bare FPDF align/border tokens (C, L, R, B, …) are undefined constants
-foreach (['L', 'C', 'R', 'J', 'T', 'B'] as $__fpdf_const) {
+// PHP 8+: bare FPDF align/border tokens become undefined constants
+$__fpdf_consts = ['L', 'C', 'R', 'J', 'T', 'B'];
+// All non-empty border combinations of L/T/R/B (order variants used in this codebase)
+foreach (['L','T','R','B'] as $a) {
+	$__fpdf_consts[] = $a;
+	foreach (['L','T','R','B'] as $b) {
+		if ($a === $b) continue;
+		$__fpdf_consts[] = $a.$b;
+		foreach (['L','T','R','B'] as $c) {
+			if ($c === $a || $c === $b) continue;
+			$__fpdf_consts[] = $a.$b.$c;
+			foreach (['L','T','R','B'] as $d) {
+				if ($d === $a || $d === $b || $d === $c) continue;
+				$__fpdf_consts[] = $a.$b.$c.$d;
+			}
+		}
+	}
+}
+$__fpdf_consts = array_values(array_unique($__fpdf_consts));
+foreach ($__fpdf_consts as $__fpdf_const) {
 	if (!defined($__fpdf_const)) {
 		define($__fpdf_const, $__fpdf_const);
 	}
 }
+unset($__fpdf_consts, $__fpdf_const, $a, $b, $c, $d);
 
 function dotcom_wordwrap($text, $limit){
     $text = (string)($text ?? '');
