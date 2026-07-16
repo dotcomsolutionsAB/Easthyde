@@ -1,26 +1,26 @@
 <?php
 session_start();
 require_once "../connect.php";
-//ini_set("display_errors",1);
 setlocale(LC_MONETARY, 'en_IN');
 
 // Input handling for pagination and query parameters
-$pagination = $_REQUEST['pagination'];
-$query_array = $_REQUEST['query'];
-$sort_array = $_REQUEST['sort'];
+$pagination = $_REQUEST['pagination'] ?? [];
+$query_array = $_REQUEST['query'] ?? [];
+$sort_array = $_REQUEST['sort'] ?? [];
 
-$search = $query_array['client'] ?? '%';  // Get the client search query
+$search = $query_array['client'] ?? '%';
 if ($search == '') {
     $search = '%';
 }
+$search = $db->real_escape_string($search);
 
 $seriesFilter = isset($query_array['series']) ? strtolower(trim((string) $query_array['series'])) : '';
 if ($seriesFilter !== 'primary' && $seriesFilter !== 'secondary') {
     $seriesFilter = '';
 }
 
-$dt_start = $_SESSION['start'];  // Start date from session
-$dt_end = $_SESSION['end'];      // End date from session
+$dt_start = $_SESSION['start'] ?? '';
+$dt_end = $_SESSION['end'] ?? '';
 
 /** Human label from DB series (aligned with sales export: not SECONDARY => Primary). */
 function client_history_series_label($dbSeries) {
@@ -40,7 +40,7 @@ $result = array(
     'series' => array(),
     'total_amount' => array(),
     'status' => array(),
-    'details' => array()  // For dropdown details
+    'details' => array()
 );
 
 $seriesSqlSales = '';
@@ -58,7 +58,12 @@ function extractClientDetails($items) {
     $total_amount = 0;
     $product_details = array();
 
+    if (!is_array($items)) {
+        return $product_details;
+    }
+
     if (isset($items['product'], $items['price'], $items['quantity']) &&
+        is_array($items['product']) && is_array($items['price']) && is_array($items['quantity']) &&
         count($items['product']) == count($items['price']) &&
         count($items['price']) == count($items['quantity'])) {
 
@@ -90,43 +95,45 @@ function extractClientDetails($items) {
     return $product_details;
 }
 
-
-// Query for Client History (Sales and Purchases as example)
 // Sales History Query
 $sql = "SELECT * FROM sales_invoice WHERE `client_name` LIKE '%$search%' AND `si_date` BETWEEN '$dt_start' AND '$dt_end'" . $seriesSqlSales;
 $query = $db->query($sql);
-$serial = 1;  // For generating serial numbers
+$serial = 1;
 
-while ($row = $query->fetch_assoc()) {
-    $items = json_decode($row['items'], true);
-    $product_details = extractClientDetails($items);
+if ($query) {
+    while ($row = $query->fetch_assoc()) {
+        $items = json_decode($row['items'] ?? '', true);
+        $product_details = extractClientDetails($items);
 
-    $result['serial'][] = $serial++;
-    $result['date'][] = date('d-m-Y', strtotime($row['si_date']));
-    $result['type'][] = 'Sales';
-    $result['type_no'][] = $row['si_no'];
-    $result['series'][] = client_history_series_label($row['series'] ?? '');
-    $result['total_amount'][] = money_format('%!i', $row['total']);
-    $result['status'][] = ($row['status'] == 0) ? 'Complete' : 'Pending';
-    $result['details'][] = $product_details;
+        $result['serial'][] = $serial++;
+        $result['date'][] = !empty($row['si_date']) ? date('d-m-Y', strtotime($row['si_date'])) : '';
+        $result['type'][] = 'Sales';
+        $result['type_no'][] = $row['si_no'] ?? '';
+        $result['series'][] = client_history_series_label($row['series'] ?? '');
+        $result['total_amount'][] = number_format((float)($row['total'] ?? 0), 2);
+        $result['status'][] = ((string)($row['status'] ?? '') === '0') ? 'Complete' : 'Pending';
+        $result['details'][] = $product_details;
+    }
 }
 
-// Purchase History Query (Similar structure as Sales)
+// Purchase History Query
 $sql = "SELECT * FROM purchase_invoice WHERE `supplier_name` LIKE '%$search%' AND `pi_date` BETWEEN '$dt_start' AND '$dt_end'" . $seriesSqlPurchase;
 $query = $db->query($sql);
 
-while ($row = $query->fetch_assoc()) {
-    $items = json_decode($row['items'], true);
-     $product_details = extractClientDetails($items);
+if ($query) {
+    while ($row = $query->fetch_assoc()) {
+        $items = json_decode($row['items'] ?? '', true);
+        $product_details = extractClientDetails($items);
 
-    $result['serial'][] = $serial++;
-    $result['date'][] = date('d-m-Y', strtotime($row['pi_date']));
-    $result['type'][] = 'Purchase';
-    $result['type_no'][] = $row['pi_no'];
-    $result['series'][] = client_history_series_label($row['series'] ?? '');
-    $result['total_amount'][] = money_format('%!i', $row['total']);
-    $result['status'][] = ($row['status'] == 0) ? 'Complete' : 'Pending';
-    $result['details'][] = $product_details;
+        $result['serial'][] = $serial++;
+        $result['date'][] = !empty($row['pi_date']) ? date('d-m-Y', strtotime($row['pi_date'])) : '';
+        $result['type'][] = 'Purchase';
+        $result['type_no'][] = $row['pi_no'] ?? '';
+        $result['series'][] = client_history_series_label($row['series'] ?? '');
+        $result['total_amount'][] = number_format((float)($row['total'] ?? 0), 2);
+        $result['status'][] = ((string)($row['status'] ?? '') === '0') ? 'Complete' : 'Pending';
+        $result['details'][] = $product_details;
+    }
 }
 
 // Sorting the results by date (descending)
@@ -134,7 +141,6 @@ $len = sizeof($result['date']);
 for ($m = 0; $m < $len - 1; $m++) {
     for ($n = $m + 1; $n < $len; $n++) {
         if (strtotime($result['date'][$m]) < strtotime($result['date'][$n])) {
-            // Swap values in each key array
             foreach ($result as $key => $values) {
                 $temp = $result[$key][$m];
                 $result[$key][$m] = $result[$key][$n];
@@ -144,16 +150,15 @@ for ($m = 0; $m < $len - 1; $m++) {
     }
 }
 
-// Calculate total pages and handle pagination on server-side
-$pages = ceil($len / $pagination['perpage']);
-$page = $pagination['page'];
-$perpage = $pagination['perpage'];
+$perpage = (int)($pagination['perpage'] ?? 10);
+$page = (int)($pagination['page'] ?? 1);
+if ($perpage < 1) { $perpage = 10; }
+if ($page < 1) { $page = 1; }
+$pages = $perpage > 0 ? ceil($len / $perpage) : 0;
 
-// Trim the data array based on the pagination
 $start = ($page - 1) * $perpage;
 $end = $start + $perpage;
 
-// Prepare output for DataTable
 $output = array(
     'meta' => array(
         "page" => $page,
@@ -166,7 +171,6 @@ $output = array(
     'data' => array()
 );
 
-// Return paginated data
 for ($i = $start; $i < $end && $i < $len; $i++) {
     $output['data'][] = array(
         'SN' => $result['serial'][$i],
@@ -176,7 +180,7 @@ for ($i = $start; $i < $end && $i < $len; $i++) {
         'Series' => $result['series'][$i],
         'TotalAmount' => $result['total_amount'][$i],
         'Status' => $result['status'][$i],
-        'Details' => $result['details'][$i]  // This will contain detailed product info for the dropdown
+        'Details' => $result['details'][$i]
     );
 }
 

@@ -1,6 +1,5 @@
 <?php
 session_start();
-//ini_set("display_errors", 1);
 require_once "../connect.php";
 setlocale(LC_MONETARY, 'en_IN');
 
@@ -8,9 +7,9 @@ setlocale(LC_MONETARY, 'en_IN');
 $date_start = $_SESSION['start'] ?? '';
 $date_end = $_SESSION['end'] ?? '';
 
-$start_year = date('Y', strtotime($date_start));
-$end_year = date('Y', strtotime($date_end));
-$year = $start_year . '-' . substr($date_end, 2, 2);
+$start_year = $date_start !== '' ? date('Y', strtotime($date_start)) : date('Y');
+$end_year = $date_end !== '' ? date('Y', strtotime($date_end)) : date('Y');
+$year = $start_year . '-' . substr($date_end !== '' ? $date_end : $end_year, 2, 2);
 
 // Retrieve pagination and query parameters from request
 $pagination = $_REQUEST['pagination'] ?? ['page' => 1, 'perpage' => 10];
@@ -26,11 +25,17 @@ $positive = $query_array['positive'] ?? 1;
 // Set defaults for pagination if not provided
 $perpage = (int)($pagination['perpage'] ?? 10);
 $page = (int)($pagination['page'] ?? 1);
+if ($perpage < 1) { $perpage = 10; }
+if ($page < 1) { $page = 1; }
 $start = ($page - 1) * $perpage;
 
 // Initialize the output array
 $aoutput = [];
 $count = 1;
+
+$nameEsc = function ($value) use ($db) {
+	return $db->real_escape_string((string)$value);
+};
 
 // Query to get the products based on the filters (before 'positive' filter)
 $sql = "SELECT * FROM product WHERE 
@@ -47,23 +52,28 @@ $sql = "SELECT * FROM product WHERE
 $query_result = $db->query($sql);
 
 if (!$query_result) {
-    die("Error in query: " . $db->error);
+    echo json_encode([
+        'meta' => ['page' => $page, 'pages' => 0, 'perpage' => $perpage, 'total' => 0, 'sort' => 'asc', 'field' => 'SN'],
+        'data' => []
+    ]);
+    exit;
 }
 
 // Process each product and calculate stock
 while ($row = $query_result->fetch_assoc()) {
-    $name = $row['name'];
-    $row_id = $row['id'];
+    $name = $row['name'] ?? '';
+    $row_id = $row['id'] ?? '';
+    $safeName = $nameEsc($name);
 
     // Initialize stock
     $stock = 0;
 
     // Get the opening stock for the year
-    $new_opening_stock = json_decode($row['new_opening_stock'], true);
-    if (is_array($new_opening_stock) && isset($new_opening_stock['year'])) {
+    $new_opening_stock = json_decode($row['new_opening_stock'] ?? '', true);
+    if (is_array($new_opening_stock) && isset($new_opening_stock['year']) && is_array($new_opening_stock['year'])) {
         $index = array_search($year, $new_opening_stock['year']);
         if ($index !== false && isset($new_opening_stock['stock'][$index])) {
-            $opening_stock = $new_opening_stock['stock'][$index];
+            $opening_stock = (float)$new_opening_stock['stock'][$index];
         } else {
             $opening_stock = 0;
         }
@@ -74,92 +84,94 @@ while ($row = $query_result->fetch_assoc()) {
 
     // Adjust stock based on transactions
     // Sales Invoice Adjustment
-    $sql_sales_invoice = "SELECT * FROM sales_invoice WHERE items LIKE '%$name%' AND `si_date` BETWEEN '$date_start' AND '$date_end'";
+    $sql_sales_invoice = "SELECT * FROM sales_invoice WHERE items LIKE '%$safeName%' AND `si_date` BETWEEN '$date_start' AND '$date_end'";
     $query_sales_invoice = $db->query($sql_sales_invoice);
-    while ($row_sales = $query_sales_invoice->fetch_assoc()) {
-        $items = json_decode($row_sales['items'], true);
-        if (isset($items['product'])) {
-            foreach ($items['product'] as $i => $product_name) {
-                if ($product_name == $name) {
-                    $quantity = $items['quantity'][$i];
-                    $stock -= $quantity;
+    if ($query_sales_invoice) {
+        while ($row_sales = $query_sales_invoice->fetch_assoc()) {
+            $items = json_decode($row_sales['items'] ?? '', true);
+            if (is_array($items) && isset($items['product']) && is_array($items['product'])) {
+                foreach ($items['product'] as $i => $product_name) {
+                    if ($product_name == $name) {
+                        $quantity = (float)($items['quantity'][$i] ?? 0);
+                        $stock -= $quantity;
+                    }
                 }
             }
         }
     }
 
     // Sales Order Adjustment
-    $sql_sales_order = "SELECT * FROM sales_order WHERE items LIKE '%$name%' AND collected = '1' AND `status` = '0' AND `so_date` BETWEEN '$date_start' AND '$date_end'";
+    $sql_sales_order = "SELECT * FROM sales_order WHERE items LIKE '%$safeName%' AND collected = '1' AND `status` = '0' AND `so_date` BETWEEN '$date_start' AND '$date_end'";
     $query_sales_order = $db->query($sql_sales_order);
-    while ($row_sales_order = $query_sales_order->fetch_assoc()) {
-        $items = json_decode($row_sales_order['items'], true);
-        if (isset($items['product'])) {
-            foreach ($items['product'] as $i => $product_name) {
-                if ($product_name == $name) {
-                    $stock -= $items['quantity'][$i];
+    if ($query_sales_order) {
+        while ($row_sales_order = $query_sales_order->fetch_assoc()) {
+            $items = json_decode($row_sales_order['items'] ?? '', true);
+            if (is_array($items) && isset($items['product']) && is_array($items['product'])) {
+                foreach ($items['product'] as $i => $product_name) {
+                    if ($product_name == $name) {
+                        $stock -= (float)($items['quantity'][$i] ?? 0);
+                    }
                 }
             }
         }
     }
 
     // Purchase Invoice Adjustment
-    $sql_purchase = "SELECT * FROM purchase_invoice WHERE items LIKE '%$name%' AND `pi_date` BETWEEN '$date_start' AND '$date_end'";
+    $sql_purchase = "SELECT * FROM purchase_invoice WHERE items LIKE '%$safeName%' AND `pi_date` BETWEEN '$date_start' AND '$date_end'";
     $query_purchase = $db->query($sql_purchase);
-    while ($row_purchase = $query_purchase->fetch_assoc()) {
-        $items = json_decode($row_purchase['items'], true);
-        if (isset($items['product'])) {
-            foreach ($items['product'] as $i => $product_name) {
-                if ($product_name == $name) {
-                    $stock += $items['quantity'][$i];
+    if ($query_purchase) {
+        while ($row_purchase = $query_purchase->fetch_assoc()) {
+            $items = json_decode($row_purchase['items'] ?? '', true);
+            if (is_array($items) && isset($items['product']) && is_array($items['product'])) {
+                foreach ($items['product'] as $i => $product_name) {
+                    if ($product_name == $name) {
+                        $stock += (float)($items['quantity'][$i] ?? 0);
+                    }
                 }
             }
         }
     }
 
-    
-
-    
-
     // Assembly Operations
     // Assembled
-    $sql_assembled = "SELECT * FROM assembly_operation WHERE composite = '$name' AND `operation` = 'Assembled' AND `log_date` BETWEEN '$date_start' AND '$date_end'";
+    $sql_assembled = "SELECT * FROM assembly_operation WHERE composite = '$safeName' AND `operation` = 'Assembled' AND `log_date` BETWEEN '$date_start' AND '$date_end'";
     $query_assembled = $db->query($sql_assembled);
-    while ($row_assembled = $query_assembled->fetch_assoc()) {
-        $stock += $row_assembled['quantity'];
+    if ($query_assembled) {
+        while ($row_assembled = $query_assembled->fetch_assoc()) {
+            $stock += (float)($row_assembled['quantity'] ?? 0);
+        }
     }
 
     // Disassembled
-    $sql_disassembled = "SELECT * FROM assembly_operation WHERE composite = '$name' AND `operation` = 'Disassembled' AND `log_date` BETWEEN '$date_start' AND '$date_end'";
+    $sql_disassembled = "SELECT * FROM assembly_operation WHERE composite = '$safeName' AND `operation` = 'Disassembled' AND `log_date` BETWEEN '$date_start' AND '$date_end'";
     $query_disassembled = $db->query($sql_disassembled);
-    while ($row_disassembled = $query_disassembled->fetch_assoc()) {
-        $stock -= $row_disassembled['quantity'];
+    if ($query_disassembled) {
+        while ($row_disassembled = $query_disassembled->fetch_assoc()) {
+            $stock -= (float)($row_disassembled['quantity'] ?? 0);
+        }
     }
 
     // Apply the 'positive' filter
     $include_product = false;
-    if ($positive == 1) {
-        // Include all products
+    if ((string)$positive === '1' || $positive == 1) {
         $include_product = true;
-    } elseif ($positive == 2) {
-        // Include products with stock >= 0
+    } elseif ((string)$positive === '2' || $positive == 2) {
         if ($stock >= 0) {
             $include_product = true;
         }
-    } elseif ($positive == 0) {
-        // Include products with stock < 0
+    } elseif ((string)$positive === '0' || $positive == 0) {
         if ($stock < 0) {
             $include_product = true;
         }
     }
 
     if ($include_product) {
-        // Prepare the action buttons
         $actionBtn = '<div class="dropdown"><a href="javascript:;" class="btn btn-sm btn-clean btn-icon btn-icon-md" data-toggle="dropdown">
                         <i class="flaticon-more-1"></i></a>
                         <div class="dropdown-menu dropdown-menu-right">
                             <ul class="kt-nav">
                                 <li class="kt-nav__item">
-                                    <a data-toggle="modal" data-target="#kt_modal_add_purchase_bag" class="kt-nav__link" onclick="PurchaseBagLoad(\'' . $name . '\')"><i class="kt-nav__link-icon flaticon2-send-1"></i><span class="kt-nav__link-text">Add to bag</span></a>
+                                    <a data-toggle="modal" data-target="#kt_modal_add_purchase_bag" class="kt-nav__link" onclick="PurchaseBagLoad(\'' . htmlspecialchars($name, ENT_QUOTES) . '\')"><i class="kt-nav__link-icon flaticon2-send-1"></i><span class="kt-nav__link-text">Add to bag</span></a>
                                 </li>
                                 <li class="kt-nav__item">
                                     <a class="kt-nav__link" onclick="updated_stock_toggle(\'' . $row_id . '\')"><i class="kt-nav__link-icon flaticon2-graph-1"></i><span class="kt-nav__link-text">Updated Stock Toggle</span></a>
@@ -171,35 +183,33 @@ while ($row = $query_result->fetch_assoc()) {
                         </div>
                     </div>';
 
-        $url = '<strong><a href="?page=product_details&pr=' . urlencode($name) . '" target="_blank">' . strtoupper($name) . '</a></strong>';
+        $url = '<strong><a href="?page=product_details&pr=' . urlencode($name) . '" target="_blank">' . strtoupper((string)$name) . '</a></strong>';
 
-        $updated_stock_date = $row['updated_stock_date'] ? date('d-m-Y', strtotime($row['updated_stock_date'])) : '---';
-        $updated_price_date = $row['updated_price_date'] ? date('d-m-Y', strtotime($row['updated_price_date'])) : '---';
+        $updated_stock_date = !empty($row['updated_stock_date']) ? date('d-m-Y', strtotime($row['updated_stock_date'])) : '---';
+        $updated_price_date = !empty($row['updated_price_date']) ? date('d-m-Y', strtotime($row['updated_price_date'])) : '---';
 
         $aoutput[] = [
             'SN' => $count++,
             'Name' => $url,
-            'Description' => $row['description'],
-            'Alias' => $row['aliases'],
-            'Updated_Stock' => $row['updated_stock'],
+            'Description' => $row['description'] ?? '',
+            'Alias' => $row['aliases'] ?? '',
+            'Updated_Stock' => $row['updated_stock'] ?? '',
             'Updated_Stock_Date' => $updated_stock_date,
-            'Updated_Price' => $row['updated_price'],
+            'Updated_Price' => $row['updated_price'] ?? '',
             'Updated_Price_Date' => $updated_price_date,
-            'Group' => strtoupper($row['group']),
-            'Category' => strtoupper($row['category']),
-            'Sub-Category' => strtoupper($row['sub_category']),
-            'Unit' => strtoupper($row['unit']),
-            'Cost' => number_format($row['cost'], 2),
-            'Rate' => number_format($row['rate'], 2),
-            'Tax' => $row['tax'],
-            'HSN' => $row['hsn'],
+            'Group' => strtoupper((string)($row['group'] ?? '')),
+            'Category' => strtoupper((string)($row['category'] ?? '')),
+            'Sub-Category' => strtoupper((string)($row['sub_category'] ?? '')),
+            'Unit' => strtoupper((string)($row['unit'] ?? '')),
+            'Cost' => number_format((float)($row['cost'] ?? 0), 2),
+            'Rate' => number_format((float)($row['rate'] ?? 0), 2),
+            'Tax' => $row['tax'] ?? '',
+            'HSN' => $row['hsn'] ?? '',
             'Unit' => $stock,
             'Actions' => $actionBtn
         ];
     }
 }
-
-// Now, after filtering and calculating stocks, we have $aoutput containing the products to display
 
 // Calculate total number of filtered products
 $total_filtered = count($aoutput);
@@ -223,6 +233,5 @@ $output = [
     'data' => $paginated_data
 ];
 
-// Output as JSON
 echo json_encode($output);
 ?>
