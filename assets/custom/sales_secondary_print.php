@@ -176,13 +176,19 @@ class PDF_AutoPrint extends PDF_JavaScript
 	//Cell with horizontal scaling if text is too wide
     function CellFit($w, $h=0, $txt='', $border=0, $ln=0, $align='', $fill=false, $link='', $scale=false, $force=true)
     {
+        $txt = (string)($txt ?? '');
         //Get string width
         $str_width=$this->GetStringWidth($txt);
+        if($str_width == 0 || $str_width == null)
+        	$str_width = 1;
 
         //Calculate ratio to fit cell
         if($w==0)
             $w = $this->w-$this->rMargin-$this->x;
-        $ratio = ($w-$this->cMargin*2)/$str_width;
+        		if($str_width > 0)
+        	$ratio = ($w-$this->cMargin*2)/$str_width;
+		else
+			$ratio = 1;
 
         $fit = ($ratio < 1 || ($ratio > 1 && $force));
         if ($fit)

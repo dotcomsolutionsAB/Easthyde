@@ -122,13 +122,19 @@ class PDF_AutoPrint extends PDF_JavaScript
 	//Cell with horizontal scaling if text is too wide
     function CellFit($w, $h=0, $txt='', $border=0, $ln=0, $align='', $fill=false, $link='', $scale=false, $force=true)
     {
+        $txt = (string)($txt ?? '');
         //Get string width
         $str_width=$this->GetStringWidth($txt);
+        if($str_width == 0 || $str_width == null)
+        	$str_width = 1;
 
         //Calculate ratio to fit cell
         if($w==0)
             $w = $this->w-$this->rMargin-$this->x;
-        $ratio = ($w-$this->cMargin*2)/$str_width;
+		if($str_width > 0)
+        	$ratio = ($w-$this->cMargin*2)/$str_width;
+		else
+			$ratio = 1;
 
         $fit = ($ratio < 1 || ($ratio > 1 && $force));
         if ($fit)
@@ -223,12 +229,16 @@ $GLOBALS['add1'] = $address["address_1"] ?? '';
 $GLOBALS['add2'] = $address["address_2"] ?? '';
 $GLOBALS['city'] = $address["city"] ?? '';
 $GLOBALS['pincode'] = $address["pincode"] ?? '';
-$GLOBALS['state'] = $row_temp["state"] ?? '';
-$GLOBALS['gstin'] = $row_temp["gstin"] ?? '';
+$GLOBALS['state'] = is_array($row_temp) ? ($row_temp["state"] ?? '') : '';
+$GLOBALS['gstin'] = is_array($row_temp) ? ($row_temp["gstin"] ?? '') : '';
+$GLOBALS['top1'] = $GLOBALS['top1'] ?? '';
+$GLOBALS['top2'] = $GLOBALS['top2'] ?? '';
+$GLOBALS['top3'] = $GLOBALS['top3'] ?? '';
+$GLOBALS['top4'] = $GLOBALS['top4'] ?? '';
 
 $flag = 1;
 
-if(($row_temp["state"] ?? '') == 'WEST BENGAL'){
+if($GLOBALS['state'] == 'WEST BENGAL'){
 	$flag = 0;
 }
 
@@ -695,6 +705,14 @@ $t2_tax = $t_tax/2;
 
 $addons_array = json_decode($row['addons'] ?? '', true);
 if (!is_array($addons_array)) { $addons_array = []; }
+if (!isset($addons_array['pf']) || !is_array($addons_array['pf'])) {
+	$addons_array['pf'] = ['value' => '', 'cgst' => 0, 'sgst' => 0, 'igst' => 0];
+}
+if (!isset($addons_array['freight']) || !is_array($addons_array['freight'])) {
+	$addons_array['freight'] = ['value' => '', 'cgst' => 0, 'sgst' => 0, 'igst' => 0];
+}
+if (!isset($addons_array['tcs'])) { $addons_array['tcs'] = ''; }
+if (!isset($addons_array['roundoff'])) { $addons_array['roundoff'] = ''; }
 
 $pdf->Cell(95,5,'',0,0,L);
 $pdf->SetFont('Arial','I',9);
@@ -702,7 +720,7 @@ $pdf->Cell(72,5,'Gross Total','R',0,L);
 $pdf->SetFont('Arial','',9);
 $pdf->Cell(23,5,number_format((float)$GLOBALS["gross_total"], 2),0,1,R);
 
-if($addons_array['pf']['value']!='' && $addons_array['pf']['value'] > 0){
+if(($addons_array['pf']['value'] ?? '')!='' && (float)($addons_array['pf']['value'] ?? 0) > 0){
 	$pdf->Cell(95,5,'',0,0,L);
 	$pdf->SetFont('Arial','I',9);
 	$pdf->Cell(72,5,'Add   : Packaging & Forwarding','R',0,L);
@@ -737,7 +755,7 @@ if($addons_array['pf']['value']!='' && $addons_array['pf']['value'] > 0){
 	}
 }
 
-if($addons_array['freight']['value']!='' && $addons_array['freight']['value'] > 0){
+if(($addons_array['freight']['value'] ?? '')!='' && (float)($addons_array['freight']['value'] ?? 0) > 0){
 	$pdf->Cell(95,5,'',0,0,L);
 	$pdf->SetFont('Arial','I',9);
 	$pdf->Cell(72,5,'Add   : Freight','R',0,L);
@@ -773,7 +791,7 @@ if($addons_array['freight']['value']!='' && $addons_array['freight']['value'] > 
 }
 
 
-if($addons_array['tcs']!='' && $addons_array['tcs'] > 0){
+if(($addons_array['tcs'] ?? '')!='' && (float)($addons_array['tcs'] ?? 0) > 0){
 	$pdf->Cell(95,5,'',0,0,L);
 	$pdf->SetFont('Arial','I',9);
 	$pdf->Cell(72,5,'Add   : TCS','R',0,L);
