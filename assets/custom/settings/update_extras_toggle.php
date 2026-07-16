@@ -2,7 +2,7 @@
 	include ("../connect.php");
 	session_start();
 
-	$extras_toggle = $_REQUEST["exras_toggle"];
+	$extras_toggle = $_REQUEST['exras_toggle'] ?? '';
 
 	if($extras_toggle == "on")
 		$estimate_toggle = '1';

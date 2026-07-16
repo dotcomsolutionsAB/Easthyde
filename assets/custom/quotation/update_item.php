@@ -6,21 +6,21 @@
 
     $validator = array("success"=>true, "messages"=>"There was some error saving the records");
 
-    $q_id = $_REQUEST['edit_qi_id'];
-    $index = $_REQUEST['edit_q_item_id'];
-    $product = replace_improper($_REQUEST['edit_q_product_name']);
-    $description = replace_improper($_REQUEST['edit_q_product_description']);
-    $long_description = $_REQUEST['edit_q_product_add_description'];
-    $quantity = replace_improper($_REQUEST['edit_q_qty']);
-    $unit = replace_improper($_REQUEST['edit_q_unit']);
-    $unit = replace_improper($_REQUEST['edit_q_unit']);
-    $price = replace_improper($_REQUEST['edit_q_rate']);
-    $discount = replace_improper($_REQUEST['edit_q_dsc']);
-    $hsn = replace_improper($_REQUEST['edit_q_hsn']);
-    $tax = replace_improper($_REQUEST['edit_q_tax']);
-    $group_ch = $_REQUEST['qt_group'];
+    $q_id = $_REQUEST['edit_qi_id'] ?? '';
+    $index = $_REQUEST['edit_q_item_id'] ?? '';
+    $product = replace_improper($_REQUEST['edit_q_product_name'] ?? '');
+    $description = replace_improper($_REQUEST['edit_q_product_description'] ?? '');
+    $long_description = $_REQUEST['edit_q_product_add_description'] ?? '';
+    $quantity = replace_improper($_REQUEST['edit_q_qty'] ?? '');
+    $unit = replace_improper($_REQUEST['edit_q_unit'] ?? '');
+    $unit = replace_improper($_REQUEST['edit_q_unit'] ?? '');
+    $price = replace_improper($_REQUEST['edit_q_rate'] ?? '');
+    $discount = replace_improper($_REQUEST['edit_q_dsc'] ?? '');
+    $hsn = replace_improper($_REQUEST['edit_q_hsn'] ?? '');
+    $tax = replace_improper($_REQUEST['edit_q_tax'] ?? '');
+    $group_ch = $_REQUEST['qt_group'] ?? '';
 
-    $s = $long_description;
+    $s = (string)($long_description ?? '');
     $s=str_replace("\"","",$s);
     $s=str_replace("'","",$s);
     $add_description = str_replace(array("\r\n","\r","\n"),'|',trim($s));
@@ -32,9 +32,16 @@
 
     $sql = "SELECT * FROM quotation WHERE `quotation_no` = '$q_id'";
     $query = $db->query($sql);
-    $row = $query->fetch_assoc();
+    $row = ($query && ($tmp = $query->fetch_assoc())) ? $tmp : null;
+    if (!$row) {
+        $validator['success'] = false;
+        $validator['messages'] = "Record not found";
+        echo json_encode($validator);
+        exit;
+    }
 
-    $items = json_decode($row['items'], true);
+    $items = json_decode($row['items'] ?? '', true);
+    if (!is_array($items)) { $items = ['product'=>[], 'group'=>[], 'quantity'=>[], 'unit'=>[], 'price'=>[], 'discount'=>[], 'hsn'=>[], 'tax'=>[], 'desc'=>[], 'long_desc'=>[], 'tax_amount'=>[], 'amount'=>[]]; }
 
     $amount = ($quantity * $price) * (100-$discount) / 100;
     $tax_amount = $amount * $tax / 100;

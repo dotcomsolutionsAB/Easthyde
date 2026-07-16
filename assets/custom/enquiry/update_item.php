@@ -6,25 +6,32 @@
 
     $validator = array("success"=>true, "messages"=>"There was some error saving the records");
 
-    $e_id = $_REQUEST['edit_ei_id'];
-    $index = $_REQUEST['edit_e_item_id'];
-    $product = replace_improper($_REQUEST['edit_e_product_name']);
-    $description = replace_improper($_REQUEST['edit_e_product_description']);
-    $quantity = replace_improper($_REQUEST['edit_e_qty']);
-    $stock = replace_improper($_REQUEST['edit_e_stock']);
+    $e_id = $_REQUEST['edit_ei_id'] ?? '';
+    $index = $_REQUEST['edit_e_item_id'] ?? '';
+    $product = replace_improper($_REQUEST['edit_e_product_name'] ?? '');
+    $description = replace_improper($_REQUEST['edit_e_product_description'] ?? '');
+    $quantity = replace_improper($_REQUEST['edit_e_qty'] ?? '');
+    $stock = replace_improper($_REQUEST['edit_e_stock'] ?? '');
 
-    $s = $_REQUEST['edit_e_product_add_description'];
+    $s = (string)($_REQUEST['edit_e_product_add_description'] ?? '');
     $s=str_replace("\"","",$s);
     $s=str_replace("'","",$s);
     $add_description = str_replace(array("\r\n","\r","\n"),'|',trim($s));
     
     $sql = "SELECT * FROM enquiry WHERE `enquiry_no` = '$e_id'";
     $query = $db->query($sql);
-    $row = $query->fetch_assoc();
+    $row = ($query && ($tmp = $query->fetch_assoc())) ? $tmp : null;
+    if (!$row) {
+        $validator['success'] = false;
+        $validator['messages'] = "Record not found";
+        echo json_encode($validator);
+        exit;
+    }
 
     // $po = $row['po_no'];
 
-    $items = json_decode($row['items'], true);
+    $items = json_decode($row['items'] ?? '', true);
+    if (!is_array($items)) { $items = ['product'=>[], 'quantity'=>[], 'desc'=>[], 'long_desc'=>[], 'stock'=>[]]; }
 
     if($product != '' && $quantity != ''){
 

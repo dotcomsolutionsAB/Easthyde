@@ -4,10 +4,12 @@
 
 	session_start();
 
-	$id=$_REQUEST['edit_pb_id'];
+	$validator = array("success"=>false, "messages"=>"There was some error saving the records");
 
-	$product = replace_improper($_REQUEST['edit_pb_product']);
-	$quantity = replace_improper($_REQUEST['edit_pb_quantity']);
+	$id=$_REQUEST['edit_pb_id'] ?? '';
+
+	$product = replace_improper($_REQUEST['edit_pb_product'] ?? '');
+	$quantity = replace_improper($_REQUEST['edit_pb_quantity'] ?? '');
 	
 
 	$sql = "UPDATE purchase_bag SET `product_name` = '$product', `quantity`='$quantity' WHERE `id`='$id'";

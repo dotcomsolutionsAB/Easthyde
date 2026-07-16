@@ -4,26 +4,26 @@
 	
 	session_start();
 
-	$log_user = $_SESSION['username'];
+	$log_user = $_SESSION['username'] ?? '';
 	$log_date = date('Y-m-d', strtotime("today"));
 
-	$id = $_REQUEST['edit_product_id'];	;	
-	$name = replace_improper($_REQUEST['edit_product_name']);
-	$description = replace_improper_same($_REQUEST['edit_product_description']);
-	$aliases = replace_improper_same($_REQUEST['edit_product_alias']);
-	$moq = replace_improper_same($_REQUEST['edit_product_moq']);
-	$group_name = replace_improper($_REQUEST['edit_product_group_name']);	
-	$vendor_name = replace_improper($_REQUEST['edit_product_vendor_name']);	
-	$category = replace_improper($_REQUEST['edit_product_category']);
-	$sub_category = replace_improper($_REQUEST['edit_product_sub_category']);
-	$unit = replace_improper($_REQUEST['edit_product_unit']);
-	$rate = $_REQUEST['edit_product_rate'];
-	$cost = $_REQUEST['edit_product_cost'];
-	$tax = $_REQUEST['edit_product_tax'];
-	$hsn = $_REQUEST['edit_product_hsn'];
-	$opening_stock = $_REQUEST['edit_product_opening_stock'];
-	$pdf = $_REQUEST['edit_product_pdf'];
-	$images = $_REQUEST['edit_product_images'];
+	$id = $_REQUEST['edit_product_id'] ?? '';
+	$name = replace_improper((string)($_REQUEST['edit_product_name'] ?? ''));
+	$description = replace_improper_same((string)($_REQUEST['edit_product_description'] ?? ''));
+	$aliases = replace_improper_same((string)($_REQUEST['edit_product_alias'] ?? ''));
+	$moq = replace_improper_same((string)($_REQUEST['edit_product_moq'] ?? ''));
+	$group_name = replace_improper((string)($_REQUEST['edit_product_group_name'] ?? ''));
+	$vendor_name = replace_improper((string)($_REQUEST['edit_product_vendor_name'] ?? ''));
+	$category = replace_improper((string)($_REQUEST['edit_product_category'] ?? ''));
+	$sub_category = replace_improper((string)($_REQUEST['edit_product_sub_category'] ?? ''));
+	$unit = replace_improper((string)($_REQUEST['edit_product_unit'] ?? ''));
+	$rate = $_REQUEST['edit_product_rate'] ?? '';
+	$cost = $_REQUEST['edit_product_cost'] ?? '';
+	$tax = $_REQUEST['edit_product_tax'] ?? '';
+	$hsn = $_REQUEST['edit_product_hsn'] ?? '';
+	$opening_stock = $_REQUEST['edit_product_opening_stock'] ?? '';
+	$pdf = $_REQUEST['edit_product_pdf'] ?? '';
+	$images = $_REQUEST['edit_product_images'] ?? '';
 
 
 	$updated_price = 0;
@@ -40,18 +40,29 @@
 
 	$sql = "SELECT * FROM product WHERE id = '$id'";
     $query = $db->query($sql);
+    if (!$query || $query->num_rows === 0) {
+    	echo json_encode(array("success"=>false, "messages"=>"Product not found"));
+    	exit;
+    }
     $row = $query->fetch_assoc();
 
-    $orig_name = $row['name'];
+    $orig_name = $row['name'] ?? '';
 
-    $opening_stock_current = json_decode($row['new_opening_stock'],true);
+    $opening_stock_current = json_decode($row['new_opening_stock'] ?? '', true);
+    if (!is_array($opening_stock_current) || !isset($opening_stock_current['year']) || !is_array($opening_stock_current['year'])) {
+    	$opening_stock_current = ['year' => [], 'stock' => []];
+    }
     $len = sizeof($opening_stock_current['year']);
 
     $sql_year = "SELECT * FROM year WHERE current = '1'";
     $query_year = $db->query($sql_year);
+    if (!$query_year || $query_year->num_rows === 0) {
+    	echo json_encode(array("success"=>false, "messages"=>"Current year not found"));
+    	exit;
+    }
     $row_year = $query_year->fetch_assoc();
 
-    $year = $row_year['year'];
+    $year = $row_year['year'] ?? '';
 
     for($i=0;$i<$len;$i++)
     {

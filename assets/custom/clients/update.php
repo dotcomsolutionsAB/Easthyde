@@ -5,25 +5,28 @@
 
 	session_start();
 
-	$id=$_REQUEST['id'];
+	$id=$_REQUEST['id'] ?? '';
 
-	$array = $_REQUEST['edit_client'];
+	$array = $_REQUEST['edit_client'] ?? [];
+	if (!is_array($array)) {
+		$array = [];
+	}
 	$l = sizeof($array);
 
-	$client = replace_improper($_REQUEST['edit_client_name']);
-	$client_print = replace_improper($_REQUEST['edit_client_print_name']);
-	$gstin = replace_improper($_REQUEST['edit_client_gstin']);
-	$gstin_type = replace_improper_same($_REQUEST['edit_client_gstin_type']);
-	$type = replace_improper($_REQUEST['edit_client_category']);
-	$state = replace_improper($_REQUEST['edit_client_state']);
-	$country = replace_improper($_REQUEST['edit_client_country']);
-	$vendor_code = replace_improper($_REQUEST['edit_vendor_code']);
-	$vendor_discount = replace_improper($_REQUEST['edit_vendor_discount']);
+	$client = replace_improper((string)($_REQUEST['edit_client_name'] ?? ''));
+	$client_print = replace_improper((string)($_REQUEST['edit_client_print_name'] ?? ''));
+	$gstin = replace_improper((string)($_REQUEST['edit_client_gstin'] ?? ''));
+	$gstin_type = replace_improper_same((string)($_REQUEST['edit_client_gstin_type'] ?? ''));
+	$type = replace_improper((string)($_REQUEST['edit_client_category'] ?? ''));
+	$state = replace_improper((string)($_REQUEST['edit_client_state'] ?? ''));
+	$country = replace_improper((string)($_REQUEST['edit_client_country'] ?? ''));
+	$vendor_code = replace_improper((string)($_REQUEST['edit_vendor_code'] ?? ''));
+	$vendor_discount = replace_improper((string)($_REQUEST['edit_vendor_discount'] ?? ''));
 
-	$credit = replace_improper($_REQUEST['edit_client_credit']);
-	$opening = replace_improper($_REQUEST['edit_client_opening']);
+	$credit = replace_improper((string)($_REQUEST['edit_client_credit'] ?? ''));
+	$opening = replace_improper((string)($_REQUEST['edit_client_opening'] ?? ''));
 
-	$log_user = $_SESSION['username'];
+	$log_user = $_SESSION['username'] ?? '';
 	$log_date = date('Y-m-d', strtotime("today"));
 
 	$validator = array("success"=>true, "messages"=>"There was some error saving the records");
@@ -31,21 +34,21 @@
 	$contacts=array('name'=>array(),'designation'=>array(),'mobile'=>array(),'email'=>array());
 	$bank_details=array('name'=>'','bank_name'=>'','account'=>'','ifsc'=>'');
 
-	$bank_details['name']=replace_improper($_REQUEST['edit_bank_client']);
-	$bank_details['bank_name']=replace_improper($_REQUEST['edit_bank_name']);
-	$bank_details['account']=replace_improper($_REQUEST['edit_bank_account']);
-	$bank_details['ifsc']=replace_improper($_REQUEST['edit_bank_ifsc']);
+	$bank_details['name']=replace_improper((string)($_REQUEST['edit_bank_client'] ?? ''));
+	$bank_details['bank_name']=replace_improper((string)($_REQUEST['edit_bank_name'] ?? ''));
+	$bank_details['account']=replace_improper((string)($_REQUEST['edit_bank_account'] ?? ''));
+	$bank_details['ifsc']=replace_improper((string)($_REQUEST['edit_bank_ifsc'] ?? ''));
 
-	$address['address_1']=replace_improper($_REQUEST['edit_client_add_1']);
-	$address['address_2']=replace_improper($_REQUEST['edit_client_add_2']);
-	$address['city']=replace_improper($_REQUEST['edit_client_city']);
-	$address['pincode']=replace_improper($_REQUEST['edit_client_pincode']);
+	$address['address_1']=replace_improper((string)($_REQUEST['edit_client_add_1'] ?? ''));
+	$address['address_2']=replace_improper((string)($_REQUEST['edit_client_add_2'] ?? ''));
+	$address['city']=replace_improper((string)($_REQUEST['edit_client_city'] ?? ''));
+	$address['pincode']=replace_improper((string)($_REQUEST['edit_client_pincode'] ?? ''));
 
 	for($i=0;$i<$l;$i++){
-        $contacts['name'][] =replace_improper($array[$i]['edit_client_person']);
-        $contacts['designation'][] = replace_improper($array[$i]['edit_client_designation']);
-        $contacts['mobile'][] = replace_improper($array[$i]['edit_client_mobile']);
-        $contacts['email'][] = replace_improper($array[$i]['edit_client_email']);
+        $contacts['name'][] =replace_improper((string)($array[$i]['edit_client_person'] ?? ''));
+        $contacts['designation'][] = replace_improper((string)($array[$i]['edit_client_designation'] ?? ''));
+        $contacts['mobile'][] = replace_improper((string)($array[$i]['edit_client_mobile'] ?? ''));
+        $contacts['email'][] = replace_improper((string)($array[$i]['edit_client_email'] ?? ''));
     }
 
     $address=json_encode($address);
@@ -54,9 +57,13 @@
 
     $sql_check = "SELECT * FROM clients WHERE `id`='$id'";
     $query_check = $db->query($sql_check);
+    if (!$query_check || $query_check->num_rows === 0) {
+    	echo json_encode(array("success"=>false, "messages"=>"Client not found"));
+    	exit;
+    }
     $row_check = $query_check->fetch_assoc();
 
-    $orig_name = $row_check['name'];
+    $orig_name = $row_check['name'] ?? '';
 
 	$sql = "UPDATE clients SET `name` = '$client', `print_name` = '$client_print',`vendor_code`='$vendor_code',`vendor_discount`='$vendor_discount',`address`='$address', `state`='$state', `contacts`='$contact',`bank_details`='$bank_details',`gstin`='$gstin',`gstin_type`='$gstin_type',`country`='$country',`type`='$type',`credit_period`='$credit',`opening_balance`='$opening' WHERE `id`='$id'";
 	$query = $db->query($sql);

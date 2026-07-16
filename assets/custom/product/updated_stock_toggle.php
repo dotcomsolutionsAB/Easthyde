@@ -4,13 +4,17 @@
 	
 	session_start();
 
-	$id = $_REQUEST['member_id'];	
+	$id = $_REQUEST['member_id'] ?? '';
 
 	$sql = "SELECT * FROM product WHERE id = '$id'";
     $query = $db->query($sql);
+    if (!$query || $query->num_rows === 0) {
+    	echo json_encode(array("success"=>false, "messages"=>"Product not found"));
+    	exit;
+    }
     $row = $query->fetch_assoc();
 
-    $updated_stock = $row['updated_stock'];
+    $updated_stock = $row['updated_stock'] ?? 0;
 
     if($updated_stock == 0)
     {
@@ -29,7 +33,7 @@
     }
 	
 	
-	
+	$validator = array("success"=>false, "messages"=>"There was some error updating the records");
 
 	if($query===true)
 	{

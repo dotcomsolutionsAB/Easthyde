@@ -18,17 +18,17 @@ $sheet = $spreadsheet->getActiveSheet();
 $worksheetData = $reader->listWorksheetInfo($inputFileName);
 
 foreach ($worksheetData as $worksheet) {
-	$rows 	= $worksheet['totalRows'];
-	$columns = $worksheet['totalColumns'];
+	$rows 	= $worksheet['totalRows'] ?? 0;
+	$columns = $worksheet['totalColumns'] ?? 0;
 
     for($i=2;$i<=$rows;$i++){
 
     	$cell = 'B'.$i;
-    	   $name           = $sheet->getCell($cell);
+    	   $name           = (string)($sheet->getCell($cell)->getValue() ?? '');
     	$cell = 'C'.$i;
-    	   $print_name     = $sheet->getCell($cell);
+    	   $print_name     = (string)($sheet->getCell($cell)->getValue() ?? '');
     	$cell = 'D'.$i;
-    	   $type           = $sheet->getCell($cell);
+    	   $type           = (string)($sheet->getCell($cell)->getValue() ?? '');
     	$cell = 'E'.$i;
     	   $ad_1           = replace_improper_same($sheet->getCell($cell));
     	$cell = 'F'.$i;
@@ -38,17 +38,17 @@ foreach ($worksheetData as $worksheet) {
     	$cell = 'H'.$i;
     	   $city           = replace_improper($sheet->getCell($cell));
     	$cell = 'I'.$i;
-    	   $state          = $sheet->getCell($cell);
+    	   $state          = (string)($sheet->getCell($cell)->getValue() ?? '');
     	$cell = 'J'.$i;
-    	   $gstin          = $sheet->getCell($cell);
+    	   $gstin          = (string)($sheet->getCell($cell)->getValue() ?? '');
         $cell = 'K'.$i;
-           $gstin_type     = $sheet->getCell($cell);
+           $gstin_type     = (string)($sheet->getCell($cell)->getValue() ?? '');
         $cell = 'L'.$i;
            $credit         = replace_improper($sheet->getCell($cell));
         $cell = 'M'.$i;
-           $country        = $sheet->getCell($cell);
+           $country        = (string)($sheet->getCell($cell)->getValue() ?? '');
         $cell = 'N'.$i;
-           $new_name           = $sheet->getCell($cell);
+           $new_name           = (string)($sheet->getCell($cell)->getValue() ?? '');
 
         $address_arr = array("address_1"=>$ad_1, "address_2"=>$ad_2, "city"=>$city, "pincode"=>$pincode);
         $address = json_encode($address_arr);

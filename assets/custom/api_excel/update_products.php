@@ -20,8 +20,8 @@ $columns_arr = array("","A","B","C","D","E","F","G","H","I","J","K","L","M","N",
 $worksheetData = $reader->listWorksheetInfo($inputFileName);
 
 foreach ($worksheetData as $worksheet) {
-	$rows 	= $worksheet['totalRows'];
-	$columns = $worksheet['totalColumns'];
+	$rows 	= $worksheet['totalRows'] ?? 0;
+	$columns = $worksheet['totalColumns'] ?? 0;
 
     for($i=2;$i<=$rows;$i++){
 
@@ -30,9 +30,9 @@ foreach ($worksheetData as $worksheet) {
     	$cell = 'C'.$i;
     	$group = replace_improper($sheet->getCell($cell));
     	$cell = 'D'.$i;
-    	$description = $sheet->getCell($cell);
+    	$description = (string)($sheet->getCell($cell)->getValue() ?? '');
     	$cell = 'E'.$i;
-    	$aliases = $sheet->getCell($cell);
+    	$aliases = (string)($sheet->getCell($cell)->getValue() ?? '');
     	$cell = 'F'.$i;
     	$category = replace_improper($sheet->getCell($cell));
     	$cell = 'G'.$i;
@@ -40,19 +40,19 @@ foreach ($worksheetData as $worksheet) {
     	$cell = 'H'.$i;
     	$unit = replace_improper($sheet->getCell($cell));
         $cell = 'I'.$i;
-        $cost = $sheet->getCell($cell);
+        $cost = (string)($sheet->getCell($cell)->getValue() ?? '');
     	$cell = 'J'.$i;
-    	$rate = $sheet->getCell($cell);
+    	$rate = (string)($sheet->getCell($cell)->getValue() ?? '');
     	$cell = 'K'.$i;
     	$tax = replace_tax($sheet->getCell($cell));
     	$cell = 'L'.$i;
-    	$hsn = $sheet->getCell($cell);
+    	$hsn = (string)($sheet->getCell($cell)->getValue() ?? '');
     	$cell = 'M'.$i;
-    	$opening_stock = $sheet->getCell($cell);
+    	$opening_stock = (string)($sheet->getCell($cell)->getValue() ?? '');
         $cell = 'N'.$i;
-        $images = $sheet->getCell($cell);
+        $images = (string)($sheet->getCell($cell)->getValue() ?? '');
         $cell = 'N'.$i;
-        $pdf = $sheet->getCell($cell);
+        $pdf = (string)($sheet->getCell($cell)->getValue() ?? '');
 
     	$sql = "UPDATE product SET `group` = '$group', `description` = '$description', `aliases` = '$aliases', `category` = '$category', `sub_category` = '$sub_category', `unit` = '$unit', `cost` = '$cost', `rate` = '$rate', `tax` = '$tax', `hsn` = '$hsn', `opening_stock` = '$opening_stock', `images` = '$images', `pdf` = '$pdf' WHERE `name` = '$sku'";
     	$query = $db->query($sql);

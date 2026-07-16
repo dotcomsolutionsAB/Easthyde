@@ -2,8 +2,12 @@
 	include ("../connect.php");
 	session_start();
 
-	$documents = array("enquiry", "quotation", "sales_order","proforma", "sales_invoice", "secondary", "receipt", "purchase_order", "payment", "secondary","secondary_purchase");
+	$documents = $_REQUEST['documents'] ?? array("enquiry", "quotation", "sales_order","proforma", "sales_invoice", "secondary", "receipt", "purchase_order", "payment", "secondary","secondary_purchase");
+	if (!is_array($documents)) {
+		$documents = array("enquiry", "quotation", "sales_order","proforma", "sales_invoice", "secondary", "receipt", "purchase_order", "payment", "secondary","secondary_purchase");
+	}
 	$len = sizeof($documents);
+
 
 	for($i=0;$i<$len;$i++)
 	{
@@ -12,9 +16,9 @@
 		$id_number = $key.'_number';
 		$id_postfix = $key.'_postfix';
 
-		$prefix = $_REQUEST[$id_prefix];
-		$number = $_REQUEST[$id_number];
-		$postfix = $_REQUEST[$id_postfix];
+		$prefix = $_REQUEST[$id_prefix] ?? '';
+		$number = $_REQUEST[$id_number] ?? '';
+		$postfix = $_REQUEST[$id_postfix] ?? '';
 
 		$value_arr = array("prefix"=>array($prefix),"number"=>array($number),"postfix"=>array($postfix));
 		$value = json_encode($value_arr);

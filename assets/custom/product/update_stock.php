@@ -14,10 +14,10 @@
 		// Step 2: Loop through each product
 		while ($row = $result->fetch_assoc()) {
 			$product_id = $row['id'];
-			$new_opening_stock = json_decode($row['new_opening_stock'], true);
+			$new_opening_stock = json_decode($row['new_opening_stock'] ?? '', true);
 	
 			// Step 3: Check if the JSON structure contains 'year' and 'stock' keys
-			if (isset($new_opening_stock['year']) && isset($new_opening_stock['stock'])) {
+			if (is_array($new_opening_stock) && isset($new_opening_stock['year']) && is_array($new_opening_stock['year']) && isset($new_opening_stock['stock']) && is_array($new_opening_stock['stock'])) {
 				// Step 4: Add the new year '2024-25' and duplicate the stock from '2023-24'
 				$new_opening_stock['year'][] = '2024-25';
 				$new_opening_stock['stock'][] = end($new_opening_stock['stock']); // Duplicate stock from '2023-24'

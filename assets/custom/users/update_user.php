@@ -2,10 +2,10 @@
 	include ("../connect.php");
 	session_start();
 	//Entered Value in login Page
-	$username = $_SESSION['username'];	
-	$name = $_REQUEST['full_name'];	
-	$mobile = $_REQUEST['mobile'];	
-	$email = $_REQUEST['email'];	
+	$username = $_SESSION['username'] ?? '';
+	$name = $_REQUEST['full_name'] ?? '';
+	$mobile = $_REQUEST['mobile'] ?? '';
+	$email = $_REQUEST['email'] ?? '';
 
 	$validator = array("success"=>false, "messages"=>"There was some error updating the records");
 	

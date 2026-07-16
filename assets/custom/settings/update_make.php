@@ -2,8 +2,8 @@
 	include ("../connect.php");
 	session_start();
 
-	$group_name = $_REQUEST["settings_group"];
-	$make = $_REQUEST["settings_make"];
+	$group_name = $_REQUEST["settings_group"] ?? '';
+	$make = $_REQUEST["settings_make"] ?? '';
 
 	$default_make = '0';
 	if($make == "on")

@@ -4,12 +4,18 @@ include ("../connect.php");
  
 $output = array('success' => false, 'messages' => 'Error while saving the information', 'so'=>'');
  
-$id = $_REQUEST['member_id'];
-$oa_no = $_REQUEST['oa_no'];
+$id = $_REQUEST['member_id'] ?? '';
+$oa_no = $_REQUEST['oa_no'] ?? '';
  
 $sql = "SELECT * FROM purchase_invoice WHERE id = '$id'";
 $query = $db->query($sql);
-$row = $query->fetch_assoc();
+$row = ($query && ($tmp = $query->fetch_assoc())) ? $tmp : null;
+if (!$row) {
+    $output['success'] = false;
+    $output['messages'] = 'Record not found';
+    echo json_encode($output);
+    exit;
+}
 
 $sql = "UPDATE purchase_invoice SET `oa_no` = '$oa_no' WHERE id = '$id'";
 $query = $db->query($sql);
