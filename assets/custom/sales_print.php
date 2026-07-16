@@ -73,26 +73,26 @@ class PDF_AutoPrint extends PDF_JavaScript
 		$this->Cell(90,2,'','R',2,L);
 		$this->Cell(90,5,'Billing Details : ','R',2,L);
 		$this->SetFont('Arial','B',9);
-		$this->CellFitScale(90,5,$GLOBALS["client"],'R',2,L);
+		$this->CellFitScale(90,5,$GLOBALS["client"] ?? '','R',2,L);
 		$this->SetFont('Arial','',9);
-		$this->CellFitScale(90,5,$GLOBALS["add1"],'R',2,L);
-		$tmp = $GLOBALS["add2"];
+		$this->CellFitScale(90,5,$GLOBALS["add1"] ?? '','R',2,L);
+		$tmp = $GLOBALS["add2"] ?? '';
 		$this->CellFitScale(90,5,$tmp,'R',2,L);
-		$tmp = $GLOBALS["city"].' - '.$GLOBALS["pincode"].', '.$GLOBALS["state"].', '.$GLOBALS["country"];
+		$tmp = ($GLOBALS["city"] ?? '').' - '.($GLOBALS["pincode"] ?? '').', '.($GLOBALS["state"] ?? '').', '.($GLOBALS["country"] ?? '');
 		$this->CellFitScale(90,5,$tmp,'R',2,L);
-		$temp = 'GSTIN / UIN : '.$GLOBALS["gstin"];
+		$temp = 'GSTIN / UIN : '.($GLOBALS["gstin"] ?? '');
 		$this->Cell(90,5,$temp,'RB',2,L);
 		$this->SetFont('Arial','B',9);
 		$this->Cell(90,5,'Shipping Details :','R',2,L);
 		$this->SetFont('Arial','B',9);
-		$this->CellFitScale(90,5,$GLOBALS["ship_client"],'R',2,L);
+		$this->CellFitScale(90,5,$GLOBALS["ship_client"] ?? '','R',2,L);
 		$this->SetFont('Arial','',9);
-		$this->CellFitScale(90,5,$GLOBALS["ship_add1"],'R',2,L);
-		$tmp = $GLOBALS["ship_add2"];
+		$this->CellFitScale(90,5,$GLOBALS["ship_add1"] ?? '','R',2,L);
+		$tmp = $GLOBALS["ship_add2"] ?? '';
 		$this->CellFitScale(90,5,$tmp,'R',2,L);
-		$tmp = $GLOBALS["ship_city"].' - '.$GLOBALS["ship_pincode"].', '.$GLOBALS["ship_state"].', '.$GLOBALS["ship_country"];
+		$tmp = ($GLOBALS["ship_city"] ?? '').' - '.($GLOBALS["ship_pincode"] ?? '').', '.($GLOBALS["ship_state"] ?? '').', '.($GLOBALS["ship_country"] ?? '');
 		$this->CellFitScale(90,5,$tmp,'R',2,L);
-		$this->CellFitScale(90,6,$GLOBALS['mobile'],'RB',2,L);
+		$this->CellFitScale(90,6,$GLOBALS['mobile'] ?? '','RB',2,L);
 		// $this->Cell(90,3,'','RB',2,L);
 
 		$this->setXY('100',$y);
@@ -270,11 +270,21 @@ if(($_REQUEST['si_start'] ?? '') != '')
 if(($_REQUEST['si_copies'] ?? '') != '')
 	$copies = $_REQUEST['si_copies'];
 
-$sql = "SELECT * FROM sales_invoice WHERE `si_no` = '$si_no'";
+$safe_id = $db->real_escape_string((string)$si_no);
+if ($safe_id === '') {
+	die('Missing invoice id. Open print from Sales Invoice list.');
+}
+// Accept either invoice number (si_no) or numeric DB id
+if (ctype_digit($safe_id)) {
+	$sql = "SELECT * FROM sales_invoice WHERE `si_no` = '$safe_id' OR `id` = '$safe_id' LIMIT 1";
+} else {
+	$sql = "SELECT * FROM sales_invoice WHERE `si_no` = '$safe_id' LIMIT 1";
+}
 $query = $db->query($sql);
 if (!$query || !($row = $query->fetch_assoc())) {
 	die('Record not found');
 }
+$si_no = $row['si_no'] ?? $si_no;
 
 $show_hsn = $row['hsn_table'] ?? '';
 
@@ -312,8 +322,9 @@ $GLOBALS['city'] = $address["city"] ?? '';
 $GLOBALS['pincode'] = $address["pincode"] ?? '';
 $GLOBALS['state'] = is_array($row_temp) ? ($row_temp["state"] ?? '') : '';
 $GLOBALS['country'] = is_array($row_temp) ? ($row_temp["country"] ?? '') : '';
-if(($row["mobile"] ?? null)!=null){
-$GLOBALS['mobile'] = "MOBILE No: ".$row["mobile"];
+$GLOBALS['mobile'] = '';
+if(($row["mobile"] ?? null)!=null && (string)$row["mobile"] !== '' && (string)$row["mobile"] !== '0'){
+	$GLOBALS['mobile'] = "MOBILE No: ".$row["mobile"];
 }
 
 $GLOBALS['ship_client'] = $shipping['name'] ?? '';
@@ -329,7 +340,6 @@ if(($invoice_details["order_date"] ?? '') != '1970-01-01' && ($invoice_details["
 	$GLOBALS['order_date'] 		= date('d-m-Y', strtotime($invoice_details["order_date"]));
 else
 	$GLOBALS['order_date'] 		= '';
-// $GLOBALS['order_date'] = date('d-m-Y', strtotime($invoice_details["order_date"]));
 $GLOBALS['payment_terms'] = $invoice_details["payment_terms"] ?? '';
 $GLOBALS['other_ref'] = $invoice_details["other_ref"] ?? '';
 $GLOBALS['delivery_terms'] = $invoice_details["delivery_terms"] ?? '';
@@ -343,12 +353,15 @@ else
 	$GLOBALS['despatch_date'] 		= '';
 $GLOBALS['despatch_destination']= $invoice_details["despatch_destination"] ?? '';
 
-$GLOBALS['gstin'] = $row_temp["gstin"] ?? '';
+$GLOBALS['gstin'] = is_array($row_temp) ? ($row_temp["gstin"] ?? '') : '';
+$GLOBALS['label'] = '';
+$GLOBALS['pages'] = 1;
+$GLOBALS['gross_total'] = 0;
 
 
 $state_flag = 1;
 
-if(($row_temp["state"] ?? '') == 'WEST BENGAL'){
+if($GLOBALS['state'] == 'WEST BENGAL'){
 	$state_flag = 0;
 }
 
@@ -850,6 +863,13 @@ for($ij=1;$ij<=$copies;$ij++){
 
 	$addons_array = json_decode($row['addons'] ?? '', true);
 	if (!is_array($addons_array)) { $addons_array = []; }
+	if (!isset($addons_array['pf']) || !is_array($addons_array['pf'])) {
+		$addons_array['pf'] = ['value' => '', 'cgst' => 0, 'sgst' => 0, 'igst' => 0];
+	}
+	if (!isset($addons_array['freight']) || !is_array($addons_array['freight'])) {
+		$addons_array['freight'] = ['value' => '', 'cgst' => 0, 'sgst' => 0, 'igst' => 0];
+	}
+	if (!isset($addons_array['roundoff'])) { $addons_array['roundoff'] = ''; }
 
 	$tmp_yy = $pdf->getY();
 
@@ -859,7 +879,7 @@ for($ij=1;$ij<=$copies;$ij++){
 	$pdf->SetFont('Arial','',9);
 	$pdf->Cell(23,5,number_format((float)$GLOBALS["gross_total"], 2),0,1,R);
 
-	if($addons_array['pf']['value']!='' && $addons_array['pf']['value'] > 0){
+	if(($addons_array['pf']['value'] ?? '')!='' && (float)($addons_array['pf']['value'] ?? 0) > 0){
 		$pdf->Cell(120,5,'',0,0,L);
 		$pdf->SetFont('Arial','I',9);
 		$pdf->Cell(47,5,'Add   : Packaging & Forwarding','LR',0,L);
@@ -894,7 +914,7 @@ for($ij=1;$ij<=$copies;$ij++){
 		}
 	}
 
-	if($addons_array['freight']['value']!='' && $addons_array['freight']['value'] > 0){
+	if(($addons_array['freight']['value'] ?? '')!='' && (float)($addons_array['freight']['value'] ?? 0) > 0){
 		$pdf->Cell(120,5,'',0,0,L);
 		$pdf->SetFont('Arial','I',9);
 		$pdf->Cell(47,5,'Add   : Freight','LR',0,L);
@@ -960,9 +980,9 @@ for($ij=1;$ij<=$copies;$ij++){
 		$pdf->Cell(23,5,number_format((float)$igst, 2),0,1,R);
 	}
 
-	if($addons_array['roundoff']!='' && $addons_array['roundoff'] != 0)
+	if(($addons_array['roundoff'] ?? '')!='' && (float)($addons_array['roundoff'] ?? 0) != 0)
 	{
-		if($addons_array['roundoff'] < 0){
+		if((float)$addons_array['roundoff'] < 0){
 			$roundoff_temp = $addons_array['roundoff'] * -1;
 			$pdf->Cell(120,5,'',0,0,L);
 			$pdf->SetFont('Arial','I',9);
@@ -990,9 +1010,9 @@ for($ij=1;$ij<=$copies;$ij++){
 	$pdf->Cell(47,7,'GRAND TOTAL',LTB,0,L);
 
 	if($state_flag == '0'){
-		$total_amount = $GLOBALS["gross_total"] + $addons_array['pf']['value'] + $addons_array['freight']['value'] + $sgst + $cgst + $addons_array['roundoff'];
+		$total_amount = (float)$GLOBALS["gross_total"] + (float)($addons_array['pf']['value'] ?? 0) + (float)($addons_array['freight']['value'] ?? 0) + (float)$sgst + (float)$cgst + (float)($addons_array['roundoff'] ?? 0);
 	}else{
-		$total_amount = $GLOBALS["gross_total"] + $addons_array['pf']['value'] + $addons_array['freight']['value'] + $igst + $addons_array['roundoff'];
+		$total_amount = (float)$GLOBALS["gross_total"] + (float)($addons_array['pf']['value'] ?? 0) + (float)($addons_array['freight']['value'] ?? 0) + (float)$igst + (float)($addons_array['roundoff'] ?? 0);
 	}
 
 	$pdf->Cell(23,7,number_format((float)$total_amount, 2),'LB',1,R);
