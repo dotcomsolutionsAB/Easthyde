@@ -5,21 +5,21 @@ require_once "../connect.php";
 
 setlocale(LC_MONETARY, 'en_IN');
 
-$dt_start = $_SESSION['start'];
-$dt_end = $_SESSION['end'];
+$dt_start = $_SESSION['start'] ?? '';
+$dt_end = $_SESSION['end'] ?? '';
 
-$pagination = $_REQUEST['pagination'];  
-$query_array = $_REQUEST['query'];  
-$sort_array = $_REQUEST['sort'];  
+$pagination = $_REQUEST['pagination'] ?? [];
+$query_array = $_REQUEST['query'] ?? [];
+$sort_array = $_REQUEST['sort'] ?? [];
 
-$query = $query_array['generalSearch'];
+$query = $query_array['generalSearch'] ?? '';
 $query=str_replace(" ","",$query);
 $query=str_replace("-","",$query);
 $query=str_replace(".","",$query);
 
-$status = $query_array['status'];
-$user = $query_array['user'];
-$product = $query_array['product'];
+$status = $query_array['status'] ?? '';
+$user = $query_array['user'] ?? '';
+$product = $query_array['product'] ?? '';
 
 if ($status == "") {
     $status = '%';
@@ -44,14 +44,17 @@ $sql_1 = "SELECT COUNT(*) AS total FROM purchase_quotation
           AND `items` LIKE '%$product%' 
           ORDER BY `pi_date` DESC";
 $query_1 = $db->query($sql_1);
-$row_1 = $query_1->fetch_assoc();
+$row_1 = ($query_1 && ($tmp = $query_1->fetch_assoc())) ? $tmp : ['total' => 0];
 
-$perpage = $pagination['perpage'];
-$start = ($pagination['page'] - 1) * $perpage;
+$perpage = (int)($pagination['perpage'] ?? 10);
+$page = (int)($pagination['page'] ?? 1);
+if ($perpage < 1) { $perpage = 10; }
+if ($page < 1) { $page = 1; }
+$start = ($page - 1) * $perpage;
 $pages = ceil($row_1['total'] / $perpage);
 
 $output = array('meta'=> array(
-    "page" => $pagination['page'], 
+    "page" => $page, 
     "pages" => $pages, 
     "perpage" => $perpage,
     "total" => $row_1['total'],
@@ -75,6 +78,7 @@ $sql = "SELECT * FROM purchase_quotation
         LIMIT ".$start.','.$perpage;
 $query = $db->query($sql);
 
+if ($query) {
 while ($row = $query->fetch_assoc()) {
     // Check status and create appropriate action button
     // if ($row['status'] == 0) {
@@ -102,7 +106,7 @@ while ($row = $query->fetch_assoc()) {
     </li>';
 }
 // Actions for admin users
-if ($_SESSION['userlevel'] == 'sadmin_df56fdg') {
+if (($_SESSION['userlevel'] ?? '') == 'sadmin_df56fdg') {
     $actionBtn = '<div class="dropdown">
         <a href="javascript:;" class="btn btn-sm btn-clean btn-icon btn-icon-md" data-toggle="dropdown">
             <i class="flaticon-more-1"></i>
@@ -168,25 +172,26 @@ if ($_SESSION['userlevel'] == 'sadmin_df56fdg') {
     // Fetch supplier details
     $sql_temp = "SELECT * FROM suppliers WHERE name = '$s_name'";
     $query_temp = $db->query($sql_temp);
-    $row_temp = $query_temp->fetch_assoc();
+    $row_temp = ($query_temp && ($tmp = $query_temp->fetch_assoc())) ? $tmp : [];
 
     // Add the data to the output array
     $output['data'][] = array(        
             'RecordID' => $count++,
             'RecordID2' => $row['id'],
             'Name' => $row['supplier_name'],
-            'Supplier_ID' => $row_temp['id'],
-            'Date' => date('d-m-Y',strtotime($row['pi_date'])),
+            'Supplier_ID' => $row_temp['id'] ?? '',
+            'Date' => !empty($row['pi_date']) ? date('d-m-Y',strtotime($row['pi_date'])) : '',
             'Number' => $row['pq_no'],
             'ID' => $row['id'],
             'Status' => $row['status'],
-            'KT_Class' => $row_temp['kt-class'],
-            'Amount' => money_format('%!i', $total),
+            'KT_Class' => $row_temp['kt-class'] ?? '',
+            'Amount' => number_format((float)$total, 2),
             'User' => $row['log_user'],
-            'Log_Date' => date('d-m-Y', strtotime($row['log_date'])),
+            'Log_Date' => !empty($row['log_date']) ? date('d-m-Y', strtotime($row['log_date'])) : '',
             'Actions' => $actionBtn,
             'sql' => $sql
     );
+}
 }
 
 echo json_encode($output);

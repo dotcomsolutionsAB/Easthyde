@@ -2,24 +2,33 @@
 session_start();
 require_once "../connect.php";
 
-$id = $_REQUEST['id'];  
+$id = $_REQUEST['id'] ?? '';
 
-$pagination = $_REQUEST['pagination'];  
-$query_array = $_REQUEST['query'];  
-$sort_array = $_REQUEST['sort'];  
+$pagination = $_REQUEST['pagination'] ?? [];
+$query_array = $_REQUEST['query'] ?? [];
+$sort_array = $_REQUEST['sort'] ?? [];
 
 $sql = "SELECT * FROM enquiry WHERE `enquiry_no` = '$id'";
 $query = $db->query($sql);
-$row = $query->fetch_assoc();
-
-$item_details = json_decode($row['items'], true);
+$row = ($query && ($tmp = $query->fetch_assoc())) ? $tmp : null;
+if (!$row) {
+    echo json_encode(['meta' => ['total' => 0], 'data' => []]);
+    exit;
+}
+$item_details = json_decode($row['items'] ?? '', true);
+if (!is_array($item_details) || !isset($item_details['product']) || !is_array($item_details['product'])) {
+    $item_details = ['product' => [], 'desc' => [], 'quantity' => [], 'unit' => [], 'rate' => [], 'hsn' => [], 'price' => [], 'discount' => [], 'tax' => []];
+}
 $l = sizeof($item_details['product']);
 
-$perpage = $pagination['perpage'];
-$start = ($pagination['page']-1)*$perpage;
-$pages = $l / $perpage;
+$perpage = (int)($pagination['perpage'] ?? 10);
+$page = (int)($pagination['page'] ?? 1);
+if ($perpage < 1) { $perpage = 10; }
+if ($page < 1) { $page = 1; }
+$start = ($page - 1) * $perpage;
+$pages = $perpage > 0 ? $l / $perpage : 0;
 
-$output = array('meta'=> array("page"=> $pagination['page'], "pages"=> $pages, "perpage"=> $perpage,"total"=> $l,"sort"=> 'asc', "field"=> 'RecordID'), 'data' => array());
+$output = array('meta'=> array("page"=> $page, "pages"=> $pages, "perpage"=> $perpage,"total"=> $l,"sort"=> 'asc', "field"=> 'RecordID'), 'data' => array());
 $count=1;
 
 $params = array("e_id"=>$id, "index"=>"");

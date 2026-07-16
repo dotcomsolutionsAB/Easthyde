@@ -2,33 +2,37 @@
 session_start();
 include ("../connect.php");
 
-$pagination = $_REQUEST['pagination'];  
-$query_array = $_REQUEST['query'];  
-$sort_array = $_REQUEST['sort'];  
+$pagination = $_REQUEST['pagination'] ?? [];
+$query_array = $_REQUEST['query'] ?? [];
+$sort_array = $_REQUEST['sort'] ?? [];
 
-$query = $query_array['generalSearch'];
+$query = $query_array['generalSearch'] ?? '';
 
 $sql_1 = "SELECT COUNT(*) AS total FROM assembly_operation WHERE `composite` LIKE '%$query%'";
 $query_1 = $db->query($sql_1);
-$row_1 = $query_1->fetch_assoc();
+$row_1 = ($query_1 && ($tmp = $query_1->fetch_assoc())) ? $tmp : ['total' => 0];
 
-$perpage = $pagination['perpage'];
-$start = ($pagination['page']-1)*$perpage;
+$perpage = (int)($pagination['perpage'] ?? 10);
+$page = (int)($pagination['page'] ?? 1);
+if ($perpage < 1) { $perpage = 10; }
+if ($page < 1) { $page = 1; }
+$start = ($page - 1) * $perpage;
 $pages = $row_1['total'] / $perpage;
 
-$output = array('meta'=> array("page"=> $pagination['page'], "pages"=> $pages, "perpage"=> $perpage,"total"=> $row_1['total'],"sort"=> 'asc', "field"=> 'SN'), 'data' => array());
+$output = array('meta'=> array("page"=> $page, "pages"=> $pages, "perpage"=> $perpage,"total"=> $row_1['total'],"sort"=> 'asc', "field"=> 'SN'), 'data' => array());
 
 $count=1;
 $sql = "SELECT * FROM assembly_operation WHERE `composite` LIKE '%$query%' ORDER BY id DESC LIMIT ".$start.','.$perpage;
 $query = $db->query($sql);
+if ($query) {
 while($row = $query->fetch_assoc()){
 
-    $items = json_decode($row['items'], true);
-    $len = sizeof($items['product']);
+    $items = json_decode($row['items'] ?? '', true);
+    $len = (is_array($items) && isset($items['product']) && is_array($items['product'])) ? sizeof($items['product']) : 0;
 
     $sp = '';
     for($i=0;$i<$len;$i++){
-        $sp .= $items['product'][$i].' ('.$items['quantity'][$i].'), </br>';
+        $sp .= ($items['product'][$i] ?? '').' ('.($items['quantity'][$i] ?? '').'), </br>';
     }
 
     $sp = rtrim($sp, ', ');
@@ -55,6 +59,7 @@ while($row = $query->fetch_assoc()){
         'log_date' => $row['log_date'],
         'Actions' => $actionBtn
 	);
+}
 }
 
 echo json_encode($output);

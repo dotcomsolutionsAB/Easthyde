@@ -40,11 +40,13 @@ $sql_1 = "SELECT COUNT(*) AS total
           AND `items` LIKE '%$product%' 
           AND `so_date` BETWEEN '$dt_start' AND '$dt_end'";
 $query_1 = $db->query($sql_1);
-$row_1 = $query_1->fetch_assoc();
+$row_1 = ($query_1 && ($tmp = $query_1->fetch_assoc())) ? $tmp : ['total' => 0];
 
 // Pagination setup
-$perpage = $pagination['perpage'] ?? 10;
-$page = $pagination['page'] ?? 1;
+$perpage = (int)($pagination['perpage'] ?? 10);
+$page = (int)($pagination['page'] ?? 1);
+if ($perpage < 1) { $perpage = 10; }
+if ($page < 1) { $page = 1; }
 $start = ($page - 1) * $perpage;
 $pages = ceil($row_1['total'] / $perpage);
 
@@ -76,26 +78,30 @@ $query = $db->query($sql);
 
 // Loop through the fetched sales orders and prepare the output
 $count = 1;
+if ($query) {
 while ($row = $query->fetch_assoc()) {
     
-    $username = $_SESSION['username'];
-    $userlevel = $_SESSION['userlevel'];
+    $username = $_SESSION['username'] ?? '';
+    $userlevel = $_SESSION['userlevel'] ?? '';
 
     $sql_access = "SELECT * FROM users WHERE `username` = '$username'";
     $query_access = $db->query($sql_access);
-    $row_access = $query_access->fetch_assoc();
+    $row_access = ($query_access && ($tmp = $query_access->fetch_assoc())) ? $tmp : [];
 
-    $menu_access = json_decode($row_access['access'], true);
+    $menu_access = json_decode($row_access['access'] ?? '', true);
+    if (!is_array($menu_access)) {
+        $menu_access = [];
+    }
     
     $edit = '';
     $delete = '';
 
-    if($menu_access['sales_order']['edit'] == '1' || $userlevel == "sadmin_df56fdg"){
+    if(($menu_access['sales_order']['edit'] ?? '') == '1' || $userlevel == "sadmin_df56fdg"){
 
             $edit = '<li class="kt-nav__item"><a href="javascript:;" onclick="editSalesOrder(\''.$row['id'].'\')" title="Edit Sales Order" class="kt-nav__link"><i class="kt-nav__link-icon flaticon2-contract"></i><span class="kt-nav__link-text">Edit</span></a></li>';
     }
     
-    if($menu_access['sales_order']['delete'] == '1' || $userlevel == "sadmin_df56fdg"){
+    if(($menu_access['sales_order']['delete'] ?? '') == '1' || $userlevel == "sadmin_df56fdg"){
 
             $delete = '<li class="kt-nav__item"><a href="javascript:;" data-toggle="modal" data-target="#delete_sales_order" title="Delete" onclick="removeSalesOrder(\''.$row['id'].'\')"class="kt-nav__link"><i class="kt-nav__link-icon flaticon2-trash"></i><span class="kt-nav__link-text">Delete</span></a></li>';
     }
@@ -103,7 +109,7 @@ while ($row = $query->fetch_assoc()) {
     
     
     // Set the status options for Completed/Pending
-    $option = ($row['status'] == 0)
+    $option = ((string)($row['status'] ?? '') === '0')
         ? '<li class="kt-nav__item"><a href="javascript:;" onclick="setStatus(\'' . $row['so_no'] . '\', \'1\', \'sales_order\')" class="kt-nav__link"><i class="kt-nav__link-icon flaticon-like"></i><span class="kt-nav__link-text">Completed</span></a></li>'
         : '<li class="kt-nav__item"><a href="javascript:;" onclick="setStatus(\'' . $row['so_no'] . '\', \'0\', \'sales_order\')" class="kt-nav__link"><i class="kt-nav__link-icon flaticon-like"></i><span class="kt-nav__link-text">Pending</span></a></li>';
 
@@ -119,12 +125,12 @@ while ($row = $query->fetch_assoc()) {
     $client_name = $row['client_name'];
     $sql_temp = "SELECT * FROM clients WHERE name = '$client_name'";
     $query_temp = $db->query($sql_temp);
-    $row_temp = $query_temp->fetch_assoc();
+    $row_temp = ($query_temp && ($tmp = $query_temp->fetch_assoc())) ? $tmp : [];
 
     // Prepare output data for each sales order
-    $material = ($row['collected'] == 0) ? "Order Received" : "Picked Up";
+    $material = ((string)($row['collected'] ?? '') === '0') ? "Order Received" : "Picked Up";
     $sales_order_link = '<a href="?page=sales_order_notes&so_no=' . $row['so_no'] . '" target="_blank">' . $row['so_no'] . '</a>';
-    $client_display = $row['mobile'] != 0 ? $row['client_name'] . "<br>Mob: " . $row['mobile'] : $row['client_name'];
+    $client_display = (string)($row['mobile'] ?? '') !== '0' && ($row['mobile'] ?? '') !== '' ? $row['client_name'] . "<br>Mob: " . $row['mobile'] : $row['client_name'];
 
     // Add the sales order data to the output array
     $output['data'][] = [
@@ -132,13 +138,14 @@ while ($row = $query->fetch_assoc()) {
         'Number' => $row['so_no'],
         'Name' => $client_display,
         'SalesOrder' => $sales_order_link,
-        'Date' => date('d-m-Y', strtotime($row['so_date'])),
+        'Date' => !empty($row['so_date']) ? date('d-m-Y', strtotime($row['so_date'])) : '',
         'MaterialStatus' => $material,
         'Status' => $row['status'],
         'User' => $row['log_user'],
         'Amount' => number_format($row['total'], 2),
         'Actions' => $actionBtn
     ];
+}
 }
 
 // Output the result as JSON

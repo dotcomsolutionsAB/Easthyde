@@ -2,57 +2,64 @@
 session_start();
 require_once "../connect.php";
 
-$pagination = $_REQUEST['pagination'];  
-$query_array = $_REQUEST['query'];  
-$sort_array = $_REQUEST['sort'];  
+$pagination = $_REQUEST['pagination'] ?? [];
+$query_array = $_REQUEST['query'] ?? [];
+$sort_array = $_REQUEST['sort'] ?? [];
 
-$query = $query_array['generalSearch'];
+$query = $query_array['generalSearch'] ?? '';
 
 $sql_1 = "SELECT COUNT(*) AS total FROM bank WHERE `account_name` LIKE '%$query%'";
 $query_1 = $db->query($sql_1);
-$row_1 = $query_1->fetch_assoc();
+$row_1 = ($query_1 && ($tmp = $query_1->fetch_assoc())) ? $tmp : ['total' => 0];
 
-$perpage = $pagination['perpage'];
-$start = ($pagination['page']-1)*$perpage;
+$perpage = (int)($pagination['perpage'] ?? 10);
+$page = (int)($pagination['page'] ?? 1);
+if ($perpage < 1) { $perpage = 10; }
+if ($page < 1) { $page = 1; }
+$start = ($page - 1) * $perpage;
 $pages = $row_1['total'] / $perpage;
 
-$output = array('meta'=> array("page"=> $pagination['page'], "pages"=> $pages, "perpage"=> $perpage,"total"=> $row_1['total'],"sort"=> 'asc', "field"=> 'SN'), 'data' => array());
+$output = array('meta'=> array("page"=> $page, "pages"=> $pages, "perpage"=> $perpage,"total"=> $row_1['total'],"sort"=> 'asc', "field"=> 'SN'), 'data' => array());
 
 $count=1;
 $sql = "SELECT * FROM bank WHERE `account_name` LIKE '%$query%' ORDER BY `account_name` LIMIT ".$start.','.$perpage;
 $query = $db->query($sql);
+if ($query) {
 while($row = $query->fetch_assoc()){
 
     // Only Account_Name is clickable
     $account_name_link = '<a href="?page=bank_ledger?id=' . $row['id'] . '" target="_blank">' . $row['account_name'] . '</a>';
     
-    $username = $_SESSION['username'];
-    $userlevel = $_SESSION['userlevel'];
+    $username = $_SESSION['username'] ?? '';
+    $userlevel = $_SESSION['userlevel'] ?? '';
 
     $sql_access = "SELECT * FROM users WHERE `username` = '$username'";
     $query_access = $db->query($sql_access);
-    $row_access = $query_access->fetch_assoc();
+    $row_access = ($query_access && ($tmp = $query_access->fetch_assoc())) ? $tmp : [];
 
-    $menu_access = json_decode($row_access['access'], true);
+    $menu_access = json_decode($row_access['access'] ?? '', true);
+    if (!is_array($menu_access)) {
+        $menu_access = [];
+    }
     
     $edit = '';
     $delete = '';
 
-    if($menu_access['banks']['edit'] == '1' || $userlevel == "sadmin_df56fdg"){
+    if(($menu_access['banks']['edit'] ?? '') == '1' || $userlevel == "sadmin_df56fdg"){
 
             $edit = '<a href="javascript:;" class="btn btn-sm btn-clean btn-icon btn-icon-sm" onclick="editBank(\''.$row['id'].'\')" title="Edit details">
                     <i class="flaticon2-paper"></i>
                 </a>';
     }
     
-    if($menu_access['banks']['delete'] == '1' || $userlevel == "sadmin_df56fdg"){
+    if(($menu_access['banks']['delete'] ?? '') == '1' || $userlevel == "sadmin_df56fdg"){
 
             $delete = '<a href="javascript:;" class="btn btn-sm btn-clean btn-icon btn-icon-sm" data-toggle="modal" data-target="#kt_modal_d_bank" title="Delete" onclick="removeBank(\''.$row['id'].'\')">
                     <i class="flaticon2-trash"></i>
                 </a>';
     }
 
-    $actionBtn = $edit.$bank;
+    $actionBtn = $edit.$delete;
 
     $output['data'][] = array(        
         'SN' => $count++,
@@ -64,6 +71,7 @@ while($row = $query->fetch_assoc()){
         
         'Actions' => $actionBtn
     );
+}
 }
 
 echo json_encode($output);

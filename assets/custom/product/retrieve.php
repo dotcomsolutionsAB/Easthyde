@@ -3,20 +3,20 @@ session_start();
 require_once "../connect.php";
 setlocale(LC_MONETARY, 'en_IN');
 
-$pagination = $_REQUEST['pagination'];  
-$query_array = $_REQUEST['query'];  
-$sort_array = $_REQUEST['sort'];  
+$pagination = $_REQUEST['pagination'] ?? [];
+$query_array = $_REQUEST['query'] ?? [];
+$sort_array = $_REQUEST['sort'] ?? [];
 
-$query = $query_array['generalSearch'];
+$query = $query_array['generalSearch'] ?? '';
 $query=str_replace(" ","",$query);
 $query=str_replace(".","",$query);
 $query=str_replace("-","",$query);
-$group = $query_array['group'];
-$category = $query_array['category'];
-$sub_category = $query_array['sub_category'];
-$vendor = $query_array['vendor'];
+$group = $query_array['group'] ?? '';
+$category = $query_array['category'] ?? '';
+$sub_category = $query_array['sub_category'] ?? '';
+$vendor = $query_array['vendor'] ?? '';
 
-$archive = $query_array['archive'];
+$archive = $query_array['archive'] ?? '';
 if($archive == ''){
     $archive = '%';
 }
@@ -56,49 +56,57 @@ if($vendor == ''){
 }
 $sql_1 = "SELECT COUNT(*) AS total FROM product WHERE (REPLACE(REPLACE(REPLACE(`name`, '.', ''), ' ', ''), '-', '')LIKE '%$query%' || REPLACE(REPLACE(`description`, ' ', ''), '-', '') LIKE '%$query%' || REPLACE(REPLACE(`aliases`, ' ', ''), '-', '') LIKE '%$query%') AND `group` LIKE '$group' AND `category` LIKE '$category' AND `sub_category` LIKE '$sub_category' AND `archive` LIKE '$archive'AND `vendor` LIKE '$vendor'";
 $query_1 = $db->query($sql_1);
-$row_1 = $query_1->fetch_assoc();
-if($pagination['perpage'] != -1)
-    $perpage = $pagination['perpage'];
-else
-    $perpage = $row_1['total'];
+$row_1 = ($query_1 && ($tmp = $query_1->fetch_assoc())) ? $tmp : ['total' => 0];
 
-$start = ($pagination['page']-1)*$perpage;
+$perpage = (int)($pagination['perpage'] ?? 10);
+$page = (int)($pagination['page'] ?? 1);
+if ($perpage != -1) {
+    if ($perpage < 1) { $perpage = 10; }
+} else {
+    $perpage = (int)$row_1['total'];
+}
+if ($page < 1) { $page = 1; }
+$start = ($page - 1) * $perpage;
 $pages = $row_1['total'] / $perpage;
 
-$output = array('meta'=> array("page"=> $pagination['page'], "pages"=> $pages, "perpage"=> $perpage,"total"=> $row_1['total'],"sort"=> 'asc', "field"=> 'SN'), 'data' => array());
+$output = array('meta'=> array("page"=> $page, "pages"=> $pages, "perpage"=> $perpage,"total"=> $row_1['total'],"sort"=> 'asc', "field"=> 'SN'), 'data' => array());
 
 $count=1;
 $sql = "SELECT * FROM product WHERE (REPLACE(REPLACE(REPLACE(`name`, '.', ''), ' ', ''), '-', '')LIKE '%$query%' || REPLACE(REPLACE(`description`, ' ', ''), '-', '') LIKE '%$query%' || REPLACE(REPLACE(`aliases`, ' ', ''), '-', '') LIKE '%$query%') AND `group` LIKE '$group' AND `category` LIKE '$category' AND `sub_category` LIKE '$sub_category' AND `archive` LIKE '$archive' AND `vendor` LIKE '$vendor' ORDER BY `name` LIMIT ".$start.','.$perpage;
 $query = $db->query($sql);
+if ($query) {
 while($row = $query->fetch_assoc()){
     
-    $username = $_SESSION['username'];
-    $userlevel = $_SESSION['userlevel'];
+    $username = $_SESSION['username'] ?? '';
+    $userlevel = $_SESSION['userlevel'] ?? '';
 
     $sql_access = "SELECT * FROM users WHERE `username` = '$username'";
     $query_access = $db->query($sql_access);
-    $row_access = $query_access->fetch_assoc();
+    $row_access = ($query_access && ($tmp = $query_access->fetch_assoc())) ? $tmp : [];
 
-    $menu_access = json_decode($row_access['access'], true);
+    $menu_access = json_decode($row_access['access'] ?? '', true);
+    if (!is_array($menu_access)) {
+        $menu_access = [];
+    }
     
     $edit = '';
     $delete = '';
 
-    if($menu_access['products']['edit'] == '1' || $userlevel == "sadmin_df56fdg"){
+    if(($menu_access['products']['edit'] ?? '') == '1' || $userlevel == "sadmin_df56fdg"){
 
             $edit = '<a href="javascript:;" class="btn btn-sm btn-clean btn-icon btn-icon-sm" data-toggle="modal" data-target="#kt_modal_e_product" onclick="editProduct(\''.$row['id'].'\')" title="Edit details">
                             <i class="flaticon2-paper"></i>
                         </a>';
     }
     
-    if($menu_access['products']['delete'] == '1' || $userlevel == "sadmin_df56fdg"){
+    if(($menu_access['products']['delete'] ?? '') == '1' || $userlevel == "sadmin_df56fdg"){
 
             $delete = '<a href="javascript:;" class="btn btn-sm btn-clean btn-icon btn-icon-sm" data-toggle="modal" data-target="#kt_modal_d_product" title="Delete" onclick="removeProduct(\''.$row['id'].'\')">
                             <i class="flaticon2-trash"></i>
                         </a>';
     }
 
-    if($_SESSION['userlevel'] == 'sadmin_df56fdg'){
+    if(($_SESSION['userlevel'] ?? '') == 'sadmin_df56fdg'){
         $actionBtn = '<a href="javascript:;" class="btn btn-sm btn-clean btn-icon btn-icon-sm" data-toggle="modal" data-target="#kt_modal_e_product" onclick="editProduct(\''.$row['id'].'\')" title="Edit details">
                             <i class="flaticon2-paper"></i>
                         </a>
@@ -117,14 +125,15 @@ while($row = $query->fetch_assoc()){
                             ';
     }
 
-    $opening_stock_current = json_decode($row['new_opening_stock'],true);
-    $len = sizeof($opening_stock_current['year']);
+    $opening_stock_current = json_decode($row['new_opening_stock'] ?? '', true);
+    $len = (is_array($opening_stock_current) && isset($opening_stock_current['year']) && is_array($opening_stock_current['year'])) ? sizeof($opening_stock_current['year']) : 0;
 
     $sql_year = "SELECT * FROM year WHERE current = '1'";
     $query_year = $db->query($sql_year);
-    $row_year = $query_year->fetch_assoc();
+    $row_year = ($query_year && ($tmp = $query_year->fetch_assoc())) ? $tmp : [];
 
-    $year = $row_year['year'];
+    $year = $row_year['year'] ?? '';
+    $opening_stock = '';
 
     for($i=0;$i<$len;$i++)
     {
@@ -159,14 +168,15 @@ while($row = $query->fetch_assoc()){
             'Updated_Cost' => $row['updated_cost'],
             'Updated_Cost_Date' => $updated_cost_date,
             'Unit' => $row['unit'],
-            'Cost' => money_format('%!i', $row['cost']),
-            'Rate' => money_format('%!i', $row['rate']),
+            'Cost' => number_format((float)$row['cost'], 2),
+            'Rate' => number_format((float)$row['rate'], 2),
             'Tax' => $row['tax'],
             'HSN' => $row['hsn'],
             'Archive' => $row['archive'],
             'Opening_stock' => $opening_stock,
             'Actions' => $actionBtn
 	);
+}
 }
 
 echo json_encode($output);

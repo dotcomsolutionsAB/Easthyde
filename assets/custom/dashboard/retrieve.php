@@ -5,8 +5,8 @@ require_once "../connect.php";
 setlocale(LC_MONETARY, 'en_IN');
 
 // Retrieve date range from session
-$date_start = $_SESSION['start'];
-$date_end = $_SESSION['end'];
+$date_start = $_SESSION['start'] ?? '';
+$date_end = $_SESSION['end'] ?? '';
 
 $start_year = date('Y', strtotime($date_start));
 $end_year = date('Y', strtotime($date_end));

@@ -3,25 +3,25 @@ session_start();
 require_once "../connect.php";
 setlocale(LC_MONETARY, 'en_IN');
 
-$dt_start = $_SESSION['start'];
-$dt_end = $_SESSION['end'];
+$dt_start = $_SESSION['start'] ?? '';
+$dt_end = $_SESSION['end'] ?? '';
 
-$pagination = $_REQUEST['pagination'];  
-$query_array = $_REQUEST['query'];  
-$sort_array = $_REQUEST['sort'];  
+$pagination = $_REQUEST['pagination'] ?? [];
+$query_array = $_REQUEST['query'] ?? [];
+$sort_array = $_REQUEST['sort'] ?? [];
 
 $sql_fetch = "SELECT * FROM debit_note ORDER BY id DESC LIMIT 1";
 $query_fetch = $db->query($sql_fetch);
-$row_fetch = $query_fetch->fetch_assoc();
+$row_fetch = ($query_fetch && ($tmp = $query_fetch->fetch_assoc())) ? $tmp : [];
 
-$query = $query_array['generalSearch'];
+$query = $query_array['generalSearch'] ?? '';
 $query=str_replace(" ","",$query);
 $query=str_replace("-","",$query);
 $query=str_replace(".","",$query);
 
-$status = $query_array['status'];
-$user = $query_array['user'];
-$product = $query_array['product'];
+$status = $query_array['status'] ?? '';
+$user = $query_array['user'] ?? '';
+$product = $query_array['product'] ?? '';
 
 if($status=="")
 {
@@ -40,17 +40,21 @@ if($product=="")
 
 $sql_1 = "SELECT COUNT(*) AS total FROM debit_note WHERE (REPLACE(REPLACE(`dn_no`, ' ', ''), '-', '') LIKE '%$query%' || REPLACE(REPLACE(REPLACE(`supplier`, '-', ''), ' ', ''), '.', '') LIKE '%$query%' || `total` LIKE '%$query%') AND `status` LIKE '$status' AND `log_user` LIKE '$user' AND `items` LIKE '%$product%' AND `dn_date` BETWEEN '$dt_start' AND '$dt_end' ORDER BY `id` DESC";
 $query_1 = $db->query($sql_1);
-$row_1 = $query_1->fetch_assoc();
+$row_1 = ($query_1 && ($tmp = $query_1->fetch_assoc())) ? $tmp : ['total' => 0];
 
-$perpage = $pagination['perpage'];
-$start = ($pagination['page']-1)*$perpage;
+$perpage = (int)($pagination['perpage'] ?? 10);
+$page = (int)($pagination['page'] ?? 1);
+if ($perpage < 1) { $perpage = 10; }
+if ($page < 1) { $page = 1; }
+$start = ($page - 1) * $perpage;
 $pages = $row_1['total'] / $perpage;
 
-$output = array('meta'=> array("page"=> $pagination['page'], "pages"=> $pages, "perpage"=> $perpage,"total"=> $row_1['total'],"sort"=> 'asc', "field"=> 'SN'), 'data' => array());
+$output = array('meta'=> array("page"=> $page, "pages"=> $pages, "perpage"=> $perpage,"total"=> $row_1['total'],"sort"=> 'asc', "field"=> 'SN'), 'data' => array());
 
 $count=1;
 $sql = "SELECT * FROM debit_note WHERE (REPLACE(REPLACE(`dn_no`, ' ', ''), '-', '') LIKE '%$query%' || REPLACE(REPLACE(REPLACE(`supplier`, '-', ''), ' ', ''), '.', '') LIKE '%$query%' || `total` LIKE '%$query%') AND `status` LIKE '$status' AND `log_user` LIKE '$user' AND `items` LIKE '%$product%' AND `dn_date` BETWEEN '$dt_start' AND '$dt_end' ORDER BY `id` DESC LIMIT ".$start.','.$perpage;
 $query = $db->query($sql);
+if ($query) {
 while($row = $query->fetch_assoc()){
     
     $actionBtn = '<div class="dropdown"><a href="javascript:;" class="btn btn-sm btn-clean btn-icon btn-icon-md" data-toggle="dropdown"><i class="flaticon-more-1"></i></a><div class="dropdown-menu dropdown-menu-right">
@@ -68,21 +72,22 @@ while($row = $query->fetch_assoc()){
 
     $sql_temp = "SELECT * FROM suppliers WHERE name = '$c_name'";
     $query_temp = $db->query($sql_temp);
-    $row_temp = $query_temp->fetch_assoc();
+    $row_temp = ($query_temp && ($tmp = $query_temp->fetch_assoc())) ? $tmp : [];
 
     $output['data'][] = array(      
         'RecordID' => $count++,
         'RecordID2' => $row['id'],
         'Name' => $row['supplier'],
-        'Supplier_ID' => $row_temp['id'],
-        'Date' => date('d-m-Y',strtotime($row['dn_date'])),
+        'Supplier_ID' => $row_temp['id'] ?? '',
+        'Date' => !empty($row['dn_date']) ? date('d-m-Y',strtotime($row['dn_date'])) : '',
         'Number'=>$row['dn_no'],
         'Purchase_No'=>$row['purchase_invoice'],
-        'Amount'=>money_format('%!i', $total),
+        'Amount'=>number_format((float)$total, 2),
         'User'=>$row['log_user'],
-        'Log_Date'=>date('d-m-Y',strtotime($row['log_date'])),
+        'Log_Date'=>!empty($row['log_date']) ? date('d-m-Y',strtotime($row['log_date'])) : '',
         'Actions' => $actionBtn
     );
+}
 }
 echo json_encode($output);
 ?>

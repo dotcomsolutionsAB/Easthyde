@@ -3,16 +3,16 @@ session_start();
 require_once "../connect.php";
 setlocale(LC_MONETARY, 'en_IN');
 
-$pagination = $_REQUEST['pagination'];  
-$query_array = $_REQUEST['query'];  
-$sort_array = $_REQUEST['sort'];  
+$pagination = $_REQUEST['pagination'] ?? [];
+$query_array = $_REQUEST['query'] ?? [];
+$sort_array = $_REQUEST['sort'] ?? [];
 
-$query = $query_array['generalSearch'];
+$query = $query_array['generalSearch'] ?? '';
 $query=str_replace(" ","",$query);
 $query=str_replace("-","",$query);
-$group = $query_array['group'];
-$category = $query_array['category'];
-$sub_category = $query_array['sub_category'];
+$group = $query_array['group'] ?? '';
+$category = $query_array['category'] ?? '';
+$sub_category = $query_array['sub_category'] ?? '';
 
 if($sub_category == '' ){
     $sub_category = '%';
@@ -35,9 +35,11 @@ if($group == ''){
     $_SESSION['group'] = $group;
 }
 
+$result = [];
 $count=1;
 $sql = "SELECT * FROM product WHERE (REPLACE(REPLACE(`name`, ' ', ''), '-', '') LIKE '%$query%' || REPLACE(REPLACE(`description`, ' ', ''), '-', '') LIKE '%$query%' || REPLACE(REPLACE(`aliases`, ' ', ''), '-', '') LIKE '%$query%') AND `group` LIKE '$group' AND `category` LIKE '$category' AND `sub_category` LIKE '$sub_category' ORDER BY `group`,`name`";
 $query = $db->query($sql);
+if ($query) {
 while($row = $query->fetch_assoc()){
     $name=$row['name'];
 
@@ -57,9 +59,10 @@ while($row = $query->fetch_assoc()){
     // Sales
     $sql_tmp = "SELECT * FROM sales_invoice WHERE items LIKE '%$name%'";
     $query_tmp = $db->query($sql_tmp);
+    if ($query_tmp) {
     while($row_tmp = $query_tmp->fetch_assoc()){
-        $items = json_decode($row_tmp['items'], true);
-        $len = sizeof($items['product']);
+        $items = json_decode($row_tmp['items'] ?? '', true);
+        $len = (is_array($items) && isset($items['product']) && is_array($items['product'])) ? sizeof($items['product']) : 0;
         for($i=0;$i<$len;$i++){
             if($items['product'][$i] == $name)
             {
@@ -71,13 +74,15 @@ while($row = $query->fetch_assoc()){
             }
         }
     }
+    }
 
     // Sales
     $sql_tmp = "SELECT * FROM sales_order WHERE items LIKE '%$name%' AND collected = '1' AND `status` = '0'";
     $query_tmp = $db->query($sql_tmp);
+    if ($query_tmp) {
     while($row_tmp = $query_tmp->fetch_assoc()){
-        $items = json_decode($row_tmp['items'], true);
-        $len = sizeof($items['product']);
+        $items = json_decode($row_tmp['items'] ?? '', true);
+        $len = (is_array($items) && isset($items['product']) && is_array($items['product'])) ? sizeof($items['product']) : 0;
         for($i=0;$i<$len;$i++){
             if($items['product'][$i] == $name)
             {
@@ -85,13 +90,15 @@ while($row = $query->fetch_assoc()){
             }
         }
     }
+    }
 
     // Purchase
     $sql_tmp = "SELECT * FROM purchase_invoice WHERE items LIKE '%$name%'";
     $query_tmp = $db->query($sql_tmp);
+    if ($query_tmp) {
     while($row_tmp = $query_tmp->fetch_assoc()){
-        $items = json_decode($row_tmp['items'], true);
-        $len = sizeof($items['product']);
+        $items = json_decode($row_tmp['items'] ?? '', true);
+        $len = (is_array($items) && isset($items['product']) && is_array($items['product'])) ? sizeof($items['product']) : 0;
         for($i=0;$i<$len;$i++){
             if($items['product'][$i] == $name)
             {
@@ -99,21 +106,25 @@ while($row = $query->fetch_assoc()){
             }
         }
     }
+    }
 
     $pr_search="\"".$name."\"";
 
     // Assemblies
     $sql_tmp = "SELECT * FROM assembly_operation WHERE composite = '$name' AND `operation` = 'Assembled'";
     $query_tmp = $db->query($sql_tmp);
+    if ($query_tmp) {
     while($row_tmp = $query_tmp->fetch_assoc()){
         $stock += $row_tmp['quantity'];
+    }
     }
 
     $sql_tmp = "SELECT * FROM assembly_operation WHERE items LIKE '%$pr_search%' AND `operation` = 'Assembled'";
     $query_tmp = $db->query($sql_tmp);
+    if ($query_tmp) {
     while($row_tmp = $query_tmp->fetch_assoc()){
-        $items = json_decode($row_tmp['items'], true);
-        $len = sizeof($items['product']);
+        $items = json_decode($row_tmp['items'] ?? '', true);
+        $len = (is_array($items) && isset($items['product']) && is_array($items['product'])) ? sizeof($items['product']) : 0;
         for($i=0;$i<$len;$i++){
             if($items['product'][$i] == $name)
             {
@@ -122,19 +133,23 @@ while($row = $query->fetch_assoc()){
             }
         }
     }
+    }
 
     // Disassemble
     $sql_tmp = "SELECT * FROM assembly_operation WHERE composite = '$name' AND `operation` = 'Disassembled'";
     $query_tmp = $db->query($sql_tmp);
+    if ($query_tmp) {
     while($row_tmp = $query_tmp->fetch_assoc()){
         $stock -= $row_tmp['quantity'];
+    }
     }
 
     $sql_tmp = "SELECT * FROM assembly_operation WHERE items LIKE '%$pr_search%' AND `operation` = 'Disassembled'";
     $query_tmp = $db->query($sql_tmp);
+    if ($query_tmp) {
     while($row_tmp = $query_tmp->fetch_assoc()){
-        $items = json_decode($row_tmp['items'], true);
-        $len = sizeof($items['product']);
+        $items = json_decode($row_tmp['items'] ?? '', true);
+        $len = (is_array($items) && isset($items['product']) && is_array($items['product'])) ? sizeof($items['product']) : 0;
         for($i=0;$i<$len;$i++){
             if($items['product'][$i] == $name)
             {
@@ -143,12 +158,13 @@ while($row = $query->fetch_assoc()){
             }
         }
     }
+    }
 
     $url = '<strong><a href="?page=product_details&pr='.urlencode($row['name']).'" target="_blank">'.strtoupper($row['name']).'</a></strong>';
 
     $moq = $row['moq'];
 	
-	if($moq != 0)
+	if((string)($moq ?? '') !== '' && (string)$moq !== '0')
     {
         if($stock < $moq)
         {
@@ -158,7 +174,7 @@ while($row = $query->fetch_assoc()){
                 strtoupper($row['group']),
                 strtoupper($row['category']),
                 strtoupper($row['sub_category']),
-                money_format('%!i', $row['rate']),
+                number_format((float)$row['rate'], 2),
                 $row['hsn'],
                 $stock,
                 $moq,
@@ -166,6 +182,7 @@ while($row = $query->fetch_assoc()){
             );
         }
     }
+}
 }
 
 

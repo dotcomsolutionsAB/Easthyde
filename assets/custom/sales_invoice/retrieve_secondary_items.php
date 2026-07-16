@@ -3,20 +3,21 @@ session_start();
 require_once "../connect.php";
 setlocale(LC_MONETARY, 'en_IN');
 
-$pagination = $_REQUEST['pagination'];  
-$query_array = $_REQUEST['query'];  
-$sort_array = $_REQUEST['sort'];  
+$pagination = $_REQUEST['pagination'] ?? [];
+$query_array = $_REQUEST['query'] ?? [];
+$sort_array = $_REQUEST['sort'] ?? [];
 
-$searchquery = $query_array['generalSearch'];
+$searchquery = $query_array['generalSearch'] ?? '';
 
-
+$array = [];
 $count=1;
 $sql = "SELECT * FROM sales_invoice WHERE `series` = 'SECONDARY' ORDER BY `si_date` DESC";
 $query = $db->query($sql);
+if ($query) {
 while($row = $query->fetch_assoc()){
 
-    $items  = json_decode($row['items'], true);
-    $len    = sizeof($items['product']);
+    $items  = json_decode($row['items'] ?? '', true);
+    $len = (is_array($items) && isset($items['product']) && is_array($items['product'])) ? sizeof($items['product']) : 0;
 
     for($i=0;$i<$len;$i++)
     {
@@ -40,7 +41,7 @@ while($row = $query->fetch_assoc()){
         {
             $pr = $items['product'][$i];
             $hsn = $items['hsn'][$i];
-            if(strpos($pr, $searchquery) !== false || strpos($hsn, $searchquery) !== false || $searchquery == '')
+            if(strpos((string)$pr, (string)$searchquery) !== false || strpos((string)$hsn, (string)$searchquery) !== false || $searchquery == '')
             {
                 $array[] = array(      
                     'RecordID' => $count,
@@ -54,19 +55,23 @@ while($row = $query->fetch_assoc()){
         }
     }
 }
+}
 
 $total = sizeof($array);
-$perpage = $pagination['perpage'];
+$perpage = (int)($pagination['perpage'] ?? 10);
+$page = (int)($pagination['page'] ?? 1);
+if ($perpage < 1) { $perpage = 10; }
+if ($page < 1) { $page = 1; }
 
 if($total < $perpage){
     $perpage = $total;
 }
-$start = ($pagination['page']-1)*$perpage;
+$start = ($page - 1) * $perpage;
 $pages = $total / $perpage;
 
-$output = array('meta'=> array("page"=> $pagination['page'], "pages"=> $pages, "perpage"=> $perpage,"total"=> $total,"sort"=> 'asc', "field"=> 'SN'), 'data' => array());
+$output = array('meta'=> array("page"=> $page, "pages"=> $pages, "perpage"=> $perpage,"total"=> $total,"sort"=> 'asc', "field"=> 'SN'), 'data' => array());
 
-for($j=$start,$count=0;$count<$perpage;$j++){
+for($j=$start,$count=0;$count<$perpage && isset($array[$j]);$j++){
 
     // $product = $array[$j]['Product'];
 
