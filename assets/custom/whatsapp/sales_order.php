@@ -7,12 +7,12 @@ require_once "../connect.php";
 include("token.php");
 
 
-$so_no = $_REQUEST['so_no_whatsapp'];
-$mobile = $_REQUEST['so_whatsapp_number'];
+$so_no = $_REQUEST['so_no_whatsapp'] ?? '';
+$mobile = $_REQUEST['so_whatsapp_number'] ?? '';
 
 $sql_fetch = "SELECT * FROM sales_order WHERE `so_no` = '$so_no'";
 $query_fetch = $db->query($sql_fetch);
-$row_fetch = $query_fetch->fetch_assoc();
+$row_fetch = ($query_fetch) ? $query_fetch->fetch_assoc() : null;
 
 $date=date('d-m-Y', strtotime($row_fetch['so_date']));
 //Include Master
@@ -22,7 +22,7 @@ $name = "Sales_Order_AICSO-".substr($so_no,7,3)."_".str_replace('-','',$date).".
 $url = 'https://crm.ammarindustrial.biz/assets/pdf/sales_order/'.$name;
 
 $numbers = explode(',',$mobile);
-$length = sizeof($numbers);
+$length = is_array($numbers) ? sizeof($numbers) : 0;
 for($i=0;$i<$length;$i++){
     $mob_no = $numbers[$i];
 

@@ -2,152 +2,140 @@
 
 require_once "../connect.php";
 
-$name = $_REQUEST['member_id'];
+$name = (string)($_REQUEST['member_id'] ?? '');
+if ($name === '') {
+	echo '0';
+	exit;
+}
 
-$sql = "SELECT * FROM product WHERE name = '$name'";
+$safeName = $db->real_escape_string($name);
+
+$sql = "SELECT * FROM product WHERE name = '$safeName'";
 $query = $db->query($sql);
-$row = $query->fetch_assoc();
+$row = ($query) ? $query->fetch_assoc() : null;
+if (!$row) {
+	echo '0';
+	exit;
+}
 
-
-$name=$row['name'];
+$name = $row['name'] ?? $name;
+$safeName = $db->real_escape_string($name);
 
 $sql_year = "SELECT * FROM year WHERE current = '1'";
 $query_year = $db->query($sql_year);
-$row_year = $query_year->fetch_assoc();
-
-$year = $row_year['year'];
-$start = $row_year['start'];
-$end = $row_year['end'];
-
-$new_opening_stock = json_decode($row['new_opening_stock'],true);
-$len = sizeof($new_opening_stock['year']);
-// echo $new_opening_stock['year'][1];
-
-for($i=0;$i<$len;$i++)
-{
-    if($new_opening_stock['year'][$i] == $year)
-    {
-        $opening_stock = $new_opening_stock['stock'][$i];
-    }
+$row_year = ($query_year) ? $query_year->fetch_assoc() : null;
+if (!$row_year) {
+	echo '0';
+	exit;
 }
-// $opening_stock = $row_pr['opening_stock'];
+
+$year = $row_year['year'] ?? '';
+$start = $row_year['start'] ?? '';
+$end = $row_year['end'] ?? '';
+
+$opening_stock = 0;
+$new_opening_stock = json_decode($row['new_opening_stock'] ?? '', true);
+if (is_array($new_opening_stock) && isset($new_opening_stock['year']) && is_array($new_opening_stock['year'])) {
+	foreach ($new_opening_stock['year'] as $i => $y) {
+		if ($y == $year) {
+			$opening_stock = (float)($new_opening_stock['stock'][$i] ?? 0);
+			break;
+		}
+	}
+}
 $stock = $opening_stock;
 
-// Sales
-$sql_tmp = "SELECT * FROM sales_invoice WHERE items LIKE '%$name%' AND `si_date` BETWEEN '$start' AND '$end'";
+$adjustItems = function ($sql_tmp, $sign) use ($db, $name, &$stock) {
+	$query_tmp = $db->query($sql_tmp);
+	if (!$query_tmp) {
+		return;
+	}
+	while ($row_tmp = $query_tmp->fetch_assoc()) {
+		$items = json_decode($row_tmp['items'] ?? '', true);
+		if (!is_array($items) || !isset($items['product']) || !is_array($items['product'])) {
+			continue;
+		}
+		foreach ($items['product'] as $i => $product_name) {
+			if ($product_name == $name) {
+				$qty = (float)($items['quantity'][$i] ?? 0);
+				$stock += $sign * $qty;
+			}
+		}
+	}
+};
+
+// Sales invoice
+$adjustItems("SELECT * FROM sales_invoice WHERE items LIKE '%$safeName%' AND `si_date` BETWEEN '$start' AND '$end'", -1);
+
+// Sales order (collected, open)
+$adjustItems("SELECT * FROM sales_order WHERE items LIKE '%$safeName%' AND collected = '1' AND `status` = '0' AND `so_date` BETWEEN '$start' AND '$end'", -1);
+
+// Purchase invoice
+$adjustItems("SELECT * FROM purchase_invoice WHERE items LIKE '%$safeName%' AND `pi_date` BETWEEN '$start' AND '$end'", 1);
+
+// Credit note
+$adjustItems("SELECT * FROM credit_note WHERE items LIKE '%$safeName%' AND `cn_date` BETWEEN '$start' AND '$end'", 1);
+
+// Debit note
+$adjustItems("SELECT * FROM debit_note WHERE items LIKE '%$safeName%' AND `dn_date` BETWEEN '$start' AND '$end'", -1);
+
+$pr_search = "\"" . $safeName . "\"";
+
+// Assemblies — composite assembled
+$sql_tmp = "SELECT * FROM assembly_operation WHERE composite = '$safeName' AND `operation` = 'Assembled' AND `log_date` BETWEEN '$start' AND '$end'";
 $query_tmp = $db->query($sql_tmp);
-while($row_tmp = $query_tmp->fetch_assoc()){
-    $items = json_decode($row_tmp['items'], true);
-    $len = sizeof($items['product']);
-    for($i=0;$i<$len;$i++){
-        if($items['product'][$i] == $name)
-        {
-                $stock -= $items['quantity'][$i];
-            }
-        }
-    
+if ($query_tmp) {
+	while ($row_tmp = $query_tmp->fetch_assoc()) {
+		$stock += (float)($row_tmp['quantity'] ?? 0);
+	}
 }
 
-// Sales
-$sql_tmp = "SELECT * FROM sales_order WHERE items LIKE '%$name%' AND collected = '1' AND `status` = '0' AND `so_date` BETWEEN '$start' AND '$end'";
-$query_tmp = $db->query($sql_tmp);
-while($row_tmp = $query_tmp->fetch_assoc()){
-    $items = json_decode($row_tmp['items'], true);
-    $len = sizeof($items['product']);
-    for($i=0;$i<$len;$i++){
-        if($items['product'][$i] == $name)
-        {
-            $stock -= $items['quantity'][$i];
-        }
-    }
-}
-
-// Purchase
-$sql_tmp = "SELECT * FROM purchase_invoice WHERE items LIKE '%$name%' AND `pi_date` BETWEEN '$start' AND '$end'";
-$query_tmp = $db->query($sql_tmp);
-while($row_tmp = $query_tmp->fetch_assoc()){
-    $items = json_decode($row_tmp['items'], true);
-    $len = sizeof($items['product']);
-    for($i=0;$i<$len;$i++){
-        if($items['product'][$i] == $name)
-        {
-            $stock += $items['quantity'][$i];
-        }
-    }
-}
-
-$sql_tmp = "SELECT * FROM credit_note WHERE items LIKE '%$name%' AND `cn_date` BETWEEN '$start' AND '$end'";
-    $query_tmp = $db->query($sql_tmp);
-    while($row_tmp = $query_tmp->fetch_assoc()){
-        $items = json_decode($row_tmp['items'], true);
-        $len = sizeof($items['product']);
-        for($i=0;$i<$len;$i++){
-            if($items['product'][$i] == $name)
-            {
-                $stock += $items['quantity'][$i];
-            }
-        }
-    }
-
-$sql_tmp = "SELECT * FROM debit_note WHERE items LIKE '%$name%' AND `dn_date` BETWEEN '$start' AND '$end'";
-$query_tmp = $db->query($sql_tmp);
-while($row_tmp = $query_tmp->fetch_assoc()){
-    $items = json_decode($row_tmp['items'], true);
-    $len = sizeof($items['product']);
-    for($i=0;$i<$len;$i++){
-        if($items['product'][$i] == $name)
-        {
-            $stock -= $items['quantity'][$i];
-        }
-    }
-}
-
-$pr_search="\"".$name."\"";
-
-// Assemblies
-$sql_tmp = "SELECT * FROM assembly_operation WHERE composite = '$name' AND `operation` = 'Assembled' AND `log_date` BETWEEN '$start' AND '$end'";
-$query_tmp = $db->query($sql_tmp);
-while($row_tmp = $query_tmp->fetch_assoc()){
-    $stock += $row_tmp['quantity'];
-}
-
+// Assemblies — component used in assemble
 $sql_tmp = "SELECT * FROM assembly_operation WHERE items LIKE '%$pr_search%' AND `operation` = 'Assembled' AND `log_date` BETWEEN '$start' AND '$end'";
 $query_tmp = $db->query($sql_tmp);
-while($row_tmp = $query_tmp->fetch_assoc()){
-    $items = json_decode($row_tmp['items'], true);
-    $len = sizeof($items['product']);
-    for($i=0;$i<$len;$i++){
-        if($items['product'][$i] == $name)
-        {
-            $qty = $row_tmp['quantity'] * $items['quantity'][$i];
-            $stock -= $qty;
-        }
-    }
+if ($query_tmp) {
+	while ($row_tmp = $query_tmp->fetch_assoc()) {
+		$items = json_decode($row_tmp['items'] ?? '', true);
+		if (!is_array($items) || !isset($items['product']) || !is_array($items['product'])) {
+			continue;
+		}
+		$op_qty = (float)($row_tmp['quantity'] ?? 0);
+		foreach ($items['product'] as $i => $product_name) {
+			if ($product_name == $name) {
+				$stock -= $op_qty * (float)($items['quantity'][$i] ?? 0);
+			}
+		}
+	}
 }
 
-// Disassemble
-$sql_tmp = "SELECT * FROM assembly_operation WHERE composite = '$name' AND `operation` = 'Disassembled' AND `log_date` BETWEEN '$start' AND '$end'";
+// Disassemble — composite
+$sql_tmp = "SELECT * FROM assembly_operation WHERE composite = '$safeName' AND `operation` = 'Disassembled' AND `log_date` BETWEEN '$start' AND '$end'";
 $query_tmp = $db->query($sql_tmp);
-while($row_tmp = $query_tmp->fetch_assoc()){
-    $stock -= $row_tmp['quantity'];
+if ($query_tmp) {
+	while ($row_tmp = $query_tmp->fetch_assoc()) {
+		$stock -= (float)($row_tmp['quantity'] ?? 0);
+	}
 }
 
+// Disassemble — components returned
 $sql_tmp = "SELECT * FROM assembly_operation WHERE items LIKE '%$pr_search%' AND `operation` = 'Disassembled' AND `log_date` BETWEEN '$start' AND '$end'";
 $query_tmp = $db->query($sql_tmp);
-while($row_tmp = $query_tmp->fetch_assoc()){
-    $items = json_decode($row_tmp['items'], true);
-    $len = sizeof($items['product']);
-    for($i=0;$i<$len;$i++){
-        if($items['product'][$i] == $name)
-        {
-            $qty = $row_tmp['quantity'] * $items['quantity'][$i];
-            $stock += $qty;
-        }
-    }
+if ($query_tmp) {
+	while ($row_tmp = $query_tmp->fetch_assoc()) {
+		$items = json_decode($row_tmp['items'] ?? '', true);
+		if (!is_array($items) || !isset($items['product']) || !is_array($items['product'])) {
+			continue;
+		}
+		$op_qty = (float)($row_tmp['quantity'] ?? 0);
+		foreach ($items['product'] as $i => $product_name) {
+			if ($product_name == $name) {
+				$stock += $op_qty * (float)($items['quantity'][$i] ?? 0);
+			}
+		}
+	}
 }
 
 $db->close();
- 
-echo $stock;
 
+echo $stock;
 ?>

@@ -2,11 +2,11 @@
 
 require_once "../connect.php";
 
-$name = $_REQUEST['member_id'];
+$name = $_REQUEST['member_id'] ?? '';
 
 $sql = "SELECT * FROM product WHERE name = '$name'";
 $query = $db->query($sql);
-$result = $query->fetch_assoc();
+$result = ($query) ? $query->fetch_assoc() : null;
 
 $db->close();
  

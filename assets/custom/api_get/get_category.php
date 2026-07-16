@@ -3,19 +3,21 @@
 session_start();
 require_once "../connect.php";
 
-$term = $_REQUEST["term"];
+$term = $_REQUEST["term"] ?? '';
 
-$group = $_SESSION['group'];
+$group = $_SESSION['group'] ?? '';
 
 $sql = "SELECT DISTINCT(category) FROM product WHERE `category` LIKE '%$term%' AND `group` LIKE '%$group%' ORDER BY `category`";
 $query = $db->query($sql);
 
 $json = array("results"=>array());
 
+if ($query) {
 while($row = $query->fetch_assoc()){
 
-     $json["results"][] = ['id'=>$row['category'], 'text'=>strtoupper($row['category'])];
+     $json["results"][] = ['id'=>$row['category'], 'text'=>strtoupper((string)($row['category'] ?? ''))];
 
+}
 }
 
 echo json_encode($json);

@@ -3,26 +3,36 @@ session_start();
 require_once "../connect.php";
 setlocale(LC_MONETARY, 'en_IN');
 
-$start = $_SESSION['start'];
-$end = $_SESSION['end'];
+$start = $_SESSION['start'] ?? '';
+$end = $_SESSION['end'] ?? '';
 $date = date('Y-m-d',strtotime('today'));
 
 if(strtotime($end) > strtotime($date)){
 	$end = $date;
 }
-$id = $_REQUEST['member_id'];
+$id = $_REQUEST['member_id'] ?? '';
 
 $output = array("message"=>"", "status"=>"400");
 
 $sql_fetch = "SELECT * FROM receipts WHERE id = '$id'";
 $query_fetch = $db->query($sql_fetch);
-$row_fetch = $query_fetch->fetch_assoc();
+$row_fetch = ($query_fetch) ? $query_fetch->fetch_assoc() : null;
+if (!$row_fetch) {
+	$db->close();
+	echo json_encode($output);
+	exit;
+}
 
 $client = $row_fetch['client'];
 
 $sql_temp = "SELECT * FROM clients WHERE name = '$client'";
 $query_temp = $db->query($sql_temp);
-$row_temp = $query_temp->fetch_assoc();
+$row_temp = ($query_temp) ? $query_temp->fetch_assoc() : null;
+if (!$row_temp) {
+	$db->close();
+	echo json_encode($output);
+	exit;
+}
 
 //Message Creation
 $output['message'] = '*Payment Receipt*
@@ -30,7 +40,7 @@ _'.date('d-m-Y',strtotime($row_fetch['date'])).'_
 
 Client : *'.$row_temp['print_name'].'*
 
-Total : *Rs. '.money_format('%!i',$row_fetch['amount']).'*
+Total : *Rs. '.number_format((float)($row_fetch['amount']), 2).'*
 
 ';
 
@@ -46,11 +56,17 @@ Ref No : *'.$row_fetch['instrument'].'*
 
 $count = 1;
 
-$sales_invoice = json_decode($row_fetch['sales_invoice'], true);
-$len = sizeof($sales_invoice['si_no']);
+$sales_invoice = json_decode($row_fetch['sales_invoice'] ?? '', true);
+
+if (!is_array($sales_invoice)) {
+
+    $sales_invoice = [];
+
+}
+$len = is_array($sales_invoice['si_no']) ? sizeof($sales_invoice['si_no']) : 0;
 for($i=0;$i<$len;$i++){
 
-	$output['message'] .= $count++.'   '.$sales_invoice['si_no'][$i].'   *Rs. '.money_format('%!i',$sales_invoice['amount'][$i]).'*
+	$output['message'] .= $count++.'   '.$sales_invoice['si_no'][$i].'   *Rs. '.number_format((float)($sales_invoice['amount'][$i]), 2).'*
 ';
 
 }

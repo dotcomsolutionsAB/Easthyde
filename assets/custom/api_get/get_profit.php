@@ -53,12 +53,17 @@ try {
         throw new Exception("Failed to execute count query: " . $db->error);
     }
 
-    $total_filtered_entries = $total_filtered_entries_result->fetch_assoc()['count'];
+    $count_row = ($total_filtered_entries_result) ? $total_filtered_entries_result->fetch_assoc() : null;
+    $total_filtered_entries = $count_row['count'] ?? 0;
 
     // Loop through the result and build the response array
+    if ($result) {
     while ($invoice = $result->fetch_assoc()) {
-        $items = json_decode($invoice['items'], true);
-        if (!$items || !isset($items['product'], $items['quantity'], $items['price'])) {
+        $items = json_decode($invoice['items'] ?? '', true);
+        if (!is_array($items)) {
+            $items = [];
+        }
+        if (!is_array($items) || !isset($items['product'], $items['quantity'], $items['price'])) {
             continue;
         }
 
@@ -88,10 +93,14 @@ try {
                        
                        $cost = 0;
                        if ($purchase_result !== false && $purchase_result->num_rows > 0) {
+                           if ($purchase_result) {
                            while ($purchase_data = $purchase_result->fetch_assoc()) {
-                               $purchase_items = json_decode($purchase_data['items'], true);
+                               $purchase_items = json_decode($purchase_data['items'] ?? '', true);
+                               if (!is_array($purchase_items)) {
+                                   $purchase_items = [];
+                               }
                        
-                               if (isset($purchase_items['product'], $purchase_items['price'])) {
+                               if (is_array($purchase_items) && isset($purchase_items['product'], $purchase_items['price'])) {
                                    $purchase_products = $purchase_items['product'];
                                    $purchase_prices = $purchase_items['price'];
                        
@@ -103,6 +112,7 @@ try {
                                    }
                                }
                            }
+                           }
                        }
                        
            
@@ -112,7 +122,7 @@ try {
                            $product_result = $db->query($product_query);
            
                            if ($product_result !== false && $product_result->num_rows > 0) {
-                               $product_data = $product_result->fetch_assoc();
+                               $product_data = ($product_result) ? $product_result->fetch_assoc() : null;
                                $cost = isset($product_data['cost']) && is_numeric($product_data['cost']) ? $product_data['cost'] : 0;
                            }
                        }
@@ -134,6 +144,7 @@ try {
                 'profit' => number_format((float)$profit, 2) // Ensure profit is float
             ];
         }
+    }
     }
 
     // Send the response to DataTables

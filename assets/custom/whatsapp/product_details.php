@@ -7,11 +7,11 @@ require_once "../connect.php";
 include("token.php");
 
 
-$id = $_REQUEST['pd_whatsapp_id'];
-$mobile = $_REQUEST['pd_whatsapp_number'];
+$id = $_REQUEST['pd_whatsapp_id'] ?? '';
+$mobile = $_REQUEST['pd_whatsapp_number'] ?? '';
 
-$wa_msg = $_REQUEST['pd_whatsapp_message'];
-$technical_pdf = $_REQUEST['technical_pdf'];
+$wa_msg = $_REQUEST['pd_whatsapp_message'] ?? '';
+$technical_pdf = $_REQUEST['technical_pdf'] ?? '';
 
 $flag = 0;
 
@@ -20,20 +20,20 @@ if($technical_pdf != '' && $technical_pdf != '0')
     $flag = 1;  
 }
 
-$images = $_REQUEST['images'];
+$images = $_REQUEST['images'] ?? [];
 
-$len = sizeof($images);
+$len = is_array($images) ? sizeof($images) : 0;
 
 $sql_fetch = "SELECT * FROM product WHERE id = '$id'";
 $query_fetch = $db->query($sql_fetch);
-$row_fetch = $query_fetch->fetch_assoc();
+$row_fetch = ($query_fetch) ? $query_fetch->fetch_assoc() : null;
 
 $product_name = $row_fetch['name'];
 $group = $row_fetch['group'];
 $group = str_replace(" ","_",$group);
 
 $numbers = explode(',',$mobile);
-$length = sizeof($numbers);
+$length = is_array($numbers) ? sizeof($numbers) : 0;
 for($i=0;$i<$length;$i++){
     $mob_no = $numbers[$i];
 
@@ -65,7 +65,7 @@ for($i=0;$i<$length;$i++){
 
     // Whatsapp Images
 
-    foreach ($_REQUEST['images'] as $image)
+    foreach ((is_array($_REQUEST['images'] ?? null) ? $_REQUEST['images'] : []) as $image)
     {
         // Whatsapp
         $post_url = $woonotif_url;
@@ -121,18 +121,18 @@ for($i=0;$i<$length;$i++){
         $result = curl_exec($ch_image);
     }
 
-    if($_SESSION['pd_whatsapp'] != '' && isset($_SESSION['pd_whatsapp']))
+    if(($_SESSION['pd_whatsapp'] ?? '') != '')
     {
-        $files = rtrim($_SESSION['pd_whatsapp'],',');
+        $files = rtrim($_SESSION['pd_whatsapp'] ?? '',',');
         $files_arr = explode(',', $files);
 
-        $files_len = sizeof($files_arr);
+        $files_len = is_array($files_arr) ? sizeof($files_arr) : 0;
 
         for($fi=0;$fi<$files_len;$fi++){
             $url = 'https://crm.ammarindustrial.in/assets/uploads/pd_whatsapp/'.$files_arr[$fi];
 
             $numbers = explode(',',$mobile);
-            $length = sizeof($numbers);
+            $length = is_array($numbers) ? sizeof($numbers) : 0;
             for($i=0;$i<$length;$i++){
                 $mob_no = $numbers[$i];
 

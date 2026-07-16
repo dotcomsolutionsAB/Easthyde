@@ -5,12 +5,12 @@
 session_start();
 require_once "../connect.php";
 
-$pi_no = $_REQUEST['pi_no_whatsapp'];
-$mobile = $_REQUEST['pi_whatsapp_number'];
+$pi_no = $_REQUEST['pi_no_whatsapp'] ?? '';
+$mobile = $_REQUEST['pi_whatsapp_number'] ?? '';
 
 $sql_fetch = "SELECT * FROM purchase_invoice WHERE `pi_no` = '$pi_no'";
 $query_fetch = $db->query($sql_fetch);
-$row_fetch = $query_fetch->fetch_assoc();
+$row_fetch = ($query_fetch) ? $query_fetch->fetch_assoc() : null;
 
 $date=date('d-m-Y', strtotime($row_fetch['pi_date']));
 //Include Master
@@ -22,7 +22,7 @@ include("token.php");
 $url = 'https://crm.ammarindustrial.in/assets/pdf/purchase_invoice/'.$name;
 
 $numbers = explode(',',$mobile);
-$length = sizeof($numbers);
+$length = is_array($numbers) ? sizeof($numbers) : 0;
 for($i=0;$i<$length;$i++){
     $mob_no = $numbers[$i];
 

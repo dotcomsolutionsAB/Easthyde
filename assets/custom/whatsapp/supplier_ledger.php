@@ -7,12 +7,12 @@ require_once "../connect.php";
 include("token.php");
 
 
-$id = $_REQUEST['sl_no_whatsapp'];
-$mobile = $_REQUEST['sl_whatsapp_number'];
+$id = $_REQUEST['sl_no_whatsapp'] ?? '';
+$mobile = $_REQUEST['sl_whatsapp_number'] ?? '';
 
 $sql_fetch = "SELECT * FROM suppliers WHERE `id` = '$id'";
 $query_fetch = $db->query($sql_fetch);
-$row_fetch = $query_fetch->fetch_assoc();
+$row_fetch = ($query_fetch) ? $query_fetch->fetch_assoc() : null;
 
 $supplier = $row_fetch['name'];
 
@@ -24,7 +24,7 @@ $name = $supplier.".pdf";
 $url = 'https://crm.ammarindustrial.biz/assets/pdf/supplier_ledger/'.$name;
 
 $numbers = explode(',',$mobile);
-$length = sizeof($numbers);
+$length = is_array($numbers) ? sizeof($numbers) : 0;
 for($i=0;$i<$length;$i++){
     $mob_no = $numbers[$i];
 

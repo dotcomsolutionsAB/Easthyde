@@ -3,13 +3,16 @@
 session_start();
 require_once "../connect.php";
 
-$composite = $_REQUEST['composite'];
+$composite = $_REQUEST['composite'] ?? '';
 
 $sql = "SELECT * FROM assembly WHERE `composite` = '$composite'";
 $query = $db->query($sql);
+$response = array();
+if ($query) {
 while($result = $query->fetch_assoc())
 {
 	$response[] = $result['spares'];
+}
 }
 
 $db->close();

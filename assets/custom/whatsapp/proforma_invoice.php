@@ -7,12 +7,12 @@ require_once "../connect.php";
 include("token.php");
 
 
-$pr_no = $_REQUEST['pr_no_whatsapp'];
-$mobile = $_REQUEST['pr_whatsapp_number'];
+$pr_no = $_REQUEST['pr_no_whatsapp'] ?? '';
+$mobile = $_REQUEST['pr_whatsapp_number'] ?? '';
 
 $sql_fetch = "SELECT * FROM proforma WHERE `pr_no` = '$pr_no'";
 $query_fetch = $db->query($sql_fetch);
-$row_fetch = $query_fetch->fetch_assoc();
+$row_fetch = ($query_fetch) ? $query_fetch->fetch_assoc() : null;
 
 $date=date('d-m-Y', strtotime($row_fetch['pr_date']));
 //Include Master
@@ -25,7 +25,7 @@ include("token.php");
 $url = 'https://crm.ammarindustrial.in/assets/pdf/proforma_invoice/'.$name;
 
 $numbers = explode(',',$mobile);
-$length = sizeof($numbers);
+$length = is_array($numbers) ? sizeof($numbers) : 0;
 for($i=0;$i<$length;$i++){
     $mob_no = $numbers[$i];
 

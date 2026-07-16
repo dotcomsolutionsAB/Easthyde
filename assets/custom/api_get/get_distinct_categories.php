@@ -8,8 +8,10 @@ $query = "SELECT DISTINCT category FROM expense"; // Adjust table name as necess
 $result = $db->query($query);
 
 $categories = [];
+if ($result) {
 while ($row = $result->fetch_assoc()) {
     $categories[] = $row['category'];
+}
 }
 
 echo json_encode($categories);

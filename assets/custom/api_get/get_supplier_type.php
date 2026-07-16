@@ -3,17 +3,19 @@
 session_start();
 require_once "../connect.php";
 
-$term = $_REQUEST["term"];
+$term = $_REQUEST["term"] ?? '';
 
 $sql = "SELECT DISTINCT(type) FROM suppliers WHERE `type` LIKE '%$term%'";
 $query = $db->query($sql);
 
 $json = array("results"=>array());
 
+if ($query) {
 while($row = $query->fetch_assoc()){
 
      $json["results"][] = ['id'=>$row['type'], 'text'=>$row['type']];
 
+}
 }
 
 echo json_encode($json);

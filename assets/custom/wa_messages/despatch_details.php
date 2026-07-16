@@ -3,26 +3,36 @@ session_start();
 require_once "../connect.php";
 setlocale(LC_MONETARY, 'en_IN');
 
-$start = $_SESSION['start'];
-$end = $_SESSION['end'];
+$start = $_SESSION['start'] ?? '';
+$end = $_SESSION['end'] ?? '';
 $date = date('Y-m-d',strtotime('today'));
 
 if(strtotime($end) > strtotime($date)){
 	$end = $date;
 }
-$id = $_REQUEST['member_id'];
+$id = $_REQUEST['member_id'] ?? '';
 
 $output = array("message"=>"", "status"=>"400");
 
 $sql_fetch = "SELECT * FROM sales_invoice WHERE id = '$id'";
 $query_fetch = $db->query($sql_fetch);
-$row_fetch = $query_fetch->fetch_assoc();
+$row_fetch = ($query_fetch) ? $query_fetch->fetch_assoc() : null;
+if (!$row_fetch) {
+	$db->close();
+	echo json_encode($output);
+	exit;
+}
 
 $client = $row_fetch['client_name'];
 
 $sql_temp = "SELECT * FROM clients WHERE name = '$client'";
 $query_temp = $db->query($sql_temp);
-$row_temp = $query_temp->fetch_assoc();
+$row_temp = ($query_temp) ? $query_temp->fetch_assoc() : null;
+if (!$row_temp) {
+	$db->close();
+	echo json_encode($output);
+	exit;
+}
 
 //Message Creation
 $output['message'] = 'Kind Attention: *M/S '.$row_temp['print_name'].'*
@@ -37,7 +47,13 @@ $output['message'] .= '*Invoice No. : '.$row_fetch['si_no'].'*
 $output['message'] .= '*Dt :* '.date('d-m-Y',strtotime($row_fetch['si_date'])).'
 ';
 
-$invoice_details = json_decode($row_fetch['invoice_details'], true);
+$invoice_details = json_decode($row_fetch['invoice_details'] ?? '', true);
+
+if (!is_array($invoice_details)) {
+
+    $invoice_details = [];
+
+}
 
 $output['message'] .= '*Transporter :* _'.$invoice_details['despatch_medium'].'_
 ';

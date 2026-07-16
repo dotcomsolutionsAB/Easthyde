@@ -5,27 +5,27 @@
 session_start();
 require_once "../connect.php";
 
-$mobile             = $_REQUEST['whatsapp_no'];
-$wa_msg             = $_REQUEST['whatsapp_messaage'];
+$mobile             = $_REQUEST['whatsapp_no'] ?? '';
+$wa_msg             = $_REQUEST['whatsapp_messaage'] ?? '';
 
 include("token.php");
 
 
 $numbers = explode(',',$mobile);
-$length = sizeof($numbers);
+$length = is_array($numbers) ? sizeof($numbers) : 0;
 
-if($_SESSION['filename'] != '' && isset($_SESSION['filename']))
+if(($_SESSION['filename'] ?? '') != '')
 {
-    $files = rtrim($_SESSION['filename'],',');
+    $files = rtrim($_SESSION['filename'] ?? '',',');
     $files_arr = explode(',', $files);
 
-    $files_len = sizeof($files_arr);
+    $files_len = is_array($files_arr) ? sizeof($files_arr) : 0;
 
     for($fi=0;$fi<$files_len;$fi++){
         $url = 'https://crm.ammarindustrial.in/assets/uploads/whatsapp/'.$files_arr[$fi];
 
         $numbers = explode(',',$mobile);
-        $length = sizeof($numbers);
+        $length = is_array($numbers) ? sizeof($numbers) : 0;
         for($i=0;$i<$length;$i++){
             $mob_no = $numbers[$i];
 
@@ -63,7 +63,7 @@ if($_SESSION['filename'] != '' && isset($_SESSION['filename']))
 $_SESSION['filename'] = '';
 
 $numbers = explode(',',$mobile);
-$length = sizeof($numbers);
+$length = is_array($numbers) ? sizeof($numbers) : 0;
 
 for($i=0;$i<$length;$i++){
 

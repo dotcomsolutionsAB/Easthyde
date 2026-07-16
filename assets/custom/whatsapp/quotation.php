@@ -7,12 +7,12 @@ require_once "../connect.php";
 include("token.php");
 
 
-$q_no = $_REQUEST['q_no_whatsapp'];
-$mobile = $_REQUEST['q_whatsapp_number'];
+$q_no = $_REQUEST['q_no_whatsapp'] ?? '';
+$mobile = $_REQUEST['q_whatsapp_number'] ?? '';
 
 $sql_fetch = "SELECT * FROM quotation WHERE `quotation_no` = '$q_no'";
 $query_fetch = $db->query($sql_fetch);
-$row_fetch = $query_fetch->fetch_assoc();
+$row_fetch = ($query_fetch) ? $query_fetch->fetch_assoc() : null;
 
 $date=date('d-m-Y', strtotime($row_fetch['quotation_date']));
 //Include Master
@@ -23,7 +23,7 @@ $name = "Quotation_AICQ-".substr($q_no,6,4)."_".str_replace('-','',$date).".pdf"
 $url = 'https://crm.ammarindustrial.in/assets/pdf/quotation/'.$name;
 
 $numbers = explode(',',$mobile);
-$length = sizeof($numbers);
+$length = is_array($numbers) ? sizeof($numbers) : 0;
 for($i=0;$i<$length;$i++){
     $mob_no = $numbers[$i];
 

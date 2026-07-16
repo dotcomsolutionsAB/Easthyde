@@ -3,13 +3,16 @@
 session_start();
 require_once "../connect.php";
 
-$key = $_REQUEST["key"];
+$key = $_REQUEST["key"] ?? '';
 
 $sql = "SELECT * FROM counter WHERE `key` LIKE '%$key%'";
 $query = $db->query($sql);
-$row = $query->fetch_assoc();
+$row = ($query) ? $query->fetch_assoc() : null;
 
-$row_arr = json_decode($row['value'], true);
+$row_arr = json_decode($row['value'] ?? '', true);
+if (!is_array($row_arr)) {
+	$row_arr = [];
+}
 
 if($key == 'purchase_order' || $key == 'sales_order' || $key == 'proforma')
 {

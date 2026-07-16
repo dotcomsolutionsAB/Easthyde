@@ -4,7 +4,7 @@ session_start();
 require_once "../connect.php";
 
 // Ensure the term is set and sanitized to avoid SQL injection
-$term = isset($_REQUEST["term"]) ? trim($_REQUEST["term"]) : '';
+$term = trim((string)($_REQUEST["term"] ?? ''));
 
 $json = array("results" => array());
 
@@ -17,8 +17,10 @@ $json = array("results" => array());
     $query = $db->query($sql);
 
     // Fetch results and prepare JSON response
+    if ($query) {
     while ($row = $query->fetch_assoc()) {
-        $json["results"][] = ['id' => $row['category'], 'text' => strtoupper($row['category'])];
+        $json["results"][] = ['id' => $row['category'], 'text' => strtoupper((string)($row['category'] ?? ''))];
+    }
     }
 
 // Send JSON response

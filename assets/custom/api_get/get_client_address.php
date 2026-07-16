@@ -2,11 +2,11 @@
 
 require_once "../connect.php";
 
-$memberId = $_REQUEST['member_id'];
+$memberId = $_REQUEST['member_id'] ?? '';
 
 $sql = "SELECT * FROM clients WHERE name = '$memberId'";
 $query = $db->query($sql);
-$result = $query->fetch_assoc();
+$result = ($query) ? $query->fetch_assoc() : null;
 
 $db->close();
  

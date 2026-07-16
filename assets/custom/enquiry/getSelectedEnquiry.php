@@ -2,14 +2,14 @@
 
 require_once "../connect.php";
 
-$memberId = $_REQUEST['member_id'];
+$memberId = $_REQUEST['member_id'] ?? '';
 
 $sql = "SELECT * FROM enquiry WHERE enquiry_no = '$memberId'";
 $query = $db->query($sql);
-$result = $query->fetch_assoc();
+$result = ($query) ? $query->fetch_assoc() : null;
 
 $db->close();
- 
-echo json_encode($result);
+
+echo json_encode($result ?? (object)[]);
 
 ?>

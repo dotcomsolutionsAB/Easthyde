@@ -6,11 +6,11 @@ require_once "../connect.php";
 $validator = array('success' => true, 'messages' => array());
 include("token.php");
 
-$mobile = $_REQUEST['whatsapp_number'];
-$wa_msg = $_REQUEST['whatsapp_message'];
+$mobile = $_REQUEST['whatsapp_number'] ?? '';
+$wa_msg = $_REQUEST['whatsapp_message'] ?? '';
 
 $numbers = explode(',',$mobile);
-$length = sizeof($numbers);
+$length = is_array($numbers) ? sizeof($numbers) : 0;
 for($i=0;$i<$length;$i++){
     $mob_no = $numbers[$i];
 

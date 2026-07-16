@@ -2,7 +2,7 @@
 
 require_once "../connect.php";
 
-$memberId = $_REQUEST['member_id'];
+$memberId = $_REQUEST['member_id'] ?? '';
 
 $count = '';
 $flag = '';
@@ -10,9 +10,9 @@ $flag = '';
 
 $sql = "SELECT COUNT(*) as total FROM clients WHERE name = '$memberId'";
 $query = $db->query($sql);
-$result = $query->fetch_assoc();
+$result = ($query) ? $query->fetch_assoc() : null;
 
-$count = $result['total'];
+$count = $result['total'] ?? 0;
 if($count > 0)
 {
 	$flag = 1;
@@ -20,9 +20,9 @@ if($count > 0)
 
 $sql = "SELECT COUNT(*) as total FROM suppliers WHERE name = '$memberId'";
 $query = $db->query($sql);
-$result = $query->fetch_assoc();
+$result = ($query) ? $query->fetch_assoc() : null;
 
-$count = $result['total'];
+$count = $result['total'] ?? 0;
 if($count > 0)
 {
 	$flag = 0;

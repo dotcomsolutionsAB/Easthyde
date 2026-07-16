@@ -3,14 +3,14 @@ session_start();
 require_once "../connect.php";
 setlocale(LC_MONETARY, 'en_IN');
 
-$start = $_SESSION['start'];
-$end = $_SESSION['end'];
+$start = $_SESSION['start'] ?? '';
+$end = $_SESSION['end'] ?? '';
 $date = date('Y-m-d',strtotime('today'));
 
 if(strtotime($end) > strtotime($date)){
 	$end = $date;
 }
-$id = $_REQUEST['member_id'];
+$id = $_REQUEST['member_id'] ?? '';
 
 $output = array("message"=>"", "status"=>"400");
 
@@ -18,12 +18,20 @@ $result=array('particulars'=>array(),'date'=>array(),'voucher'=>array(),'credit'
 
 $sql_fetch = "SELECT * FROM suppliers WHERE id = '$id'";
 $query_fetch = $db->query($sql_fetch);
-$row_fetch = $query_fetch->fetch_assoc();
+$row_fetch = ($query_fetch) ? $query_fetch->fetch_assoc() : null;
+if (!$row_fetch) {
+	$db->close();
+	echo json_encode($output);
+	exit;
+}
 
 $supplier = $row_fetch['name'];
 $supplier_print = $row_fetch['print_name'];
 $opening = $row_fetch['opening_balance'];
-$contacts = json_decode($row_fetch['contacts'], true);
+$contacts = json_decode($row_fetch['contacts'] ?? '', true);
+if (!is_array($contacts)) {
+    $contacts = [];
+}
 $email=$contacts['email'][0];
 $mobile=$contacts['mobile'][0];
 
@@ -44,10 +52,17 @@ if($opening != 0){
 
 $sql = "SELECT * FROM purchase_invoice WHERE `supplier_name`='$supplier' AND `series` = 'PRIMARY' AND  `pi_date` BETWEEN '$start' AND '$end'  ORDER BY `pi_date` ASC";
 $query = $db->query($sql);
+if ($query) {
 while($row = $query->fetch_assoc()){
 	$count++;
 
-	$tax_details = json_decode($row['tax'], true);
+	$tax_details = json_decode($row['tax'] ?? '', true);
+
+	if (!is_array($tax_details)) {
+
+	    $tax_details = [];
+
+	}
 
     $total = $row['total'];
     $tax = $tax_details['cgst'] + $tax_details['sgst'] + $tax_details['igst'];
@@ -60,9 +75,11 @@ while($row = $query->fetch_assoc()){
     $result['details'][] = '_- '.$row['pi_no'].'_';
 
 }
+}
 
 $sql = "SELECT * FROM payments WHERE `supplier`='$supplier' AND `date` BETWEEN '$start' AND '$end' ORDER BY `date` ASC";
 $query = $db->query($sql);
+if ($query) {
 while($row = $query->fetch_assoc()){
 
     $result['particulars'][]    = '*Payment*';
@@ -73,8 +90,9 @@ while($row = $query->fetch_assoc()){
     $result['details'][] 		= '_- '.$row['mode'].' ('.$row['instrument'].')';
 
 }
+}
 
-$len = sizeof($result['date']);
+$len = is_array($result['date']) ? sizeof($result['date']) : 0;
 
 for($m=0;$m<$len-1;$m++){
 	for($n=$m+1;$n<$len;$n++){
@@ -117,7 +135,7 @@ Please find the *accounting ledger* as stated under :
 
 ';
 
-$len = sizeof($result['particulars']);
+$len = is_array($result['particulars']) ? sizeof($result['particulars']) : 0;
 for($i=0;$i<$len;$i++){
 	$count = $i+1;
 	$output['message'] .= $count.'. '.$result['particulars'][$i].' '.$result['details'][$i].'
@@ -126,11 +144,11 @@ for($i=0;$i<$len;$i++){
 ';
 
 if($result['debit'][$i] != ''){
-	$output['message'] .= '			*Rs. '.money_format('%!i', $result['debit'][$i]).'*
+	$output['message'] .= '			*Rs. '.number_format((float)($result['debit'][$i]), 2).'*
 ';
 }
 else if($result['credit'][$i] != ''){
-	$output['message'] .= '			*Rs. '.money_format('%!i', $result['credit'][$i]).'*
+	$output['message'] .= '			*Rs. '.number_format((float)($result['credit'][$i]), 2).'*
 ';
 }
 
@@ -141,10 +159,10 @@ else if($result['credit'][$i] != ''){
 }
 
 $output['message'] .= '
-Total Debit 	: *'.money_format('%!i',$debit).'*
-Total Credit 	: *'.money_format('%!i',$credit).'*
+Total Debit 	: *'.number_format((float)($debit), 2).'*
+Total Credit 	: *'.number_format((float)($credit), 2).'*
 
-Balance Due 	: *'.money_format('%!i',$total).'*
+Balance Due 	: *'.number_format((float)($total), 2).'*
 
 For any query / clarification / discrepancies, please feel free to contact
 

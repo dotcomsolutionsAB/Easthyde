@@ -3,20 +3,25 @@ session_start();
 require_once "../connect.php";
 setlocale(LC_MONETARY, 'en_IN');
 
-$start = $_SESSION['start'];
-$end = $_SESSION['end'];
+$start = $_SESSION['start'] ?? '';
+$end = $_SESSION['end'] ?? '';
 $date = date('Y-m-d',strtotime('today'));
 
 if(strtotime($end) > strtotime($date)){
 	$end = $date;
 }
-$id = $_REQUEST['member_id'];
+$id = $_REQUEST['member_id'] ?? '';
 
 $output = array("message"=>"", "status"=>"400");
 
 $sql_fetch = "SELECT * FROM product WHERE id = '$id'";
 $query_fetch = $db->query($sql_fetch);
-$row_fetch = $query_fetch->fetch_assoc();
+$row_fetch = ($query_fetch) ? $query_fetch->fetch_assoc() : null;
+if (!$row_fetch) {
+	$db->close();
+	echo json_encode($output);
+	exit;
+}
 
 //Message Creation
 $output['message'] = '*Product Details*
@@ -31,7 +36,7 @@ Item : *'.$row_fetch['description'].'*
 Part : *'.$row_fetch['name'].'*
 HSN : *'.$row_fetch['hsn'].'*
 Brand : *'.$row_fetch['group'].'*
-Price : *Rs. '.money_format('%!i',$row_fetch['rate']).'*
+Price : *Rs. '.number_format((float)($row_fetch['rate']), 2).'*
 
 ';
 

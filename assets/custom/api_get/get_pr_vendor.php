@@ -3,7 +3,7 @@
 session_start();
 require_once "../connect.php";
 
-$term = $_REQUEST["term"];
+$term = $_REQUEST["term"] ?? '';
 
 $sql = "
     (SELECT DISTINCT `name` FROM suppliers WHERE `name` LIKE '%$term%')
@@ -16,10 +16,12 @@ $query = $db->query($sql);
 
 $json = array("results"=>array());
 
+if ($query) {
 while($row = $query->fetch_assoc()){
 
-     $json["results"][] = ['id'=>$row['name'], 'text'=>strtoupper($row['name'])];
+     $json["results"][] = ['id'=>$row['name'], 'text'=>strtoupper((string)($row['name'] ?? ''))];
 
+}
 }
 
 echo json_encode($json);
