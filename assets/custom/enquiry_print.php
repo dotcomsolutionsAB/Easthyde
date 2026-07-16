@@ -133,7 +133,7 @@ class PDF_AutoPrint extends PDF_JavaScript
             else
             {
                 //Calculate character spacing in points
-                $char_space=($w-$this->cMargin*2-$str_width)/max(strlen($txt)-1,1)*$this->k;
+                $char_space=($w-$this->cMargin*2-$str_width)/max(strlen((string)$txt)-1,1)*$this->k;
                 //Set character spacing
                 $this->_out(sprintf('BT %.2F Tc ET',$char_space));
             }
@@ -178,35 +178,47 @@ class PDF_AutoPrint extends PDF_JavaScript
 
 //--------------------------------------------- Define Variables & Fetch Data from Database --------------------------------------
 
-$e_no = $_REQUEST['id'];
-$pdf_type = $_REQUEST['type'];
+$e_no = $_REQUEST['id'] ?? '';
+$pdf_type = $_REQUEST['type'] ?? '';
 
 $sql = "SELECT * FROM enquiry WHERE `enquiry_no` = '$e_no'";
 $query = $db->query($sql);
-$row = $query->fetch_assoc();
+$row = $query ? $query->fetch_assoc() : null;
+if (!$row) {
+	exit('Record not found');
+}
 
-$client = $row['client'];
-$items = json_decode($row['items'], true);
+$client = $row['client'] ?? '';
+$items = json_decode($row['items'] ?? '', true);
+if (!is_array($items)) {
+	$items = [];
+}
 
 $sql_temp = "SELECT * FROM clients WHERE name = '$client'";
 $query_temp = $db->query($sql_temp);
-$row_temp = $query_temp->fetch_assoc();
+$row_temp = $query_temp ? $query_temp->fetch_assoc() : null;
+if (!$row_temp) {
+	exit('Record not found');
+}
 
-$address = json_decode($row_temp['address'], true);
+$address = json_decode($row_temp['address'] ?? '', true);
+if (!is_array($address)) {
+	$address = [];
+}
 
-$GLOBALS['client'] = $row_temp['print_name'];
-$GLOBALS['add1'] = $address["address_1"];
-$GLOBALS['add2'] = $address["address_2"];
-$GLOBALS['city'] = $address["city"];
-$GLOBALS['pincode'] = $address["pincode"];
-$GLOBALS['state'] = $row_temp["state"];
-$GLOBALS['country'] = $row_temp["country"];
-$GLOBALS['gstin'] = $row_temp["gstin"];
+$GLOBALS['client'] = $row_temp['print_name'] ?? '';
+$GLOBALS['add1'] = $address['address_1'] ?? '';
+$GLOBALS['add2'] = $address['address_2'] ?? '';
+$GLOBALS['city'] = $address['city'] ?? '';
+$GLOBALS['pincode'] = $address['pincode'] ?? '';
+$GLOBALS['state'] = $row_temp['state'] ?? '';
+$GLOBALS['country'] = $row_temp['country'] ?? '';
+$GLOBALS['gstin'] = $row_temp['gstin'] ?? '';
 
-$GLOBALS['enquiry_no'] = $row['enquiry_no'];
-$GLOBALS['enquiry_date'] = date('d-m-Y', strtotime($row['enquiry_date']));
-$GLOBALS['cl_enquiry_no'] = $row['cl_enquiry_no'];
-$GLOBALS['mode'] = $row['mode'];
+$GLOBALS['enquiry_no'] = $row['enquiry_no'] ?? '';
+$GLOBALS['enquiry_date'] = !empty($row['enquiry_date']) ? date('d-m-Y', strtotime($row['enquiry_date'])) : '';
+$GLOBALS['cl_enquiry_no'] = $row['cl_enquiry_no'] ?? '';
+$GLOBALS['mode'] = $row['mode'] ?? '';
 
 $pdf = new PDF_AutoPrint();
 $pdf->SetAutoPageBreak(true, 35);
@@ -229,7 +241,7 @@ $pdf->Cell(25,6,'STOCK IN CO','B',1,C);
 
 $pdf->SetFont('Arial','',7);
 
-$l = sizeof($items['product']);
+$l = is_array($items['product'] ?? null) ? count($items['product']) : 0;
 
 // Printing All Items
 for($i=0;$i<$l;$i++){
@@ -239,7 +251,7 @@ for($i=0;$i<$l;$i++){
 
 	$sql_make = "SELECT * FROM product WHERE name = '$pr'";
 	$query_make = $db->query($sql_make);
-	$row_make = $query_make->fetch_assoc();
+	$row_make = $query_make ? $query_make->fetch_assoc() : null;
 
 	$temp = $items['desc'][$i];
 	$product = dotcom_wordwrap($temp,75);
@@ -250,7 +262,7 @@ for($i=0;$i<$l;$i++){
 	$desc = dotcom_wordwrap($temp,75);
 	$co_2 = count($desc);
 
-	$description_array = explode('|', $items['long_desc'][$i]);
+	$description_array = explode('|', (string)($items['long_desc'][$i] ?? ''));
 	$len = sizeof($description_array);
 
 	$limit = $co * 5 + $co_2 * 5 + $len * 3;

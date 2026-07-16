@@ -101,7 +101,7 @@ class PDF_AutoPrint extends PDF_JavaScript
             else
             {
                 //Calculate character spacing in points
-                $char_space=($w-$this->cMargin*2-$str_width)/max(strlen($txt)-1,1)*$this->k;
+                $char_space=($w-$this->cMargin*2-$str_width)/max(strlen((string)$txt)-1,1)*$this->k;
                 //Set character spacing
                 $this->_out(sprintf('BT %.2F Tc ET',$char_space));
             }
@@ -146,33 +146,45 @@ class PDF_AutoPrint extends PDF_JavaScript
 
 //--------------------------------------------- Define Variables & Fetch Data from Database --------------------------------------
 
-$so_no = $_REQUEST['id'];
-$pdf_type = $_REQUEST['type'];
+$so_no = $_REQUEST['id'] ?? '';
+$pdf_type = $_REQUEST['type'] ?? '';
 
 $sql = "SELECT * FROM sales_order WHERE `so_no` = '$so_no'";
 $query = $db->query($sql);
-$row = $query->fetch_assoc();
+$row = $query ? $query->fetch_assoc() : null;
+if (!$row) {
+	exit('Record not found');
+}
 
-$client = $row['client_name'];
-$items = json_decode($row['items'], true);
+$client = $row['client_name'] ?? '';
+$items = json_decode($row['items'] ?? '', true);
+if (!is_array($items)) {
+	$items = [];
+}
 
-$GLOBALS["client_so_no"] = $row['client_so_no'];
+$GLOBALS["client_so_no"] = $row['client_so_no'] ?? '';
 
 $sql_temp = "SELECT * FROM clients WHERE name = '$client'";
 $query_temp = $db->query($sql_temp);
-$row_temp = $query_temp->fetch_assoc();
+$row_temp = $query_temp ? $query_temp->fetch_assoc() : null;
+if (!$row_temp) {
+	exit('Record not found');
+}
 
-$address = json_decode($row_temp['address'], true);
+$address = json_decode($row_temp['address'] ?? '', true);
+if (!is_array($address)) {
+	$address = [];
+}
 
 $GLOBALS["gross_total"] = '0';
 $GLOBALS["so_no"] = $so_no;
-$GLOBALS["dt"] = date('d-m-Y', strtotime($row['so_date']));
+$GLOBALS["dt"] = !empty($row['so_date']) ? date('d-m-Y', strtotime($row['so_date'])) : '';
 
-$GLOBALS['client'] = $row_temp['print_name'];
+$GLOBALS['client'] = $row_temp['print_name'] ?? '';
 
 $flag = 1;
 
-if($row_temp["state"] == 'WEST BENGAL'){
+if(($row_temp['state'] ?? '') == 'WEST BENGAL'){
 	$flag = 0;
 }
 
@@ -228,7 +240,7 @@ $grand_total_qty = 0;
 
 $tax_details = array('hsn'=>array(), 'rate'=>array(), 'taxable'=>array(), 'cgst'=>array(), 'sgst'=>array(), 'igst'=>array(), 'total'=>array());
 
-$l = sizeof($items['product']);
+$l = is_array($items['product'] ?? null) ? count($items['product']) : 0;
 
 //Printing All Items
 for($i=0;$i<$l;$i++){
@@ -245,8 +257,8 @@ for($i=0;$i<$l;$i++){
 
 	$sql_make = "SELECT * FROM product WHERE name = '$pr'";
 	$query_make = $db->query($sql_make);
-	$row_make = $query_make->fetch_assoc();
-	$pr_group = strtoupper($row_make['group']);
+	$row_make = $query_make ? $query_make->fetch_assoc() : null;
+	$pr_group = strtoupper((string)($row_make['group'] ?? ''));
 
 	$temp = $items['desc'][$i];
 	$product = dotcom_wordwrap($temp,40);
@@ -257,12 +269,12 @@ for($i=0;$i<$l;$i++){
 	else
 		$temp = $items['product'][$i];
 
-	$temp .= ', HSN : '.$row_make['hsn'];
+	$temp .= ', HSN : '.($row_make['hsn'] ?? '');
 
 	$desc = dotcom_wordwrap($temp,40);
 	$co_2 = count($desc);
 
-	$description_array = explode('|', $items['long_desc'][$i]);
+	$description_array = explode('|', (string)($items['long_desc'][$i] ?? ''));
 	$len = sizeof($description_array);
 
 	$limit = $co * 5 + $co_2 * 5 + $len * 3;
@@ -316,16 +328,16 @@ for($i=0;$i<$l;$i++){
 	$pdf->CellFitScale(10,5,$items['quantity'][$i],'R',0,C);
 	if($items['price'][$i] > 0)
 	{
-		$pdf->CellFitScale(17,5,money_format('%!i', $items['price'][$i]),'R',0,R);
+		$pdf->CellFitScale(17,5,number_format((float)$items['price'][$i], 2),'R',0,R);
 		if($items['discount'][$i] != '')
-			$pdf->CellFitScale(10,5,money_format('%!i', $items['discount'][$i]),'R',0,C);
+			$pdf->CellFitScale(10,5,number_format((float)$items['discount'][$i], 2),'R',0,C);
 		else
-			$pdf->CellFitScale(10,5,money_format('%!i', '0'),'R',0,C);
+			$pdf->CellFitScale(10,5,number_format((float)'0', 2),'R',0,C);
 	}else{
 		$pdf->CellFitScale(17,5,'','R',0,R);
 		$pdf->CellFitScale(10,5,'','R',0,R);
 	}
-	$pdf->CellFitScale(21,5,money_format('%!i', $line_total),'',0,R);
+	$pdf->CellFitScale(21,5,number_format((float)$line_total, 2),'',0,R);
 
 	$pdf->CellFitScale(20,5,'','',0,R);
 
@@ -337,16 +349,16 @@ for($i=0;$i<$l;$i++){
 	$pdf->CellFitScale(10,5,$items['quantity'][$i],'R',0,C);
 	if($items['price'][$i] > 0)
 	{
-		$pdf->CellFitScale(17,5,money_format('%!i', $items['price'][$i]),'R',0,R);
+		$pdf->CellFitScale(17,5,number_format((float)$items['price'][$i], 2),'R',0,R);
 		if($items['discount'][$i] != '')
-			$pdf->CellFitScale(10,5,money_format('%!i', $items['discount'][$i]),'R',0,C);
+			$pdf->CellFitScale(10,5,number_format((float)$items['discount'][$i], 2),'R',0,C);
 		else
-			$pdf->CellFitScale(10,5,money_format('%!i', '0'),'R',0,C);
+			$pdf->CellFitScale(10,5,number_format((float)'0', 2),'R',0,C);
 	}else{
 		$pdf->CellFitScale(17,5,'','R',0,R);
 		$pdf->CellFitScale(10,5,'','R',0,R);
 	}
-	$pdf->CellFitScale(21,5,money_format('%!i', $line_total),'',1,R);	
+	$pdf->CellFitScale(21,5,number_format((float)$line_total, 2),'',1,R);	
 
 
 	if($co > 1){
@@ -464,16 +476,19 @@ $pdf->Cell(20,3,'','',0,C);
 $pdf->Cell(107,3,'','TR',0,C);
 $pdf->Cell(21,3,'','T',1,C);
 
-$t_tax = $items['tax'][0];
+$t_tax = $items['tax'][0] ?? 0;
 $t2_tax = $t_tax/2;
 
-$addons_array = json_decode($row['addons'], true);
+$addons_array = json_decode($row['addons'] ?? '', true);
+if (!is_array($addons_array)) {
+	$addons_array = [];
+}
 
 $pdf->Cell(70,5,'',0,0,L);
 $pdf->SetFont('Arial','I',9);
 $pdf->Cell(37,5,'Gross Total','R',0,L);
 $pdf->SetFont('Arial','',9);
-$pdf->Cell(21,5,money_format('%!i',$GLOBALS["gross_total"]),0,0,R);
+$pdf->Cell(21,5,number_format((float)$GLOBALS["gross_total"], 2),0,0,R);
 
 $pdf->Cell(20,5,'',0,0,R);
 
@@ -481,14 +496,14 @@ $pdf->Cell(70,5,'',0,0,L);
 $pdf->SetFont('Arial','I',9);
 $pdf->Cell(37,5,'Gross Total','R',0,L);
 $pdf->SetFont('Arial','',9);
-$pdf->Cell(21,5,money_format('%!i',$GLOBALS["gross_total"]),0,1,R);
+$pdf->Cell(21,5,number_format((float)$GLOBALS["gross_total"], 2),0,1,R);
 
-if($addons_array['pf']['value']!='' && $addons_array['pf']['value'] > 0){
+if(($addons_array['pf']['value'] ?? '') != '' && ($addons_array['pf']['value'] ?? 0) > 0){
 	$pdf->Cell(70,5,'',0,0,L);
 	$pdf->SetFont('Arial','I',9);
 	$pdf->Cell(37,5,'Add   : Packaging & Forwarding','R',0,L);
 	$pdf->SetFont('Arial','',9);
-	$pdf->Cell(21,5,money_format('%!i',$addons_array['pf']['value']),0,0,R);
+	$pdf->Cell(21,5,number_format((float)$addons_array['pf']['value'], 2),0,0,R);
 
 	$pdf->Cell(20,5,'',0,0,R);
 
@@ -496,7 +511,7 @@ if($addons_array['pf']['value']!='' && $addons_array['pf']['value'] > 0){
 	$pdf->SetFont('Arial','I',9);
 	$pdf->Cell(37,5,'Add   : Packaging & Forwarding','R',0,L);
 	$pdf->SetFont('Arial','',9);
-	$pdf->Cell(21,5,money_format('%!i',$addons_array['pf']['value']),0,1,R);
+	$pdf->Cell(21,5,number_format((float)$addons_array['pf']['value'], 2),0,1,R);
 
 	$hsn = '99';
 	$pos = '-1';
@@ -526,12 +541,12 @@ if($addons_array['pf']['value']!='' && $addons_array['pf']['value'] > 0){
 	}
 }
 
-if($addons_array['freight']['value']!='' && $addons_array['freight']['value'] > 0){
+if(($addons_array['freight']['value'] ?? '') != '' && ($addons_array['freight']['value'] ?? 0) > 0){
 	$pdf->Cell(70,5,'',0,0,L);
 	$pdf->SetFont('Arial','I',9);
 	$pdf->Cell(37,5,'Add   : Freight','R',0,L);
 	$pdf->SetFont('Arial','',9);
-	$pdf->Cell(21,5,money_format('%!i',$addons_array['freight']['value']),0,0,R);
+	$pdf->Cell(21,5,number_format((float)$addons_array['freight']['value'], 2),0,0,R);
 
 	$pdf->Cell(20,5,'',0,0,R);
 
@@ -539,7 +554,7 @@ if($addons_array['freight']['value']!='' && $addons_array['freight']['value'] > 
 	$pdf->SetFont('Arial','I',9);
 	$pdf->Cell(37,5,'Add   : Freight','R',0,L);
 	$pdf->SetFont('Arial','',9);
-	$pdf->Cell(21,5,money_format('%!i',$addons_array['freight']['value']),0,1,R);
+	$pdf->Cell(21,5,number_format((float)$addons_array['freight']['value'], 2),0,1,R);
 
 	$hsn = '9968';
 	$pos = '-1';
@@ -585,7 +600,7 @@ if($flag == '0'){
 	$pdf->Cell(70,5,'',0,0,L);
 	$pdf->Cell(37,5,'Add   : CGST','R',0,L);
 	$pdf->SetFont('Arial','',9);
-	$pdf->Cell(21,5,money_format('%!i', $cgst),0,0,R);
+	$pdf->Cell(21,5,number_format((float)$cgst, 2),0,0,R);
 
 	$pdf->Cell(20,5,'',0,0,R);
 
@@ -593,13 +608,13 @@ if($flag == '0'){
 	$pdf->Cell(70,5,'',0,0,L);
 	$pdf->Cell(37,5,'Add   : CGST','R',0,L);
 	$pdf->SetFont('Arial','',9);
-	$pdf->Cell(21,5,money_format('%!i', $cgst),0,1,R);
+	$pdf->Cell(21,5,number_format((float)$cgst, 2),0,1,R);
 
 	$pdf->Cell(70,5,'',0,0,L);
 	$pdf->SetFont('Arial','I',9);
 	$pdf->Cell(37,5,'Add   : SGST','R',0,L);
 	$pdf->SetFont('Arial','',9);
-	$pdf->Cell(21,5,money_format('%!i', $sgst),0,0,R);
+	$pdf->Cell(21,5,number_format((float)$sgst, 2),0,0,R);
 
 	$pdf->Cell(20,5,'',0,0,R);
 
@@ -607,13 +622,13 @@ if($flag == '0'){
 	$pdf->SetFont('Arial','I',9);
 	$pdf->Cell(37,5,'Add   : SGST','R',0,L);
 	$pdf->SetFont('Arial','',9);
-	$pdf->Cell(21,5,money_format('%!i', $sgst),0,1,R);
+	$pdf->Cell(21,5,number_format((float)$sgst, 2),0,1,R);
 }else{
 	$pdf->SetFont('Arial','I',9);
 	$pdf->Cell(70,5,'',0,0,L);
 	$pdf->Cell(37,5,'Add   : IGST','R',0,L);
 	$pdf->SetFont('Arial','',9);
-	$pdf->Cell(21,5,money_format('%!i', $igst),0,0,R);
+	$pdf->Cell(21,5,number_format((float)$igst, 2),0,0,R);
 
 	$pdf->Cell(20,5,'',0,0,R);
 
@@ -621,12 +636,12 @@ if($flag == '0'){
 	$pdf->Cell(70,5,'',0,0,L);
 	$pdf->Cell(37,5,'Add   : IGST','R',0,L);
 	$pdf->SetFont('Arial','',9);
-	$pdf->Cell(21,5,money_format('%!i', $igst),0,1,R);
+	$pdf->Cell(21,5,number_format((float)$igst, 2),0,1,R);
 
 }
 
 
-if($addons_array['roundoff']!='0' && $addons_array['roundoff'] != 0)
+if(($addons_array['roundoff'] ?? '') != '0' && ($addons_array['roundoff'] ?? 0) != 0)
 {
 	if($addons_array['roundoff'] < 0){
 		$roundoff_temp = $addons_array['roundoff'] * -1;
@@ -634,7 +649,7 @@ if($addons_array['roundoff']!='0' && $addons_array['roundoff'] != 0)
 		$pdf->SetFont('Arial','I',9);
 		$pdf->Cell(37,5,'Less : Rounded Off (-)','R',0,L);
 		$pdf->SetFont('Arial','',9);
-		$pdf->Cell(21,5,money_format('%!i',$roundoff_temp),0,0,R);
+		$pdf->Cell(21,5,number_format((float)$roundoff_temp, 2),0,0,R);
 
 		$pdf->Cell(20,5,'',0,0,R);
 
@@ -642,13 +657,13 @@ if($addons_array['roundoff']!='0' && $addons_array['roundoff'] != 0)
 		$pdf->SetFont('Arial','I',9);
 		$pdf->Cell(37,5,'Less : Rounded Off (-)','R',0,L);
 		$pdf->SetFont('Arial','',9);
-		$pdf->Cell(21,5,money_format('%!i',$roundoff_temp),0,1,R);
+		$pdf->Cell(21,5,number_format((float)$roundoff_temp, 2),0,1,R);
 	}else{
 		$pdf->Cell(70,5,'',0,0,L);
 		$pdf->SetFont('Arial','I',9);
 		$pdf->Cell(37,5,'Add : Rounded Off (+)','R',0,L);
 		$pdf->SetFont('Arial','',9);
-		$pdf->Cell(21,5,money_format('%!i',$addons_array['roundoff']),0,0,R);
+		$pdf->Cell(21,5,number_format((float)$addons_array['roundoff'], 2),0,0,R);
 
 		$pdf->Cell(20,5,'',0,0,R);
 
@@ -656,7 +671,7 @@ if($addons_array['roundoff']!='0' && $addons_array['roundoff'] != 0)
 		$pdf->SetFont('Arial','I',9);
 		$pdf->Cell(37,5,'Add : Rounded Off (+)','R',0,L);
 		$pdf->SetFont('Arial','',9);
-		$pdf->Cell(21,5,money_format('%!i',$addons_array['roundoff']),0,1,R);
+		$pdf->Cell(21,5,number_format((float)$addons_array['roundoff'], 2),0,1,R);
 	}
 }
 
@@ -676,12 +691,12 @@ $pdf->Cell(10,7,$grand_total_qty,'B',0,C);
 $pdf->Cell(27,7,'GRAND TOTAL',0,0,R);
 
 if($flag == '0'){
-	$total_amount = $GLOBALS["gross_total"] + $addons_array['pf']['value'] + $addons_array['freight']['value'] + $sgst + $cgst + $addons_array['roundoff'];
+	$total_amount = $GLOBALS["gross_total"] + ($addons_array['pf']['value'] ?? 0) + ($addons_array['freight']['value'] ?? 0) + $sgst + $cgst + ($addons_array['roundoff'] ?? 0);
 }else{
-	$total_amount = $GLOBALS["gross_total"] + $addons_array['pf']['value'] + $addons_array['freight']['value'] + $igst + $addons_array['roundoff'];
+	$total_amount = $GLOBALS["gross_total"] + ($addons_array['pf']['value'] ?? 0) + ($addons_array['freight']['value'] ?? 0) + $igst + ($addons_array['roundoff'] ?? 0);
 }
 
-$pdf->Cell(21,7,money_format('%!i', $total_amount),'LB',0,R);
+$pdf->Cell(21,7,number_format((float)$total_amount, 2),'LB',0,R);
 
 $pdf->Cell(20,7,'','',0,R);
 
@@ -690,12 +705,12 @@ $pdf->Cell(10,7,$grand_total_qty,'B',0,C);
 $pdf->Cell(27,7,'GRAND TOTAL',0,0,R);
 
 if($flag == '0'){
-	$total_amount = $GLOBALS["gross_total"] + $addons_array['pf']['value'] + $addons_array['freight']['value'] + $sgst + $cgst + $addons_array['roundoff'];
+	$total_amount = $GLOBALS["gross_total"] + ($addons_array['pf']['value'] ?? 0) + ($addons_array['freight']['value'] ?? 0) + $sgst + $cgst + ($addons_array['roundoff'] ?? 0);
 }else{
-	$total_amount = $GLOBALS["gross_total"] + $addons_array['pf']['value'] + $addons_array['freight']['value'] + $igst + $addons_array['roundoff'];
+	$total_amount = $GLOBALS["gross_total"] + ($addons_array['pf']['value'] ?? 0) + ($addons_array['freight']['value'] ?? 0) + $igst + ($addons_array['roundoff'] ?? 0);
 }
 
-$pdf->Cell(21,7,money_format('%!i', $total_amount),'LB',1,R);
+$pdf->Cell(21,7,number_format((float)$total_amount, 2),'LB',1,R);
 
 $pdf->SetFont('Arial','',8);
 

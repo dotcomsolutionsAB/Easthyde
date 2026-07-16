@@ -99,7 +99,7 @@ class PDF_AutoPrint extends PDF_JavaScript
             else
             {
                 //Calculate character spacing in points
-                $char_space=($w-$this->cMargin*2-$str_width)/max(strlen($txt)-1,1)*$this->k;
+                $char_space=($w-$this->cMargin*2-$str_width)/max(strlen((string)$txt)-1,1)*$this->k;
                 //Set character spacing
                 $this->_out(sprintf('BT %.2F Tc ET',$char_space));
             }
@@ -145,8 +145,8 @@ class PDF_AutoPrint extends PDF_JavaScript
 //-------------------------------------- Define Variables & Fetch Data from Database -----------------------------------
 session_start();
 
-$start = $_SESSION['start'];
-$end = $_SESSION['end'];
+$start = $_SESSION['start'] ?? '';
+$end = $_SESSION['end'] ?? '';
 
 $start_month = date('m', strtotime($start));
 if($start_month > 3 && $start_month <= 12)
@@ -167,40 +167,53 @@ if(strtotime($end) > strtotime($date)){
 	$end = $date;
 }
 
-$id = $_REQUEST['id'];
-$pdf_type = $_REQUEST['type'];
+$id = $_REQUEST['id'] ?? '';
+$pdf_type = $_REQUEST['type'] ?? '';
 
 $result=array('particulars'=>array(),'date'=>array(),'voucher'=>array(),'credit'=>array(),'debit'=>array());
 
 $sql_fetch = "SELECT * FROM clients WHERE id = '$id'";
 $query_fetch = $db->query($sql_fetch);
-$row_fetch = $query_fetch->fetch_assoc();
+$row_fetch = $query_fetch ? $query_fetch->fetch_assoc() : null;
+if (!$row_fetch) {
+	exit('Record not found');
+}
 
-$client = $row_fetch['name'];
-$client_email = $row_fetch['email'];
+$client = $row_fetch['name'] ?? '';
+$client_email = $row_fetch['email'] ?? '';
 $client_email = 'kburhanuddin12@gmail.com';
 
-$new_opening_balance = json_decode($row_fetch['new_opening_balance'],true);
-$len = sizeof($new_opening_balance['year']);
+$opening = 0;
+$new_opening_balance = json_decode($row_fetch['new_opening_balance'] ?? '', true);
+if (!is_array($new_opening_balance)) {
+	$new_opening_balance = [];
+}
+$len = is_array($new_opening_balance['year'] ?? null) ? count($new_opening_balance['year']) : 0;
 
 for($i=0;$i<$len;$i++)
 {
-    if($new_opening_balance['year'][$i] == $year)
+    if(($new_opening_balance['year'][$i] ?? '') == $year)
     {
-        $opening = $new_opening_balance['balance'][$i];
+        $opening = $new_opening_balance['balance'][$i] ?? 0;
     }
 }
 
-$contacts = json_decode($row_fetch['contacts'], true);
-$email=$contacts['email'][0];
-$mobile=$contacts['mobile'][0];
-$state = $row_fetch['state'];
+$contacts = json_decode($row_fetch['contacts'] ?? '', true);
+if (!is_array($contacts)) {
+	$contacts = [];
+}
+$email = $contacts['email'][0] ?? '';
+$mobile = $contacts['mobile'][0] ?? '';
+$state = $row_fetch['state'] ?? '';
 
-$address = json_decode($row_fetch['address'], true);
-$add_1=$address['address_1'];
-$add_2=$address['address_2'];
-$city=$address['city'];
-$pincode=$address['pincode'];
+$address = json_decode($row_fetch['address'] ?? '', true);
+if (!is_array($address)) {
+	$address = [];
+}
+$add_1 = $address['address_1'] ?? '';
+$add_2 = $address['address_2'] ?? '';
+$city = $address['city'] ?? '';
+$pincode = $address['pincode'] ?? '';
 
 if($opening != 0 && $opening < 0){
     $opening = abs($opening);
@@ -222,13 +235,17 @@ else if($opening != 0 && $opening > 0)
 
 $sql = "SELECT * FROM sales_invoice WHERE `client_name`='$client' AND `si_date` BETWEEN '$start' AND '$end' AND `series` = 'PRIMARY' AND `cancelled` = 0  ORDER BY `si_date` ASC";
 $query = $db->query($sql);
+if ($query) {
 while($row = $query->fetch_assoc()){
     $count++;
 
-    $tax_details = json_decode($row['tax'], true);
+    $tax_details = json_decode($row['tax'] ?? '', true);
+    if (!is_array($tax_details)) {
+        $tax_details = [];
+    }
 
     $total = $row['total'];
-    $tax = $tax_details['cgst'] + $tax_details['sgst'] + $tax_details['igst'];
+    $tax = ($tax_details['cgst'] ?? 0) + ($tax_details['sgst'] ?? 0) + ($tax_details['igst'] ?? 0);
 
     $result['particulars'][] = $row['si_no'];
     $result['date'][] = $row['si_date'];
@@ -237,16 +254,21 @@ while($row = $query->fetch_assoc()){
     $result['debit'][] = $total;
 
 }
+}
 
 $sql = "SELECT * FROM credit_note WHERE `client`='$client' AND `cn_date` BETWEEN '$start' AND '$end' ORDER BY `cn_date` ASC";
 $query = $db->query($sql);
+if ($query) {
 while($row = $query->fetch_assoc()){
     $count++;
 
-    $tax_details = json_decode($row['tax'], true);
+    $tax_details = json_decode($row['tax'] ?? '', true);
+    if (!is_array($tax_details)) {
+        $tax_details = [];
+    }
 
     $total = $row['total'];
-    $tax = $tax_details['cgst'] + $tax_details['sgst'] + $tax_details['igst'];
+    $tax = ($tax_details['cgst'] ?? 0) + ($tax_details['sgst'] ?? 0) + ($tax_details['igst'] ?? 0);
 
     $result['particulars'][] = '<a target="_blank" href="/assets/custom/credit_note_print.php?id='.$row['cn_no'].'&type=print">'.$row['cn_no'].'</a>';
     $result['date'][] = $row['cn_date'];
@@ -255,30 +277,37 @@ while($row = $query->fetch_assoc()){
     $result['debit'][] = '';
 
 }
+}
 
 $sql = "SELECT * FROM receipts WHERE `client`='$client' AND `date` BETWEEN '$start' AND '$end' ORDER BY `date` ASC";
 $query = $db->query($sql);
+if ($query) {
 while($row = $query->fetch_assoc()){
-    $result['particulars'][]    = 'Payment - '.$row['mode'].' ('.$row['instrument'].')';
+    $result['particulars'][]    = 'Payment - '.htmlspecialchars((string)($row['mode'] ?? ''), ENT_QUOTES, 'UTF-8').' ('.htmlspecialchars((string)($row['instrument'] ?? ''), ENT_QUOTES, 'UTF-8').')';
     $result['date'][]           = $row['date'];
     $result['voucher'][]        = 'Receipt';
     $result['credit'][]         = $row['amount'];
     $result['debit'][]          = '';
 
 }
+}
 
 $sql = "SELECT * FROM `journal` where `items` LIKE '%$client%' AND `date` BETWEEN '$start' AND '$end' ORDER BY `date` ASC";
 $query = $db->query($sql);
+if ($query) {
 while($row = $query->fetch_assoc()){
 
-    $items = json_decode($row['items'], true);
-    $len = sizeof($items);
+    $items = json_decode($row['items'] ?? '', true);
+    if (!is_array($items)) {
+        $items = [];
+    }
+    $len = count($items);
 
     for($i=0;$i<$len;$i++){
-        $master = $items[$i]['master'];
+        $master = $items[$i]['master'] ?? '';
         if($master == $client)
         {
-            $result['particulars'][]    = $items[1]['master'];
+            $result['particulars'][]    = $items[1]['master'] ?? '';
             $result['date'][]           = $row['date'];
             $result['voucher'][]        = 'Journal';
             $result['credit'][]         = $items[$i]['credit'];
@@ -286,6 +315,7 @@ while($row = $query->fetch_assoc()){
         }
     }
 
+}
 }
 
 $len = sizeof($result['date']);
@@ -317,8 +347,8 @@ for($m=0;$m<$len-1;$m++){
 }
 
 $GLOBALS["client"] 	= $client;
-$GLOBALS["start"] 	= date('d-m-Y', strtotime($start));
-$GLOBALS["end"] 	= date('d-m-Y', strtotime($end));
+$GLOBALS["start"] 	= !empty($start) ? date('d-m-Y', strtotime($start)) : '';
+$GLOBALS["end"] 	= !empty($end) ? date('d-m-Y', strtotime($end)) : '';
 $GLOBALS["add_1"]   = $add_1;
 $GLOBALS["add_2"]   = $add_2;
 $GLOBALS["city"]    = $city;
@@ -355,11 +385,11 @@ $credit=0;
 $len = sizeof($result['particulars']);
 for($i=0;$i<$len;$i++){ 
     $pdf->SetFont('Arial','',9);
-    $pdf->Cell(30,6,date('d-m-Y',strtotime($result['date'][$i])),'',0,C);
+    $pdf->Cell(30,6,!empty($result['date'][$i]) ? date('d-m-Y',strtotime($result['date'][$i])) : '','',0,C);
     $pdf->Cell(80,6,$result['particulars'][$i],'',0,L);
     $pdf->Cell(20,6,$result['voucher'][$i],'',0,C);
-    $pdf->Cell(30,6,money_format('%!i', $result['debit'][$i]),'',0,C);
-    $pdf->Cell(30,6,money_format('%!i', $result['credit'][$i]),'',1,C);
+    $pdf->Cell(30,6,number_format((float)$result['debit'][$i], 2),'',0,C);
+    $pdf->Cell(30,6,number_format((float)$result['credit'][$i], 2),'',1,C);
 
     $total=$total+$result['credit'][$i]-$result['debit'][$i];
     $debit=$debit+$result['debit'][$i];
@@ -369,8 +399,8 @@ $pdf->SetFont('Arial','',9);
 $pdf->Cell(30,6,'','',0,C);
 $pdf->Cell(80,6,'','',0,R);
 $pdf->Cell(20,6,'','',0,C);
-$pdf->Cell(30,6,money_format('%!i',$debit),'T',0,C);
-$pdf->Cell(30,6,money_format('%!i',$credit),'T',1,C);
+$pdf->Cell(30,6,number_format((float)$debit, 2),'T',0,C);
+$pdf->Cell(30,6,number_format((float)$credit, 2),'T',1,C);
 
 $c_credit = $credit;
 $d_debit = $debit;
@@ -380,7 +410,7 @@ if($total > 0){
     $pdf->Cell(30,6,'','',0,C);
     $pdf->Cell(80,6,'Closing Balance','',0,R);
     $pdf->Cell(20,6,'','',0,C);
-    $pdf->Cell(30,6,money_format('%!i', $total),'',0,C);
+    $pdf->Cell(30,6,number_format((float)$total, 2),'',0,C);
     $pdf->Cell(30,6,'','',1,C);
     $d_debit += $total;
 }else if ($total < 0){
@@ -390,7 +420,7 @@ if($total > 0){
     $pdf->Cell(80,6,'Closing Balance','',0,R);
     $pdf->Cell(20,6,'','',0,C);
     $pdf->Cell(30,6,'','',0,C);
-    $pdf->Cell(30,6,money_format('%!i', $total),'',1,C);
+    $pdf->Cell(30,6,number_format((float)$total, 2),'',1,C);
     $c_credit += $total;
 }else{
     $pdf->Cell(128,1,'','',1,C);
@@ -400,15 +430,18 @@ $pdf->SetFont('Arial','B',9);
 $pdf->Cell(30,6,'','',0,C);
 $pdf->Cell(80,6,'','',0,R);
 $pdf->Cell(20,6,'','',0,C);
-$pdf->Cell(30,6,money_format('%!i',$d_debit),'TB',0,C);
-$pdf->Cell(30,6,money_format('%!i',$c_credit),'TB',1,C);
+$pdf->Cell(30,6,number_format((float)$d_debit, 2),'TB',0,C);
+$pdf->Cell(30,6,number_format((float)$c_credit, 2),'TB',1,C);
 
 $name = $client.'_'.str_replace('-','',$end).".pdf";
 
 
     $sql_website = "SELECT * FROM email_settings";
     $query_website = $db->query($sql_website);
-    $row_website = $query_website->fetch_assoc();
+    $row_website = $query_website ? $query_website->fetch_assoc() : null;
+    if (!$row_website) {
+        exit('Record not found');
+    }
 
     $sending_host = $row_website['sending_host'];
     $sending_email = $row_website['sending_email'];
@@ -418,18 +451,18 @@ $name = $client.'_'.str_replace('-','',$end).".pdf";
 
     $attachment= $pdf->output($rname, 'S');
 
-    $email_arr = trim($_REQUEST['cl_em_email']);
+    $email_arr = trim($_REQUEST['cl_em_email'] ?? '');
     $email_arr = str_replace(" ","",$email_arr);
 
     $email = explode(',', $email_arr);
     $len = sizeof($email);
-    $cc = explode(',', $_REQUEST['cl_em_email_cc']);
+    $cc = explode(',', $_REQUEST['cl_em_email_cc'] ?? '');
     $len_cc = sizeof($cc);
-    $bcc = explode(',', $_REQUEST['cl_em_email_bcc']);
+    $bcc = explode(',', $_REQUEST['cl_em_email_bcc'] ?? '');
     $len_bcc = sizeof($bcc);
 
-    $subject = $_REQUEST['cl_em_subject'];
-    $message = $_REQUEST['cl_em_message'];
+    $subject = $_REQUEST['cl_em_subject'] ?? '';
+    $message = $_REQUEST['cl_em_message'] ?? '';
 
     $validator = array('success' => false, 'message' => 'Message could not be sent. Mailer Error: {$mail->ErrorInfo}');
 

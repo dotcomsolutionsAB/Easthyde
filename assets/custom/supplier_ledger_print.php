@@ -99,7 +99,7 @@ class PDF_AutoPrint extends PDF_JavaScript
             else
             {
                 //Calculate character spacing in points
-                $char_space=($w-$this->cMargin*2-$str_width)/max(strlen($txt)-1,1)*$this->k;
+                $char_space=($w-$this->cMargin*2-$str_width)/max(strlen((string)$txt)-1,1)*$this->k;
                 //Set character spacing
                 $this->_out(sprintf('BT %.2F Tc ET',$char_space));
             }
@@ -145,8 +145,8 @@ class PDF_AutoPrint extends PDF_JavaScript
 //--------------------------------------------- Define Variables & Fetch Data from Database --------------------------------------
 session_start();
 
-$start = $_SESSION['start'];
-$end = $_SESSION['end'];
+$start = $_SESSION['start'] ?? '';
+$end = $_SESSION['end'] ?? '';
 
 $start_year = date('Y', strtotime($start));
 $end_year = date('Y', strtotime($end));
@@ -159,40 +159,53 @@ if(strtotime($end) > strtotime($date)){
 	$end = $date;
 }
 
-$id = $_REQUEST['id'];
-$pdf_type = $_REQUEST['type'];
+$id = $_REQUEST['id'] ?? '';
+$pdf_type = $_REQUEST['type'] ?? '';
 
 $result=array('particulars'=>array(),'date'=>array(),'voucher'=>array(),'credit'=>array(),'debit'=>array());
 
 
 $sql_fetch = "SELECT * FROM suppliers WHERE id = '$id'";
 $query_fetch = $db->query($sql_fetch);
-$row_fetch = $query_fetch->fetch_assoc();
+$row_fetch = $query_fetch ? $query_fetch->fetch_assoc() : null;
+if (!$row_fetch) {
+	exit('Record not found');
+}
 
-$supplier = $row_fetch['name'];
-$supplier_email = $row_fetch['email'];
+$supplier = $row_fetch['name'] ?? '';
+$supplier_email = $row_fetch['email'] ?? '';
 
-$new_opening_balance = json_decode($row_fetch['new_opening_balance'],true);
-$len = sizeof($new_opening_balance['year']);
+$opening = 0;
+$new_opening_balance = json_decode($row_fetch['new_opening_balance'] ?? '', true);
+if (!is_array($new_opening_balance)) {
+	$new_opening_balance = [];
+}
+$len = is_array($new_opening_balance['year'] ?? null) ? count($new_opening_balance['year']) : 0;
 
 for($i=0;$i<$len;$i++)
 {
-    if($new_opening_balance['year'][$i] == $year)
+    if(($new_opening_balance['year'][$i] ?? '') == $year)
     {
-        $opening = $new_opening_balance['balance'][$i];
+        $opening = $new_opening_balance['balance'][$i] ?? 0;
     }
 }
 
-$contacts = json_decode($row_fetch['contacts'], true);
-$email=$contacts['email'][0];
-$mobile=$contacts['mobile'][0];
-$state = $row_fetch['state'];
+$contacts = json_decode($row_fetch['contacts'] ?? '', true);
+if (!is_array($contacts)) {
+	$contacts = [];
+}
+$email = $contacts['email'][0] ?? '';
+$mobile = $contacts['mobile'][0] ?? '';
+$state = $row_fetch['state'] ?? '';
 
-$address = json_decode($row_fetch['address'], true);
-$add_1=$address['address_1'];
-$add_2=$address['address_2'];
-$city=$address['city'];
-$pincode=$address['pincode'];
+$address = json_decode($row_fetch['address'] ?? '', true);
+if (!is_array($address)) {
+	$address = [];
+}
+$add_1 = $address['address_1'] ?? '';
+$add_2 = $address['address_2'] ?? '';
+$city = $address['city'] ?? '';
+$pincode = $address['pincode'] ?? '';
 
 $total=0;
 $debit=0;
@@ -211,13 +224,20 @@ if($opening != 0){
 $sql = "SELECT * FROM purchase_invoice WHERE `supplier_name`='$supplier' AND `pi_date` BETWEEN '$start' AND '$end' ORDER BY `pi_date` ASC";
 $query = $db->query($sql);
 
+if ($query) {
 while ($row = $query->fetch_assoc()) {
     $count++;
-    $tax_details = json_decode($row['tax'], true);
-    $items_details = json_decode($row['items'], true);
+    $tax_details = json_decode($row['tax'] ?? '', true);
+    if (!is_array($tax_details)) {
+        $tax_details = [];
+    }
+    $items_details = json_decode($row['items'] ?? '', true);
+    if (!is_array($items_details)) {
+        $items_details = [];
+    }
 
     $total = $row['total'];
-    $tax = $tax_details['cgst'] + $tax_details['sgst'] + $tax_details['igst'];
+    $tax = ($tax_details['cgst'] ?? 0) + ($tax_details['sgst'] ?? 0) + ($tax_details['igst'] ?? 0);
     
     
 
@@ -229,10 +249,10 @@ while ($row = $query->fetch_assoc()) {
     $result['debit'][] = '';
 
     // // Now iterate over each item to add item details separately
-    $item_names = $items_details['product'];
-    $item_prices = $items_details['price'];
-    $item_quantities = $items_details['quantity'];
-    $item_discounts = $items_details['discount'];
+    $item_names = $items_details['product'] ?? [];
+    $item_prices = $items_details['price'] ?? [];
+    $item_quantities = $items_details['quantity'] ?? [];
+    $item_discounts = $items_details['discount'] ?? [];
 
     for ($i = 0; $i < count($item_names); $i++) {
         $name = $item_names[$i];
@@ -251,27 +271,32 @@ while ($row = $query->fetch_assoc()) {
         $result['debit'][] = '';
     }
 }
+}
 
 
 
 $sql = "SELECT * FROM payments WHERE `supplier` = '$supplier' AND `date` BETWEEN '$start' AND '$end' ORDER BY `date` ASC";
 $query = $db->query($sql);
 
+if ($query) {
 while ($row = $query->fetch_assoc()) {
     // Decode the JSON stored in 'purchase_invoice'
-    $purchase_invoice = json_decode($row['purchase_invoice'], true);
+    $purchase_invoice = json_decode($row['purchase_invoice'] ?? '', true);
+    if (!is_array($purchase_invoice)) {
+        $purchase_invoice = [];
+    }
 
     // Check if 'pi_no' exists and is an array. If so, concatenate all elements with commas.
     $purchase_invoice_no = isset($purchase_invoice['pi_no']) ? implode(', ', $purchase_invoice['pi_no']) : 'N/A';
     
     // Prepare the result data
-    $result['particulars'][] = 'Payment - ' . $row['mode'] . ' (' . $row['instrument'] . ') - PI #: ' . $purchase_invoice_no;
+    $result['particulars'][] = 'Payment - ' . htmlspecialchars((string)($row['mode'] ?? ''), ENT_QUOTES, 'UTF-8') . ' (' . htmlspecialchars((string)($row['instrument'] ?? ''), ENT_QUOTES, 'UTF-8') . ') - PI #: ' . $purchase_invoice_no;
     $result['date'][]        = $row['date'];
     $result['voucher'][]     = 'Payment';
     $result['credit'][]      = '0';
     $result['debit'][]       = $row['amount'];
 }
-
+}
 
 
 
@@ -304,8 +329,8 @@ for($m=0;$m<$len-1;$m++){
 }
 
 $GLOBALS["supplier"] 	= $supplier;
-$GLOBALS["start"] 	= date('d-m-Y', strtotime($start));
-$GLOBALS["end"] 	= date('d-m-Y', strtotime($end));
+$GLOBALS["start"] 	= !empty($start) ? date('d-m-Y', strtotime($start)) : '';
+$GLOBALS["end"] 	= !empty($end) ? date('d-m-Y', strtotime($end)) : '';
 $GLOBALS["add_1"]   = $add_1;
 $GLOBALS["add_2"]   = $add_2;
 $GLOBALS["city"]    = $city;
@@ -348,11 +373,11 @@ for($i=0;$i<$len;$i++){
         // Set font to regular for other details
         $pdf->SetFont('Arial', 'B', 10);
     }
-    $pdf->Cell(30,6,date('d-m-Y',strtotime($result['date'][$i])),'',0,C);
+    $pdf->Cell(30,6,!empty($result['date'][$i]) ? date('d-m-Y',strtotime($result['date'][$i])) : '','',0,C);
     $pdf->CellFitScale(80,6,$result['particulars'][$i],'',0,L);
     $pdf->Cell(20,6,$result['voucher'][$i],'',0,L);
-    $pdf->Cell(30,6,money_format('%!i', $result['debit'][$i]),'',0,C);
-    $pdf->Cell(30,6,money_format('%!i', $result['credit'][$i]),'',1,C);
+    $pdf->Cell(30,6,number_format((float)$result['debit'][$i], 2),'',0,C);
+    $pdf->Cell(30,6,number_format((float)$result['credit'][$i], 2),'',1,C);
 
     $total=$total+$result['credit'][$i]-$result['debit'][$i];
     $debit=$debit+$result['debit'][$i];
@@ -362,8 +387,8 @@ $pdf->SetFont('Arial','',9);
 $pdf->Cell(30,6,'','',0,C);
 $pdf->Cell(80,6,'','',0,R);
 $pdf->Cell(20,6,'','',0,C);
-$pdf->Cell(30,6,money_format('%!i',$debit),'T',0,C);
-$pdf->Cell(30,6,money_format('%!i',$credit),'T',1,C);
+$pdf->Cell(30,6,number_format((float)$debit, 2),'T',0,C);
+$pdf->Cell(30,6,number_format((float)$credit, 2),'T',1,C);
 
 $c_credit = $credit;
 $d_debit = $debit;
@@ -373,7 +398,7 @@ if($total > 0){
     $pdf->Cell(30,6,'','',0,C);
     $pdf->Cell(80,6,'Closing Balance','',0,R);
     $pdf->Cell(20,6,'','',0,C);
-    $pdf->Cell(30,6,money_format('%!i', $total),'',0,C);
+    $pdf->Cell(30,6,number_format((float)$total, 2),'',0,C);
     $pdf->Cell(30,6,'','',1,C);
     $d_debit += $total;
 }else if ($total < 0){
@@ -383,7 +408,7 @@ if($total > 0){
     $pdf->Cell(80,6,'Closing Balance','',0,R);
     $pdf->Cell(20,6,'','',0,C);
     $pdf->Cell(30,6,'','',0,C);
-    $pdf->Cell(30,6,money_format('%!i', $total),'',1,C);
+    $pdf->Cell(30,6,number_format((float)$total, 2),'',1,C);
     $c_credit += $total;
 }else{
     $pdf->Cell(128,1,'','',1,C);
@@ -393,8 +418,8 @@ $pdf->SetFont('Arial','B',9);
 $pdf->Cell(30,6,'','',0,C);
 $pdf->Cell(80,6,'','',0,R);
 $pdf->Cell(20,6,'','',0,C);
-$pdf->Cell(30,6,money_format('%!i',$d_debit),'TB',0,C);
-$pdf->Cell(30,6,money_format('%!i',$c_credit),'TB',1,C);
+$pdf->Cell(30,6,number_format((float)$d_debit, 2),'TB',0,C);
+$pdf->Cell(30,6,number_format((float)$c_credit, 2),'TB',1,C);
 
 $name = $supplier.'_'.str_replace('-','',$end).".pdf";
 
@@ -403,7 +428,10 @@ if($pdf_type == ''){
 }else if ($pdf_type == 'email'){
     $sql_website = "SELECT * FROM email_settings";
     $query_website = $db->query($sql_website);
-    $row_website = $query_website->fetch_assoc();
+    $row_website = $query_website ? $query_website->fetch_assoc() : null;
+    if (!$row_website) {
+        exit('Record not found');
+    }
 
     $sending_host = $row_website['sending_host'];
     $sending_email = $row_website['sending_email'];

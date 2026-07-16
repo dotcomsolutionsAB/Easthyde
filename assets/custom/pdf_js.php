@@ -1,13 +1,21 @@
 <?php
 require("../plugins/global/fpdf/fpdf.php");
 
+// PHP 8+: bare FPDF align/border tokens (C, L, R, B, …) are undefined constants
+foreach (['L', 'C', 'R', 'J', 'T', 'B'] as $__fpdf_const) {
+	if (!defined($__fpdf_const)) {
+		define($__fpdf_const, $__fpdf_const);
+	}
+}
+
 function dotcom_wordwrap($text, $limit){
+    $text = (string)($text ?? '');
     $items=explode(" ",$text);
     $length=sizeof($items);
     $chara=0; $j=0; $new=""; $line=array();
 
     for($i=0;$i<$length;$i++){
-        $chara=$chara+strlen($items[$i])+1;
+        $chara=$chara+strlen((string)$items[$i])+1;
         if($chara>$limit){
             $line[$j]=$new;
             $j++;
@@ -24,9 +32,10 @@ function dotcom_wordwrap($text, $limit){
 }
 
 function convertToIndianCurrency($number) {
+    $number = (float)($number ?? 0);
     $no = round($number);
     $decimal = round($number - ($no = floor($number)), 2) * 100;    
-    $digits_length = strlen($no);    
+    $digits_length = strlen((string)$no);    
     $i = 0;
     $str = array();
     $words = array(
@@ -83,8 +92,13 @@ class PDF_JavaScript extends FPDF {
     protected $n_js;
 
     function IncludeJS($script, $isUTF8=false) {
-        if(!$isUTF8)
-            $script=utf8_encode($script);
+        $script = (string)($script ?? '');
+        if(!$isUTF8) {
+            // utf8_encode() removed in PHP 8.4
+            if (function_exists('mb_convert_encoding')) {
+                $script = mb_convert_encoding($script, 'UTF-8', 'ISO-8859-1');
+            }
+        }
         $this->javascript=$script;
     }
 

@@ -242,40 +242,51 @@ class PDF_AutoPrint extends PDF_JavaScript
 
 //--------------------------------------------- Define Variables & Fetch Data from Database --------------------------------------
 
-$si_no = $_REQUEST['id'];
-$pdf_type = $_REQUEST['type'];
+$si_no = $_REQUEST['id'] ?? '';
+$pdf_type = $_REQUEST['type'] ?? '';
 
 $sql = "SELECT * FROM sales_invoice WHERE `si_no` = '$si_no'";
 $query = $db->query($sql);
-$row = $query->fetch_assoc();
+if (!$query || !($row = $query->fetch_assoc())) {
+	die('Record not found');
+}
 
-$client = $row['client_name'];
-$items = json_decode($row['items'], true);
+$client = $row['client_name'] ?? '';
+$items = json_decode($row['items'] ?? '', true);
+if (!is_array($items)) { $items = []; }
 
 $sql_temp = "SELECT * FROM clients WHERE name = '$client'";
 $query_temp = $db->query($sql_temp);
-$row_temp = $query_temp->fetch_assoc();
+$row_temp = $query_temp ? $query_temp->fetch_assoc() : null;
 
-$address = json_decode($row_temp['address'], true);
-$contacts  = json_decode($row_temp['contacts'],true);
+$address = [];
+if ($row_temp) {
+	$address = json_decode($row_temp['address'] ?? '', true);
+}
+if (!is_array($address)) { $address = []; }
+$contacts = [];
+if ($row_temp) {
+	$contacts = json_decode($row_temp['contacts'] ?? '', true);
+}
+if (!is_array($contacts)) { $contacts = []; }
 
-$mobile=$row['mobile'];
+$mobile=$row['mobile'] ?? '';
        
 $GLOBALS["gross_total"] = '0';
 $GLOBALS["si_no"] = $si_no;
-$GLOBALS["dt"] = date('d-m-Y', strtotime($row['si_date']));
-$GLOBALS['add1'] = $address["address_1"];
-$GLOBALS['add2'] = $address["address_2"];
-$GLOBALS['city'] = $address["city"];
-$GLOBALS['pincode'] = $address["pincode"];
-$GLOBALS['state'] = $row_temp["state"];
+$GLOBALS["dt"] = !empty($row['si_date']) ? date('d-m-Y', strtotime($row['si_date'])) : '';
+$GLOBALS['add1'] = $address["address_1"] ?? '';
+$GLOBALS['add2'] = $address["address_2"] ?? '';
+$GLOBALS['city'] = $address["city"] ?? '';
+$GLOBALS['pincode'] = $address["pincode"] ?? '';
+$GLOBALS['state'] = $row_temp["state"] ?? '';
 
-$GLOBALS['client'] = $row_temp['print_name'];
-$GLOBALS['totall'] = $row['total'];
+$GLOBALS['client'] = $row_temp['print_name'] ?? '';
+$GLOBALS['totall'] = $row['total'] ?? 0;
 
 $flag = 1;
 
-if($row_temp["state"] == 'WEST BENGAL'){
+if(($row_temp["state"] ?? '') == 'WEST BENGAL'){
 	$flag = 0;
 }
 
@@ -322,7 +333,7 @@ $total = 0;
 $header = array('Sn', 'Item', 'Unit Price', 'Qty', 'Total');
 $data = array();
 
-$l = sizeof($items['product']);
+$l = is_array($items['product'] ?? null) ? sizeof($items['product']) : 0;
 
 //Printing All Items
 for($i=0;$i<$l;$i++){

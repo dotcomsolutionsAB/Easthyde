@@ -81,7 +81,7 @@ class PDF_AutoPrint extends PDF_JavaScript
             else
             {
                 //Calculate character spacing in points
-                $char_space=($w-$this->cMargin*2-$str_width)/max(strlen($txt)-1,1)*$this->k;
+                $char_space=($w-$this->cMargin*2-$str_width)/max(strlen((string)$txt)-1,1)*$this->k;
                 //Set character spacing
                 $this->_out(sprintf('BT %.2F Tc ET',$char_space));
             }
@@ -126,8 +126,8 @@ class PDF_AutoPrint extends PDF_JavaScript
 
 //--------------------------------------------- Define Variables & Fetch Data from Database --------------------------------------
 
-$id = $_REQUEST['id'];
-$pdf_type = $_REQUEST['type'];
+$id = $_REQUEST['id'] ?? '';
+$pdf_type = $_REQUEST['type'] ?? '';
 
 $pdf = new PDF_AutoPrint('P','mm',array(210,148));
 $pdf->SetAutoPageBreak(true, 10);
@@ -140,17 +140,23 @@ $pdf->AddPage();
 
 $sql = "SELECT * FROM assembly_operation WHERE `id` = '$id'";
 $query = $db->query($sql);
-$row = $query->fetch_assoc();
+$row = $query ? $query->fetch_assoc() : null;
+if (!$row) {
+	exit('Record not found');
+}
 
-$composite = $row['composite'];
-$operation = $row['operation'];
-$quantity = $row['quantity'];
-$invoice = $row['invoice'];
-$date = date('d-m-Y', strtotime($row['log_date']));
+$composite = $row['composite'] ?? '';
+$operation = $row['operation'] ?? '';
+$quantity = $row['quantity'] ?? '';
+$invoice = $row['invoice'] ?? '';
+$date = !empty($row['log_date']) ? date('d-m-Y', strtotime($row['log_date'])) : '';
 
 
-$items = json_decode($row['items'],true);
-$len = sizeof($items['product']);
+$items = json_decode($row['items'] ?? '', true);
+if (!is_array($items)) {
+	$items = [];
+}
+$len = is_array($items['product'] ?? null) ? count($items['product']) : 0;
 
 $pdf->setXY('10','26');
 
