@@ -6,18 +6,30 @@
 
     $validator = array("success"=>true, "messages"=>"There was some error saving the records");
 
-    $e_id = $_REQUEST['member_id'];
-    $index = $_REQUEST['index'];
+    $e_id = $_REQUEST['member_id'] ?? '';
+    $index = $_REQUEST['index'] ?? '';
 
     $new_items=array('product'=>array(),'quantity'=>array(),'stock'=>array(),'desc'=>array(),'long_desc'=>array());
 
     $sql = "SELECT * FROM enquiry WHERE `id` = '$e_id'";
     $query = $db->query($sql);
-    $row = $query->fetch_assoc();
+    $row = ($query && ($tmp = $query->fetch_assoc())) ? $tmp : null;
+    if (!$row) {
+        $validator['success'] = false;
+        $validator['messages'] = "Record not found";
+        echo json_encode($validator);
+        exit;
+    }
 
     // $po = $row['q_no'];
 
-    $items = json_decode($row['items'], true);
+    $items = json_decode($row['items'] ?? '', true);
+    if (!is_array($items) || !isset($items['product']) || !is_array($items['product'])) {
+        $items = ['product'=>[], 'quantity'=>[], 'desc'=>[], 'long_desc'=>[], 'stock'=>[]];
+    }
+    foreach (['quantity','desc','long_desc','stock'] as $key) {
+        if (!isset($items[$key]) || !is_array($items[$key])) { $items[$key] = []; }
+    }
     $l=sizeof($items['product']);
 
     for($i=0;$i<$l;$i++){

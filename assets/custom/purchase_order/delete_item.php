@@ -6,16 +6,28 @@
 
     $validator = array("success"=>true, "messages"=>"There was some error saving the records", 'so'=>'');
 
-    $po_id = $_REQUEST['member_id'];
-    $index = $_REQUEST['index'];
+    $po_id = $_REQUEST['member_id'] ?? '';
+    $index = $_REQUEST['index'] ?? '';
 
     $new_items=array('product'=>array(),'group'=>array(),'quantity'=>array(),'unit'=>array(),'price'=>array(),'discount'=>array(),'hsn'=>array(),'tax'=>array(),'desc'=>array(),'long_desc'=>array(),'tax_amount'=>array(),'amount'=>array());
 
     $sql = "SELECT * FROM purchase_order WHERE `id` = '$po_id'";
     $query = $db->query($sql);
-    $row = $query->fetch_assoc();
+    $row = ($query && ($tmp = $query->fetch_assoc())) ? $tmp : null;
+    if (!$row) {
+        $validator['success'] = false;
+        $validator['messages'] = "Record not found";
+        echo json_encode($validator);
+        exit;
+    }
 
-    $items = json_decode($row['items'], true);
+    $items = json_decode($row['items'] ?? '', true);
+    if (!is_array($items) || !isset($items['product']) || !is_array($items['product'])) {
+        $items = ['product'=>[], 'group'=>[], 'quantity'=>[], 'received'=>[], 'unit'=>[], 'price'=>[], 'discount'=>[], 'hsn'=>[], 'tax'=>[], 'desc'=>[], 'long_desc'=>[], 'tax_amount'=>[], 'amount'=>[]];
+    }
+    foreach (['group','quantity','received','unit','price','discount','hsn','tax','desc','long_desc','tax_amount','amount'] as $key) {
+        if (!isset($items[$key]) || !is_array($items[$key])) { $items[$key] = []; }
+    }
     $l=sizeof($items['product']);
 
     for($i=0;$i<$l;$i++){

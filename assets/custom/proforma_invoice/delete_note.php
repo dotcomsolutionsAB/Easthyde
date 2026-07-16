@@ -6,16 +6,28 @@
 
     $validator = array("success"=>true, "messages"=>"There was some error saving the records");
 
-    $pr_no = $_REQUEST['member_id'];
-    $id = $_REQUEST['index'];
+    $pr_no = $_REQUEST['member_id'] ?? '';
+    $id = $_REQUEST['index'] ?? '';
 
     $sql = "SELECT * FROM proforma WHERE `pr_no` = '$pr_no'";
     $query = $db->query($sql);
-    $row = $query->fetch_assoc();
+    $row = ($query && ($tmp = $query->fetch_assoc())) ? $tmp : null;
+    if (!$row) {
+        $validator['success'] = false;
+        $validator['messages'] = "Record not found";
+        echo json_encode($validator);
+        exit;
+    }
 
     $new_notes = array("notes"=>array(),"user"=>array(),"timestamp"=>array());
 
-    $notes = json_decode($row['notes'], true);
+    $notes = json_decode($row['notes'] ?? '', true);
+    if (!is_array($notes) || !isset($notes['notes']) || !is_array($notes['notes'])) {
+        $notes = ['notes'=>[], 'user'=>[], 'timestamp'=>[]];
+    }
+    foreach (['user','timestamp'] as $key) {
+        if (!isset($notes[$key]) || !is_array($notes[$key])) { $notes[$key] = []; }
+    }
     $len = sizeof($notes['notes']);
 
     for($i=0;$i<$len;$i++){

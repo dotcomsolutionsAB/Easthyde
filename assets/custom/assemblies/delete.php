@@ -4,7 +4,7 @@ include ("../connect.php");
  
 $output = array('success' => false, 'messages' => 'Error while removing the information');
  
-$id = $_REQUEST['member_id'];
+$id = $_REQUEST['member_id'] ?? '';
 
 $sql = "DELETE FROM assembly WHERE id = '$id'";
 $query = $db->query($sql);

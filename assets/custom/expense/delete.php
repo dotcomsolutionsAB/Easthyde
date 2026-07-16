@@ -2,7 +2,7 @@
 require_once "../connect.php";
 
 // Get the ID of the record to be deleted
-$id = isset($_POST['id']) ? $_POST['id'] : '';
+$id = $_POST['id'] ?? '';
 
 // Check if the ID is valid
 if ($id) {
