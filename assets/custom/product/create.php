@@ -18,8 +18,8 @@
 	$category = replace_improper($_REQUEST['product_category'] ?? '');
 	$sub_category = replace_improper($_REQUEST['product_sub_category'] ?? '');
 	$unit = replace_improper($_REQUEST['product_unit'] ?? '');
-	$rate = $_REQUEST['product_rate'] ?? '';
-	$cost = $_REQUEST['product_cost'] ?? '';
+	$rate = replace_improper_amount($_REQUEST['product_rate'] ?? '');
+	$cost = replace_improper_amount($_REQUEST['product_cost'] ?? '');
 	$tax = $_REQUEST['product_tax'] ?? '';
 	$hsn = $_REQUEST['product_hsn'] ?? '';
 	$opening_stock = $_REQUEST['product_opening_stock'] ?? '';
@@ -28,6 +28,7 @@
 
     $sql_year = "SELECT * FROM year";
     $query_year = $db->query($sql_year);
+    if ($query_year) {
     while($row_year = $query_year->fetch_assoc())
     {
     	$year 		= $row_year['year'];
@@ -46,6 +47,7 @@
 
     }
 
+    }
     $new_opening_stock = json_encode($new_opening_stock);
 
 
@@ -67,7 +69,7 @@
 	}
 	
 
-	$validator = array("success"=>true, "messages"=>"There was some error saving the records");
+	$validator = array("success"=>false, "messages"=>"There was some error saving the records");
 	
 	$sql = "INSERT INTO product (`name`,`group`,`vendor`,`description`,`aliases`,`moq`,`category`,`sub_category`,`unit`,`rate`,`cost`,`tax`,`hsn`,`new_opening_stock`,`default_make`,`updated_price`,`log_user`,`log_date`) VALUES ('$name','$group_name','$vendor_name','$description','$aliases','$moq','$category','$sub_category','$unit','$rate','$cost','$tax','$hsn','$new_opening_stock','$default_make','1','$log_user','$log_date')";
 	$query = $db->query($sql);

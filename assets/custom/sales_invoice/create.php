@@ -8,7 +8,7 @@
     $id         = $_REQUEST['edit_si_id'] ?? '';
     $log_user   = $_SESSION['username'] ?? '';
     $log_date   = date('Y-m-d', strtotime("today"));
-    $validator  = array("success"=>true, "messages"=>"There was some error saving the records","si"=>"");
+    $validator  = array("success"=>false, "messages"=>"There was some error saving the records","si"=>"");
 
     $array      = $_REQUEST['sales_invoice'] ?? [];
     if (!is_array($array)) { $array = []; }
@@ -30,7 +30,7 @@
     $address['pincode']     = replace_improper_same($_REQUEST['shipping_pincode'] ?? '');
     $address['country']     = replace_improper_same($_REQUEST['shipping_country'] ?? '');
     $address                = json_encode($address);
-    $ship_state                  = strtoupper($_REQUEST['shipping_state'] ?? '');
+    $ship_state                  = strtoupper((string)($_REQUEST['shipping_state'] ?? ''));
 
     $sql_client = "SELECT * FROM clients WHERE `name` = '$client'";
     $query_client = $db->query($sql_client);
@@ -58,42 +58,45 @@
     $tot_amount      = 0;
 
     $secondary_total = 0;
+    $tax_value = 0;
 
     $items=array('product'=>array(),'desc'=>array(),'long_desc'=>array(),'group'=>array(),'quantity'=>array(),'unit'=>array(),'price'=>array(),'discount'=>array(),'hsn'=>array(),'tax'=>array());
 
     $tax            = array("cgst"=>'0', "sgst"=>'0', "igst"=>'0');
 
     for($i=0;$i<$l;$i++){
-        if($array[$i]['si_product_name'] != '' && $array[$i]['si_qty'] != ''){
+        $row_item = is_array($array[$i] ?? null) ? $array[$i] : [];
+        if(($row_item['si_product_name'] ?? '') != '' && ($row_item['si_qty'] ?? '') != ''){
 
             if($series == 'PRIMARY')
             {
 
-                $adjustment             = $array[$i]['si_adjustment'];
+                $adjustment             = $row_item['si_adjustment'] ?? '';
 
-                $items['product'][]     = replace_improper($array[$i]['si_product_name']);
-                $items['desc'][]        = replace_improper_textarea($array[$i]['si_product_description']);
-                $items['long_desc'][]   = replace_improper_textarea($array[$i]['si_product_add_description']);
-                $items['group'][]       = $array[$i]['si_display_make'];
-                $items['quantity'][]    = replace_improper($array[$i]['si_qty']);
-                $items['unit'][]        = replace_improper($array[$i]['si_unit']);
-                $items['price'][]       = replace_improper($array[$i]['si_rate']);
-                $items['discount'][]    = replace_improper($array[$i]['si_dsc']);
-                $items['hsn'][]         = replace_improper($array[$i]['si_hsn']);
-                $items['tax'][]         = replace_improper($array[$i]['si_tax']);
+                $items['product'][]     = replace_improper($row_item['si_product_name'] ?? '');
+                $items['desc'][]        = replace_improper_textarea($row_item['si_product_description'] ?? '');
+                $items['long_desc'][]   = replace_improper_textarea($row_item['si_product_add_description'] ?? '');
+                $items['group'][]       = $row_item['si_display_make'] ?? '';
+                $items['quantity'][]    = replace_improper($row_item['si_qty'] ?? '');
+                $items['unit'][]        = replace_improper($row_item['si_unit'] ?? '');
+                $items['price'][]       = replace_improper_amount($row_item['si_rate'] ?? '');
+                $items['discount'][]    = replace_improper($row_item['si_dsc'] ?? '');
+                $items['hsn'][]         = replace_improper($row_item['si_hsn'] ?? '');
+                $items['tax'][]         = replace_improper($row_item['si_tax'] ?? '');
                 if($state == 'WEST BENGAL'){
-                    $items['cgst'][]        = $array[$i]['si_cgst'];
-                    $items['sgst'][]        = $array[$i]['si_sgst'];
-                    $tax['cgst']            += $array[$i]['si_cgst'];
-                    $tax['sgst']            += $array[$i]['si_sgst'];
+                    $items['cgst'][]        = $row_item['si_cgst'] ?? 0;
+                    $items['sgst'][]        = $row_item['si_sgst'] ?? 0;
+                    $tax['cgst']            += (float)($row_item['si_cgst'] ?? 0);
+                    $tax['sgst']            += (float)($row_item['si_sgst'] ?? 0);
                 }else{
-                    $items['igst'][]        = $array[$i]['si_igst'];
-                    $tax['igst']            +=$array[$i]['si_igst'];
+                    $items['igst'][]        = $row_item['si_igst'] ?? 0;
+                    $tax['igst']            += (float)($row_item['si_igst'] ?? 0);
                 } 
 
                 if($adjustment == '1'){
-                    $ad_product     = $array[$i]['si_product_name'];
-                    $ad_qty         = $array[$i]['si_qty'];
+                    $ad_product     = $row_item['si_product_name'] ?? '';
+                    $ad_qty         = (float)($row_item['si_qty'] ?? 0);
+                    $adj_qty        = $ad_qty;
 
                     $ad_product2    = "\"".$ad_product."\"";
                     $sql_adj = "SELECT * FROM sales_invoice WHERE JSON_QUERY(`items`, '$.product') LIKE '%$ad_product2%' AND series = 'SECONDARY'";
@@ -134,38 +137,38 @@
             else if($series == 'SECONDARY')
             {
 
-                $items['product'][]     = replace_improper($array[$i]['si_product_name']);
-                $items['desc'][]        = replace_improper_textarea($array[$i]['si_product_description']);
-                $items['long_desc'][]   = replace_improper_textarea($array[$i]['si_product_add_description']);
-                $items['group'][]       = $array[$i]['si_display_make'];
-                $items['quantity'][]    = replace_improper($array[$i]['si_qty']);
-                $items['unit'][]        = replace_improper($array[$i]['si_unit']);
-                $items['price'][]       = replace_improper($array[$i]['si_rate']);
-                $items['discount'][]    = replace_improper($array[$i]['si_dsc']);
-                $items['hsn'][]         = replace_improper($array[$i]['si_hsn']);
-                $items['tax'][]         = replace_improper($array[$i]['si_tax']);
+                $items['product'][]     = replace_improper($row_item['si_product_name'] ?? '');
+                $items['desc'][]        = replace_improper_textarea($row_item['si_product_description'] ?? '');
+                $items['long_desc'][]   = replace_improper_textarea($row_item['si_product_add_description'] ?? '');
+                $items['group'][]       = $row_item['si_display_make'] ?? '';
+                $items['quantity'][]    = replace_improper($row_item['si_qty'] ?? '');
+                $items['unit'][]        = replace_improper($row_item['si_unit'] ?? '');
+                $items['price'][]       = replace_improper_amount($row_item['si_rate'] ?? '');
+                $items['discount'][]    = replace_improper($row_item['si_dsc'] ?? '');
+                $items['hsn'][]         = replace_improper($row_item['si_hsn'] ?? '');
+                $items['tax'][]         = replace_improper($row_item['si_tax'] ?? '');
                 if($state == 'WEST BENGAL'){
-                    $items['cgst'][]        = $array[$i]['si_cgst'];
-                    $items['sgst'][]        = $array[$i]['si_sgst'];
-                    $tax['cgst']            += $array[$i]['si_cgst'];
-                    $tax['sgst']            += $array[$i]['si_sgst'];
+                    $items['cgst'][]        = $row_item['si_cgst'] ?? 0;
+                    $items['sgst'][]        = $row_item['si_sgst'] ?? 0;
+                    $tax['cgst']            += (float)($row_item['si_cgst'] ?? 0);
+                    $tax['sgst']            += (float)($row_item['si_sgst'] ?? 0);
                 }else{
-                    $items['igst'][]        = $array[$i]['si_igst'];
-                    $tax['igst']            +=$array[$i]['si_igst'];
+                    $items['igst'][]        = $row_item['si_igst'] ?? 0;
+                    $tax['igst']            += (float)($row_item['si_igst'] ?? 0);
                 } 
             }
             else{
 
-                $items['product'][]     = replace_improper($array[$i]['si_product_name']);
-                $items['desc'][]        = replace_improper_textarea($array[$i]['si_product_description']);
-                $items['long_desc'][]   = replace_improper_textarea($array[$i]['si_product_add_description']);
-                $items['group'][]       = $array[$i]['si_display_make'];
-                $items['quantity'][]    = replace_improper($array[$i]['si_qty']);
-                $items['effective_quantity'][]    = replace_improper($array[$i]['si_qty']);
-                $items['unit'][]        = replace_improper($array[$i]['si_unit']);
-                $items['price'][]       = replace_improper($array[$i]['si_rate']);
-                $items['discount'][]    = replace_improper($array[$i]['si_dsc']);
-                $items['hsn'][]         = replace_improper($array[$i]['si_hsn']);
+                $items['product'][]     = replace_improper($row_item['si_product_name'] ?? '');
+                $items['desc'][]        = replace_improper_textarea($row_item['si_product_description'] ?? '');
+                $items['long_desc'][]   = replace_improper_textarea($row_item['si_product_add_description'] ?? '');
+                $items['group'][]       = $row_item['si_display_make'] ?? '';
+                $items['quantity'][]    = replace_improper($row_item['si_qty'] ?? '');
+                $items['effective_quantity'][]    = replace_improper($row_item['si_qty'] ?? '');
+                $items['unit'][]        = replace_improper($row_item['si_unit'] ?? '');
+                $items['price'][]       = replace_improper_amount($row_item['si_rate'] ?? '');
+                $items['discount'][]    = replace_improper($row_item['si_dsc'] ?? '');
+                $items['hsn'][]         = replace_improper($row_item['si_hsn'] ?? '');
                 $items['tax'][]         = '0';
                 if($state == 'WEST BENGAL'){
                     $items['cgst'][]        = 0;
@@ -177,10 +180,10 @@
                     $tax['igst']            += 0;
                 }
 
-                $total = $array[$i]['si_qty'] * $array[$i]['si_rate'];
+                $total = (float)($row_item['si_qty'] ?? 0) * (float)($row_item['si_rate'] ?? 0);
 
-                if ($array[$i]['si_dsc'] != '') {
-                    $total = $total - ($array[$i]['si_qty'] * $array[$i]['si_rate']) * ($array[$i]['si_dsc'] / 100);
+                if (($row_item['si_dsc'] ?? '') != '') {
+                    $total = $total - ((float)($row_item['si_qty'] ?? 0) * (float)($row_item['si_rate'] ?? 0)) * ((float)($row_item['si_dsc'] ?? 0) / 100);
                 }
 
                 $secondary_total += $total;  
@@ -208,21 +211,21 @@
 
             $addons['freight']['cgst'] = $si_freight_cgst;
             $addons['freight']['sgst'] = $si_freight_sgst;
-            $tax['cgst'] += $si_freight_cgst;
-            $tax['sgst'] += $si_freight_sgst;
+            $tax['cgst'] += (float)$si_freight_cgst;
+            $tax['sgst'] += (float)$si_freight_sgst;
 
             $addons['pf']['cgst'] = $si_pf_cgst;
             $addons['pf']['sgst'] = $si_pf_sgst;
-            $tax['cgst'] += $si_pf_cgst;
-            $tax['sgst'] += $si_pf_sgst;
+            $tax['cgst'] += (float)$si_pf_cgst;
+            $tax['sgst'] += (float)$si_pf_sgst;
 
         }else{
 
             $addons['freight']['igst'] = $si_freight_igst;
-            $tax['igst'] += $si_freight_igst;
+            $tax['igst'] += (float)$si_freight_igst;
 
             $addons['pf']['igst'] = $si_pf_igst;
-            $tax['igst'] += $si_pf_igst;
+            $tax['igst'] += (float)$si_pf_igst;
 
         }
     }
@@ -386,6 +389,6 @@
     echo json_encode($validator);
 
     function TrimTrailingZeroes($nbr) {
-        return strpos($nbr,'.')!==false ? rtrim(rtrim($nbr,'0'),'.') : $nbr;
+        return strpos((string)$nbr,'.')!==false ? rtrim(rtrim((string)$nbr,'0'),'.') : (string)$nbr;
     }
 ?>

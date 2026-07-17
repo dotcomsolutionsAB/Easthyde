@@ -4,7 +4,7 @@
 
     session_start();
 
-    $validator = array("success"=>true, "messages"=>"There was some error saving the records", "q_no"=>"");
+    $validator = array("success"=>false, "messages"=>"There was some error saving the records", "q_no"=>"");
 
     $q_id = $_REQUEST['q_id'] ?? '';
 
@@ -38,6 +38,7 @@
     $address        = json_encode($address);
 
     $enquiry_no     = $_REQUEST['q_enquiry_no'] ?? [];
+    if (!is_array($enquiry_no)) { $enquiry_no = []; }
     $cl_enquiry_no  = json_decode($_REQUEST['q_cl_enquiry_no'] ?? '', true);
     if(!is_array($cl_enquiry_no)) $cl_enquiry_no = [];
     $enquiry_date   = json_decode($_REQUEST['q_enquiry_date'] ?? '', true);
@@ -68,31 +69,33 @@
         $status         = 1;
 
     $array = $_REQUEST['quotation'] ?? [];
+    if (!is_array($array)) { $array = []; }
     $l = sizeof($array);
 
     $items=array('product'=>array(),'desc'=>array(),'long_desc'=>array(),'group'=>array(),'quantity'=>array(),'unit'=>array(),'price'=>array(),'discount'=>array(),'hsn'=>array(),'tax'=>array());
 
     for($i=0;$i<$l;$i++){
-        if($array[$i]['q_product_name'] != '' && $array[$i]['q_qty'] != ''){
+        $row = is_array($array[$i] ?? null) ? $array[$i] : [];
+        if(($row['q_product_name'] ?? '') != '' && ($row['q_qty'] ?? '') != ''){
 
-            $items['product'][]     = replace_improper($array[$i]['q_product_name']);
-            $items['desc'][]        = replace_improper_same($array[$i]['q_product_description']);
-            $items['long_desc'][]   = replace_improper_textarea($array[$i]['q_product_add_description']);
-            $items['group'][]       = $array[$i]['q_display_make'][0] ?? '';
-            $items['quantity'][]    = replace_improper_same($array[$i]['q_qty']);
-            $items['unit'][]        = replace_improper($array[$i]['q_unit']);
-            $items['price'][]       = replace_improper($array[$i]['q_rate']);
-            $items['discount'][]    = replace_improper_same($array[$i]['q_dsc']);
-            $items['hsn'][]         = replace_improper_same($array[$i]['q_hsn']);
-            $items['tax'][]         = replace_improper_same($array[$i]['q_tax']);
+            $items['product'][]     = replace_improper($row['q_product_name'] ?? '');
+            $items['desc'][]        = replace_improper_same($row['q_product_description'] ?? '');
+            $items['long_desc'][]   = replace_improper_textarea($row['q_product_add_description'] ?? '');
+            $items['group'][]       = $row['q_display_make'][0] ?? '';
+            $items['quantity'][]    = replace_improper_same($row['q_qty'] ?? '');
+            $items['unit'][]        = replace_improper($row['q_unit'] ?? '');
+            $items['price'][]       = replace_improper_amount($row['q_rate'] ?? '');
+            $items['discount'][]    = replace_improper_same($row['q_dsc'] ?? '');
+            $items['hsn'][]         = replace_improper_same($row['q_hsn'] ?? '');
+            $items['tax'][]         = replace_improper_same($row['q_tax'] ?? '');
             if($state == 'WEST BENGAL'){
-                $items['cgst'][]        = $array[$i]['q_cgst'];
-                $items['sgst'][]        = $array[$i]['q_sgst'];
-                $tax['cgst']            += $array[$i]['q_cgst'];
-                $tax['sgst']            += $array[$i]['q_sgst'];
+                $items['cgst'][]        = $row['q_cgst'] ?? 0;
+                $items['sgst'][]        = $row['q_sgst'] ?? 0;
+                $tax['cgst']            += (float)($row['q_cgst'] ?? 0);
+                $tax['sgst']            += (float)($row['q_sgst'] ?? 0);
             }else{
-                $items['igst'][]        = $array[$i]['q_igst'];
-                $tax['igst']            +=$array[$i]['q_igst'];
+                $items['igst'][]        = $row['q_igst'] ?? 0;
+                $tax['igst']            += (float)($row['q_igst'] ?? 0);
             } 
         }
     }
@@ -114,21 +117,21 @@
 
         $addons['freight']['cgst'] = $q_freight_cgst;
         $addons['freight']['sgst'] = $q_freight_sgst;
-        $tax['cgst'] += $q_freight_cgst;
-        $tax['sgst'] += $q_freight_sgst;
+        $tax['cgst'] += (float)$q_freight_cgst;
+        $tax['sgst'] += (float)$q_freight_sgst;
 
         $addons['pf']['cgst'] = $q_pf_cgst;
         $addons['pf']['sgst'] = $q_pf_sgst;
-        $tax['cgst'] += $q_pf_cgst;
-        $tax['sgst'] += $q_pf_sgst;
+        $tax['cgst'] += (float)$q_pf_cgst;
+        $tax['sgst'] += (float)$q_pf_sgst;
 
     }else{
 
         $addons['freight']['igst'] = $q_freight_igst;
-        $tax['igst'] += $q_freight_igst;
+        $tax['igst'] += (float)$q_freight_igst;
 
         $addons['pf']['igst'] = $q_pf_igst;
-        $tax['igst'] += $q_pf_igst;
+        $tax['igst'] += (float)$q_pf_igst;
 
     }
 
@@ -145,24 +148,22 @@
     {
         $sql_counter = "SELECT * FROM counter WHERE `key` = 'quotation'";
         $query_counter = $db->query($sql_counter);
-        $row_counter = ($query_counter && $query_counter->num_rows > 0) ? $query_counter->fetch_assoc() : null;
-        $row_counter_arr = ($row_counter && isset($row_counter['value'])) ? json_decode($row_counter['value'], true) : null;
+        if ($query_counter && $query_counter->num_rows > 0) {
+        $row_counter = $query_counter->fetch_assoc();
+        $row_counter_arr = json_decode($row_counter['value'] ?? '', true);
 
-        if(is_array($row_counter_arr) && isset($row_counter_arr['prefix'][0]) && isset($row_counter_arr['number'][0]) && isset($row_counter_arr['postfix'][0])){
-            $quotation_no = $row_counter_arr['prefix'][0].str_pad($row_counter_arr['number'][0],4,'0', STR_PAD_LEFT).$row_counter_arr['postfix'][0];
+        if(is_array($row_counter_arr) && isset($row_counter_arr['prefix'][0], $row_counter_arr['number'][0], $row_counter_arr['postfix'][0])){
+            $quotation_no = $row_counter_arr['prefix'][0].str_pad((string)$row_counter_arr['number'][0],4,'0', STR_PAD_LEFT).$row_counter_arr['postfix'][0];
             $row_counter_arr['number'][0] = $row_counter_arr['number'][0] + 1;
-        }
 
         $sql = "INSERT INTO quotation (`client`,`mobile`,`quotation_no`,`quotation_date`,`quotation_top`,`items`,`address`,`addons`,`terms`,`display_totals`,`display_hsn`,`total`,`tax`,`status`,`log_user`,`log_date`) VALUES ('$client','$mobile','$quotation_no', '$quotation_date','$quotation','$item','$address','$addon','$term','1','1','$tot_amount','$tax_json','$status','$log_user','$log_date')";
         $query = $db->query($sql);
 
         if($query===true)
         {
-            if(is_array($row_counter_arr) && isset($row_counter_arr['prefix'][0])){
                 $counter_array = json_encode($row_counter_arr);
                 $sql_counter = "UPDATE counter SET `value` = '$counter_array' WHERE `key` = 'quotation'";
                 $query_counter = $db->query($sql_counter);
-            }
 
             $validator['success'] = true;
             $validator['messages'] = "Successfully Added";
@@ -173,6 +174,14 @@
             $validator['success'] = false;
             $validator['messages'] = "There was some error saving the records";
 
+        }
+        } else {
+            $validator['success'] = false;
+            $validator['messages'] = "Quotation counter is not configured correctly.";
+        }
+        } else {
+            $validator['success'] = false;
+            $validator['messages'] = "Quotation counter not found.";
         }
     }
     else{

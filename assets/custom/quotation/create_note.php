@@ -7,7 +7,7 @@
     $log_user = $_SESSION['username'] ?? '';
     $log_date = date('Y-m-d H:i:s',time());
 
-    $validator = array("success"=>true, "messages"=>"There was some error saving the records");
+    $validator = array("success"=>false, "messages"=>"There was some error saving the records");
 
     $q_no = $_REQUEST['an_q_no'] ?? '';
     $notes_enter = $_REQUEST['add_qnote'] ?? '';

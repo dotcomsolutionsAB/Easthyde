@@ -12,14 +12,19 @@
 	}
 	$date=date("Y-m-d");
 
-	$validator = array("success"=>true, "messages"=>"There was some error saving the records");
+	$validator = array("success"=>false, "messages"=>"There was some error saving the records");
 
 	$sql_check = "SELECT * FROM purchase_bag WHERE product_name = '$product'";
 	$query_check = $db->query($sql_check);
 	$row_cnt = ($query_check && $query_check->num_rows > 0) ? $query_check->num_rows : 0;
 
 	if($row_cnt > 0){
-		$row_check = $query_check->fetch_assoc();
+		$row_check = ($query_check) ? $query_check->fetch_assoc() : null;
+		if (!$row_check) {
+			$validator['messages'] = "There was some error saving the records";
+			echo json_encode($validator);
+			exit;
+		}
 		$id = $row_check['id'];
 		$quantity += $row_check['quantity'];
 		$sql = "UPDATE purchase_bag SET `quantity` = '$quantity',`date` = '$date',`log_user` = '$user' WHERE id = '$id'";

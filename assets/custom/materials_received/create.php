@@ -42,23 +42,24 @@
 
 	$log_user = $_SESSION['username'] ?? '';
     $log_date = date('Y-m-d', strtotime("today"));
-    $validator = array("success"=>true, "messages"=>"There was some error saving the records");
+    $validator = array("success"=>false, "messages"=>"There was some error saving the records");
 
     $items=array('product'=>array(),'desc'=>array(),'quantity'=>array(),'unit'=>array(),'rate'=>array());
 
     for($i=0;$i<$l;$i++){
-        if($array[$i]['mr_product_name'] != '' && $array[$i]['mr_qty'] != ''){
+        $row = is_array($array[$i] ?? null) ? $array[$i] : [];
+        if(($row['mr_product_name'] ?? '') != '' && ($row['mr_qty'] ?? '') != ''){
 
-        	$pr = $array[$i]['mr_product_name'];
+        	$pr = $row['mr_product_name'];
             $sql_temp = "SELECT * FROM product WHERE name = '$pr'";
             $query_temp = $db->query($sql_temp);
             $row_temp = ($query_temp && ($tmp = $query_temp->fetch_assoc())) ? $tmp : [];
 
-            $items['product'][] =replace_improper($array[$i]['mr_product_name']);
-            $items['desc'][] =replace_improper($array[$i]['mr_desc']);
-            $items['quantity'][] =replace_improper($array[$i]['mr_qty']);
-            $items['unit'][] = replace_improper($array[$i]['mr_unit']);
-            $items['rate'][] = replace_improper(isset($array[$i]['mr_rate']) ? $array[$i]['mr_rate'] : '');
+            $items['product'][] = replace_improper($row['mr_product_name'] ?? '');
+            $items['desc'][] = replace_improper($row['mr_desc'] ?? '');
+            $items['quantity'][] = replace_improper($row['mr_qty'] ?? '');
+            $items['unit'][] = replace_improper($row['mr_unit'] ?? '');
+            $items['rate'][] = replace_improper_amount($row['mr_rate'] ?? '');
 		}
 	}
 	$items=json_encode($items);
@@ -66,8 +67,8 @@
     $supplier_id = 0;
     $query_supplier = $db->query("SELECT id FROM suppliers WHERE name = '$supplier_name' LIMIT 1");
     if($query_supplier && $query_supplier->num_rows > 0){
-        $row_supplier = $query_supplier->fetch_assoc();
-        $supplier_id = (int)$row_supplier['id'];
+        $row_supplier = ($query_supplier) ? $query_supplier->fetch_assoc() : null;
+        $supplier_id = (int)($row_supplier['id'] ?? 0);
     }
 
     if($id=='')

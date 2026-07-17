@@ -8,13 +8,13 @@
 	$mobile = $_REQUEST['mobile'] ?? '';
 	$email = $_REQUEST['email'] ?? '';
 	$userlevel = $_REQUEST['userlevel'] ?? '';
-	$allowed_fy = isset($_REQUEST['allowed_fy']) ? $_REQUEST['allowed_fy'] : '';
+	$allowed_fy = $_REQUEST['allowed_fy'] ?? '';
 	if($allowed_fy == ''){
 		$sql_fy = "SELECT year FROM year WHERE current = '1' LIMIT 1";
 		$query_fy = $db->query($sql_fy);
 		if($query_fy && $query_fy->num_rows > 0){
-			$row_fy = $query_fy->fetch_assoc();
-			$allowed_fy = $row_fy['year'];
+			$row_fy = ($query_fy) ? $query_fy->fetch_assoc() : null;
+			$allowed_fy = $row_fy['year'] ?? '';
 		}
 	}
 

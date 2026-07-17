@@ -21,7 +21,7 @@
 	$portal_token = bin2hex(random_bytes(24));
 	$token_created_at = date('Y-m-d H:i:s');
 
-	$validator = array("success"=>true, "messages"=>"There was some error saving the records");
+	$validator = array("success"=>false, "messages"=>"There was some error saving the records");
 	$address=array('address1'=>'','address2'=>'','address3'=>'');
 	$contacts=array('name'=>array(),'designation'=>array(),'mobile'=>array(),'email'=>array());
 	$bank_details=array('name'=>'','bank_name'=>'','account'=>'','ifsc'=>'');
@@ -37,10 +37,11 @@
 	$address['pincode']=replace_improper($_REQUEST['supplier_pincode'] ?? '');
 
 	for($i=0;$i<$l;$i++){
-        $contacts['name'][] =replace_improper($array[$i]['supplier_person']);
-        $contacts['designation'][] = replace_improper($array[$i]['supplier_designation']);
-        $contacts['mobile'][] = replace_improper($array[$i]['supplier_mobile']);
-        $contacts['email'][] = replace_improper($array[$i]['supplier_email']);
+		$row = is_array($array[$i] ?? null) ? $array[$i] : [];
+        $contacts['name'][] =replace_improper($row['supplier_person'] ?? '');
+        $contacts['designation'][] = replace_improper($row['supplier_designation'] ?? '');
+        $contacts['mobile'][] = replace_improper($row['supplier_mobile'] ?? '');
+        $contacts['email'][] = replace_improper($row['supplier_email'] ?? '');
     }
 
     $address=json_encode($address);

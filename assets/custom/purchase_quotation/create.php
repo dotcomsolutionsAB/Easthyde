@@ -50,15 +50,17 @@ if (!is_array($purchase_invoice)) { $purchase_invoice = []; }
 $items = array('product'=>[], 'desc'=>[], 'long_desc'=>[], 'quantity'=>[], 'unit'=>[], 'price'=>[], 'discount'=>[], 'hsn'=>[], 'tax'=>[]);
 
 foreach ($purchase_invoice as $invoice) {
-    $items['product'][] = replace_improper($invoice['pi_product_name']);
-    $items['desc'][] = replace_improper($invoice['pi_product_description']);
-    $items['long_desc'][] = replace_improper($invoice['pi_product_add_description']);
-    $items['quantity'][] = replace_improper($invoice['pi_qty']);
-    $items['unit'][] = replace_improper($invoice['pi_unit']);
-    $items['price'][] = replace_improper($invoice['pi_rate']);
-    $items['discount'][] = replace_improper($invoice['pi_dsc']);
-    $items['hsn'][] = replace_improper($invoice['pi_hsn']);
-    $items['tax'][] = replace_improper($invoice['pi_tax']);
+    if (!is_array($invoice)) { continue; }
+    if (($invoice['pi_product_name'] ?? '') == '' || ($invoice['pi_qty'] ?? '') == '') { continue; }
+    $items['product'][] = replace_improper($invoice['pi_product_name'] ?? '');
+    $items['desc'][] = replace_improper($invoice['pi_product_description'] ?? '');
+    $items['long_desc'][] = replace_improper($invoice['pi_product_add_description'] ?? '');
+    $items['quantity'][] = replace_improper($invoice['pi_qty'] ?? '');
+    $items['unit'][] = replace_improper($invoice['pi_unit'] ?? '');
+    $items['price'][] = replace_improper_amount($invoice['pi_rate'] ?? '');
+    $items['discount'][] = replace_improper($invoice['pi_dsc'] ?? '');
+    $items['hsn'][] = replace_improper($invoice['pi_hsn'] ?? '');
+    $items['tax'][] = replace_improper($invoice['pi_tax'] ?? '');
 }
 $items_json = json_encode($items);
 
@@ -102,8 +104,17 @@ if ($edit_pi_id == '') {
             if ($db->query($sql) === true) {
                 $validator['success'] = true;
                 $validator['messages'] = "Successfully Added";
+            } else {
+                $validator['success'] = false;
+                $validator['messages'] = "There was some error saving the records";
             }
+        } else {
+            $validator['success'] = false;
+            $validator['messages'] = "Purchase quotation counter is not configured correctly.";
         }
+    } else {
+        $validator['success'] = false;
+        $validator['messages'] = "Purchase quotation counter not found.";
     }
 } else {
     // Update existing record
@@ -116,6 +127,9 @@ if ($edit_pi_id == '') {
         $validator['success'] = true;
         $validator['messages'] = "Successfully Updated";
       
+    } else {
+        $validator['success'] = false;
+        $validator['messages'] = "There was some error saving the records";
     }
 }
 

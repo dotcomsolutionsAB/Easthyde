@@ -22,7 +22,7 @@
 	$log_user = $_SESSION['username'] ?? '';
 	$log_date = date('Y-m-d', strtotime("today"));
 
-	$validator = array("success"=>true, "messages"=>"There was some error saving the records");
+	$validator = array("success"=>false, "messages"=>"There was some error saving the records");
 	$address=array('address1'=>'','address2'=>'','address3'=>'');
 	$contacts=array('name'=>array(),'designation'=>array(),'mobile'=>array(),'email'=>array());
 	$bank_details=array('name'=>'','bank_name'=>'','account'=>'','ifsc'=>'');
@@ -38,10 +38,11 @@
 	$address['pincode']=replace_improper($_REQUEST['client_pincode'] ?? '');
 
 	for($i=0;$i<$l;$i++){
-        $contacts['name'][] =replace_improper($array[$i]['client_person']);
-        $contacts['designation'][] = replace_improper($array[$i]['client_designation']);
-        $contacts['mobile'][] = replace_improper($array[$i]['client_mobile']);
-        $contacts['email'][] = replace_improper($array[$i]['client_email']);
+		$row = is_array($array[$i] ?? null) ? $array[$i] : [];
+        $contacts['name'][] =replace_improper($row['client_person'] ?? '');
+        $contacts['designation'][] = replace_improper($row['client_designation'] ?? '');
+        $contacts['mobile'][] = replace_improper($row['client_mobile'] ?? '');
+        $contacts['email'][] = replace_improper($row['client_email'] ?? '');
     }
 
     $address=json_encode($address);

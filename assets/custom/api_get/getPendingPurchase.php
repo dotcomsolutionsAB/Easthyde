@@ -46,8 +46,8 @@ if ($row_opening) {
 			$response['pi_details_sn'][] = $serial_no;
 			$response['pi_details_pi'][] = 'Opening';
 			$response['pi_details_date'][] = 'N/A';
-			$response['pi_details_amount'][] = number_format($due, 2);
-			$response['due'][] = number_format($due, 2);
+			$response['pi_details_amount'][] = number_format($due, 2, '.', '');
+			$response['due'][] = number_format($due, 2, '.', '');
 			$serial_no++;
 		}
 	}
@@ -67,8 +67,8 @@ if ($query) {
 			$response['pi_details_sn'][] = $serial_no;
 			$response['pi_details_pi'][] = $purchase_invoice;
 			$response['pi_details_date'][] = $purchase_date;
-			$response['pi_details_amount'][] = number_format($amount, 2);
-			$response['due'][] = number_format($amount, 2);
+			$response['pi_details_amount'][] = number_format($amount, 2, '.', '');
+			$response['due'][] = number_format($amount, 2, '.', '');
 		} else {
 			$received = 0;
 			$safePi = $db->real_escape_string($purchase_invoice);
@@ -93,8 +93,8 @@ if ($query) {
 			$response['pi_details_sn'][] = $serial_no;
 			$response['pi_details_pi'][] = $purchase_invoice;
 			$response['pi_details_date'][] = $purchase_date;
-			$response['pi_details_amount'][] = number_format($due, 2);
-			$response['due'][] = number_format($due, 2);
+			$response['pi_details_amount'][] = number_format($due, 2, '.', '');
+			$response['due'][] = number_format($due, 2, '.', '');
 		}
 		$serial_no++;
 	}

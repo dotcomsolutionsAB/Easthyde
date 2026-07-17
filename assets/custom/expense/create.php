@@ -11,7 +11,7 @@ $log_user = $_SESSION['username'] ?? '';
 // Retrieve form data
 $id = isset($_POST['id']) ? replace_improper($_POST['id']) : ''; // Optional ID for edit functionality
 $description = replace_improper($_POST['description'] ?? '');
-$amount = replace_improper($_POST['amount'] ?? '');
+$amount = replace_improper_amount($_POST['amount'] ?? '');
 $bank = replace_improper($_POST['bank'] ?? '');
 $category = replace_improper($_POST['category'] ?? '');
 $date_raw = $_POST['date'] ?? '';

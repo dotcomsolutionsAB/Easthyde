@@ -4,7 +4,7 @@
 
     session_start();
 
-    $validator = array("success"=>true, "messages"=>"There was some error saving the records", 'po'=>'');
+    $validator = array("success"=>false, "messages"=>"There was some error saving the records", 'po'=>'');
 
     $po_id = $_REQUEST['ai_po_id'] ?? '';
     $product = replace_improper($_REQUEST['ai_po_product'] ?? '');
@@ -12,7 +12,7 @@
     $long_description = $_REQUEST['ai_po_product_add_description'] ?? '';
     $quantity = replace_improper($_REQUEST['ai_po_quantity'] ?? '');
     $unit = replace_improper($_REQUEST['ai_po_unit'] ?? '');
-    $price = replace_improper($_REQUEST['ai_po_price'] ?? '');
+    $price = replace_improper_amount($_REQUEST['ai_po_price'] ?? '');
     $discount = replace_improper($_REQUEST['ai_po_dsc'] ?? '');
     $hsn = replace_improper($_REQUEST['ai_po_hsn'] ?? '');
     $tax = replace_improper($_REQUEST['ai_po_tax'] ?? '');
@@ -24,8 +24,8 @@
     $s=str_replace("'","",$s);
     $add_description = str_replace(array("\r\n","\r","\n"),'|',$s);
 
-    $amount = ($quantity * $price) * (100-$discount) / 100;
-    $tax_amount = $amount * $tax / 100;
+    $amount = ((float)$quantity * (float)$price) * (100 - (float)$discount) / 100;
+    $tax_amount = $amount * (float)$tax / 100;
 
     $sql = "SELECT * FROM purchase_order WHERE `po_no` = '$po_id'";
     $query = $db->query($sql);

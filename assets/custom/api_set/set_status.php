@@ -1,51 +1,48 @@
 <?php
 
+session_start();
 require_once "../connect.php";
 
-$memberId = $_REQUEST['member_id'];
-$status = $_REQUEST['status'];
-$script = $_REQUEST['script'];
+header('Content-Type: application/json; charset=utf-8');
 
-if($script=="quotation")
-{
-	$sql = "UPDATE quotation SET `status` = '$status' WHERE `quotation_no`= '$memberId' ";
+$memberId = (string)($_REQUEST['member_id'] ?? '');
+$status = (string)($_REQUEST['status'] ?? '');
+$script = (string)($_REQUEST['script'] ?? '');
+
+if ($memberId === '' || $status === '' || $script === '') {
+	echo json_encode(['success' => false, 'messages' => 'Missing required parameters']);
+	exit;
 }
-else if($script=="sales_order")
-{
-	$sql = "UPDATE sales_order SET `status` = '$status' WHERE `so_no`= '$memberId' ";
+
+$safeMemberId = $db->real_escape_string($memberId);
+$safeStatus = $db->real_escape_string($status);
+
+$sql = null;
+if ($script === 'quotation') {
+	$sql = "UPDATE quotation SET `status` = '$safeStatus' WHERE `quotation_no`= '$safeMemberId' ";
+} elseif ($script === 'sales_order') {
+	$sql = "UPDATE sales_order SET `status` = '$safeStatus' WHERE `so_no`= '$safeMemberId' ";
+} elseif ($script === 'sales_invoice') {
+	$sql = "UPDATE sales_invoice SET `status` = '$safeStatus' WHERE `si_no`= '$safeMemberId' ";
+} elseif ($script === 'purchase_invoice') {
+	$sql = "UPDATE purchase_invoice SET `status` = '$safeStatus' WHERE `pi_no`= '$safeMemberId' ";
+} elseif ($script === 'purchase_order') {
+	$sql = "UPDATE purchase_order SET `status` = '$safeStatus' WHERE `po_no`= '$safeMemberId' ";
+} elseif ($script === 'enquiry') {
+	$sql = "UPDATE enquiry SET `status` = '$safeStatus' WHERE `enquiry_no`= '$safeMemberId' ";
+} else {
+	echo json_encode(['success' => false, 'messages' => 'Invalid script type']);
+	exit;
 }
-else if($script=="sales_invoice")
-{
-	$sql = "UPDATE sales_invoice SET `status` = '$status' WHERE `si_no`= '$memberId' ";
-}
-else if($script=="purchase_invoice")
-{
-	$sql = "UPDATE purchase_invoice SET `status` = '$status' WHERE `pi_no`= '$memberId' ";
-}
-else if($script=="purchase_order")
-{
-	$sql = "UPDATE purchase_order SET `status` = '$status' WHERE `po_no`= '$memberId' ";
-}
-else if($script=="enquiry")
-{
-	$sql = "UPDATE enquiry SET `status` = '$status' WHERE `enquiry_no`= '$memberId' ";
-}
+
 $query = $db->query($sql);
 
 $db->close();
 
-if($query===true)
-    {
-        $validator['success'] = true;
-        $validator['messages'] = "Status Changed";
-    }
-else
-    {
-        $validator['success'] = false;
-        $validator['messages'] = "There was some error saving the records";
-
-    }
- 
-echo json_encode($validator);
+if ($query === true) {
+	echo json_encode(['success' => true, 'messages' => 'Status Changed']);
+} else {
+	echo json_encode(['success' => false, 'messages' => 'There was some error saving the records']);
+}
 
 ?>

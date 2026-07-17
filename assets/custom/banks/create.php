@@ -1,5 +1,6 @@
 <?php
 	include ("../connect.php");
+	include ("../php_replace_improper.php");
 	session_start();
 	//Entered Value in login Page
 	$id = $_REQUEST['edit_bank_id'] ?? '';
@@ -7,7 +8,7 @@
 	$bank_name = $_REQUEST['bank_name'] ?? '';
 	$account_number = $_REQUEST['account_number'] ?? '';
 	$ifsc = $_REQUEST['ifsc'] ?? '';
-	$ob = $_REQUEST['opening_balance'] ?? 0;
+	$ob = replace_improper_amount($_REQUEST['opening_balance'] ?? '');
 	$date_raw = $_REQUEST['date'] ?? '';
 	$date = ($date_raw !== '') ? date('Y-m-d', strtotime((string)$date_raw)) : '';
 

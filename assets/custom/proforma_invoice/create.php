@@ -4,7 +4,7 @@
 
     session_start();
 
-    $validator      = array("success"=>true, "messages"=>"There was some error saving the records", "so"=>"");
+    $validator      = array("success"=>false, "messages"=>"There was some error saving the records", "so"=>"");
 
     $pr_id          = $_REQUEST['edit_pr_id'] ?? '';
 
@@ -39,6 +39,7 @@
     $order_date     = ($pr_date_raw !== '') ? date('Y-m-d', strtotime((string)$pr_date_raw)) : '';
     $order_no        = $_REQUEST['pr_no'] ?? '';
     $so_no           = $_REQUEST['pr_sales_order'] ?? [];
+    if (!is_array($so_no)) { $so_no = []; }
     $pr_pf                = replace_improper_amount($_REQUEST['pr_pf'] ?? '');    
     $pr_pf_cgst           = replace_improper_amount($_REQUEST['pr_pf_cgst'] ?? '');    
     $pr_pf_sgst           = replace_improper_amount($_REQUEST['pr_pf_sgst'] ?? '');    
@@ -51,6 +52,7 @@
     $tax            = array("cgst"=>'0', "sgst"=>'0', "igst"=>'0');
 
     $array          = $_REQUEST['proforma_invoice'] ?? [];
+    if (!is_array($array)) { $array = []; }
     $l              = sizeof($array);
 
     $items=array('product'=>array(),'desc'=>array(),'long_desc'=>array(),'group'=>array(),'quantity'=>array(),'received'=>array(),'unit'=>array(),'price'=>array(),'discount'=>array(),'hsn'=>array(),'tax'=>array());
@@ -58,27 +60,28 @@
     $group=0;
 
     for($i=0;$i<$l;$i++){
-        if($array[$i]['pr_product_name'] != '' && $array[$i]['pr_qty'] != ''){
+        $row = is_array($array[$i] ?? null) ? $array[$i] : [];
+        if(($row['pr_product_name'] ?? '') != '' && ($row['pr_qty'] ?? '') != ''){
 
-            $items['product'][]     = replace_improper($array[$i]['pr_product_name']);
-            $items['desc'][]        = replace_improper($array[$i]['pr_product_description']);
-            $items['long_desc'][]   = replace_improper_textarea($array[$i]['pr_product_add_description']);
-            $items['group'][]       = $array[$i]['pr_display_make'][0] ?? '';
-            $items['quantity'][]    = replace_improper($array[$i]['pr_qty']);
+            $items['product'][]     = replace_improper($row['pr_product_name'] ?? '');
+            $items['desc'][]        = replace_improper($row['pr_product_description'] ?? '');
+            $items['long_desc'][]   = replace_improper_textarea($row['pr_product_add_description'] ?? '');
+            $items['group'][]       = $row['pr_display_make'][0] ?? '';
+            $items['quantity'][]    = replace_improper($row['pr_qty'] ?? '');
             $items['received'][]    = '0';
-            $items['unit'][]        = replace_improper($array[$i]['pr_unit']);
-            $items['price'][]       = replace_improper($array[$i]['pr_rate']);
-            $items['discount'][]    = replace_improper($array[$i]['pr_dsc']);
-            $items['hsn'][]         = replace_improper($array[$i]['pr_hsn']);
-            $items['tax'][]         = replace_improper($array[$i]['pr_tax']);
+            $items['unit'][]        = replace_improper($row['pr_unit'] ?? '');
+            $items['price'][]       = replace_improper_amount($row['pr_rate'] ?? '');
+            $items['discount'][]    = replace_improper($row['pr_dsc'] ?? '');
+            $items['hsn'][]         = replace_improper($row['pr_hsn'] ?? '');
+            $items['tax'][]         = replace_improper($row['pr_tax'] ?? '');
             if($state == 'WEST BENGAL'){
-                $items['cgst'][]        = $array[$i]['pr_cgst'];
-                $items['sgst'][]        = $array[$i]['pr_sgst'];
-                $tax['cgst']            += $array[$i]['pr_cgst'];
-                $tax['sgst']            += $array[$i]['pr_sgst'];
+                $items['cgst'][]        = $row['pr_cgst'] ?? 0;
+                $items['sgst'][]        = $row['pr_sgst'] ?? 0;
+                $tax['cgst']            += (float)($row['pr_cgst'] ?? 0);
+                $tax['sgst']            += (float)($row['pr_sgst'] ?? 0);
             }else{
-                $items['igst'][]        = $array[$i]['pr_igst'];
-                $tax['igst']            +=$array[$i]['pr_igst'];
+                $items['igst'][]        = $row['pr_igst'] ?? 0;
+                $tax['igst']            += (float)($row['pr_igst'] ?? 0);
             } 
 
         }
@@ -92,21 +95,21 @@
 
         $addons['freight']['cgst'] = $pr_freight_cgst;
         $addons['freight']['sgst'] = $pr_freight_sgst;
-        $tax['cgst'] += $pr_freight_cgst;
-        $tax['sgst'] += $pr_freight_sgst;
+        $tax['cgst'] += (float)$pr_freight_cgst;
+        $tax['sgst'] += (float)$pr_freight_sgst;
 
         $addons['pf']['cgst'] = $pr_pf_cgst;
         $addons['pf']['sgst'] = $pr_pf_sgst;
-        $tax['cgst'] += $pr_pf_cgst;
-        $tax['sgst'] += $pr_pf_sgst;
+        $tax['cgst'] += (float)$pr_pf_cgst;
+        $tax['sgst'] += (float)$pr_pf_sgst;
 
     }else{
 
         $addons['freight']['igst'] = $pr_freight_igst;
-        $tax['igst'] += $pr_freight_igst;
+        $tax['igst'] += (float)$pr_freight_igst;
 
         $addons['pf']['igst'] = $pr_pf_igst;
-        $tax['igst'] += $pr_pf_igst;
+        $tax['igst'] += (float)$pr_pf_igst;
 
     }
 
@@ -127,24 +130,22 @@
     {
         $sql_counter = "SELECT * FROM counter WHERE `key` = 'proforma'";
         $query_counter = $db->query($sql_counter);
-        $row_counter = ($query_counter && $query_counter->num_rows > 0) ? $query_counter->fetch_assoc() : null;
-        $row_counter_arr = ($row_counter && isset($row_counter['value'])) ? json_decode($row_counter['value'], true) : null;
+        if ($query_counter && $query_counter->num_rows > 0) {
+        $row_counter = $query_counter->fetch_assoc();
+        $row_counter_arr = json_decode($row_counter['value'] ?? '', true);
 
-        if(is_array($row_counter_arr) && isset($row_counter_arr['prefix'][0]) && isset($row_counter_arr['number'][0]) && isset($row_counter_arr['postfix'][0])){
-            $order_no = $row_counter_arr['prefix'][0].str_pad($row_counter_arr['number'][0],3,'0', STR_PAD_LEFT).$row_counter_arr['postfix'][0];
+        if(is_array($row_counter_arr) && isset($row_counter_arr['prefix'][0], $row_counter_arr['number'][0], $row_counter_arr['postfix'][0])){
+            $order_no = $row_counter_arr['prefix'][0].str_pad((string)$row_counter_arr['number'][0],3,'0', STR_PAD_LEFT).$row_counter_arr['postfix'][0];
             $row_counter_arr['number'][0] = $row_counter_arr['number'][0] + 1;
-        }
 
         $sql = "INSERT INTO proforma (`client_name`,`mobile`,`pr_no`,`pr_date`,`client_so_no`,`so_no`,`items`,`address`,`addons`,`total`,`tax`,`status`,`log_user`,`log_date`) VALUES ('$client','$mobile','$order_no', '$order_date','$client_so_no','$sales_order','$item','$address','$addon','$tot_amount','$tax_json','$status','$log_user','$log_date')";
         $query = $db->query($sql);
 
         if($query===true)
         {
-            if(is_array($row_counter_arr) && isset($row_counter_arr['prefix'][0])){
                 $counter_array = json_encode($row_counter_arr);
                 $sql_counter = "UPDATE counter SET `value` = '$counter_array' WHERE `key` = 'proforma'";
                 $query_counter = $db->query($sql_counter);
-            }
 
             $validator['success'] = true;
             $validator['messages'] = "Successfully Added";
@@ -157,6 +158,14 @@
             $validator['sql'] = $sql;
 
 
+        }
+        } else {
+            $validator['success'] = false;
+            $validator['messages'] = "Proforma counter is not configured correctly.";
+        }
+        } else {
+            $validator['success'] = false;
+            $validator['messages'] = "Proforma counter not found.";
         }
     }
     else

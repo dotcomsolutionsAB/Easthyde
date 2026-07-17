@@ -4,7 +4,7 @@
 
     session_start();
 
-    $validator = array("success"=>true, "messages"=>"There was some error saving the records");
+    $validator = array("success"=>false, "messages"=>"There was some error saving the records");
 
     $po_id          = $_REQUEST['edit_po_id'] ?? '';
     $maintenance    = $_REQUEST['maintenance'] ?? '';
@@ -16,14 +16,14 @@
     $po_date_raw = $_REQUEST['purchase_date'] ?? '';
     $order_date = ($po_date_raw !== '') ? date('Y-m-d', strtotime($po_date_raw)) : '';
     $po_pf            = replace_improper_amount($_REQUEST['po_pf'] ?? '');    
-    $po_pf_cgst       = replace_improper($_REQUEST['po_pf_cgst'] ?? '');    
-    $po_pf_sgst       = replace_improper($_REQUEST['po_pf_sgst'] ?? '');    
-    $po_pf_igst       = replace_improper($_REQUEST['po_pf_igst'] ?? '');    
+    $po_pf_cgst       = replace_improper_amount($_REQUEST['po_pf_cgst'] ?? '');    
+    $po_pf_sgst       = replace_improper_amount($_REQUEST['po_pf_sgst'] ?? '');    
+    $po_pf_igst       = replace_improper_amount($_REQUEST['po_pf_igst'] ?? '');    
 
     $po_freight       = replace_improper_amount($_REQUEST['po_freight'] ?? '');    
-    $po_freight_cgst  = replace_improper($_REQUEST['po_freight_cgst'] ?? '');    
-    $po_freight_sgst  = replace_improper($_REQUEST['po_freight_sgst'] ?? '');    
-    $po_freight_igst  = replace_improper($_REQUEST['po_freight_igst'] ?? '');    
+    $po_freight_cgst  = replace_improper_amount($_REQUEST['po_freight_cgst'] ?? '');    
+    $po_freight_sgst  = replace_improper_amount($_REQUEST['po_freight_sgst'] ?? '');    
+    $po_freight_igst  = replace_improper_amount($_REQUEST['po_freight_igst'] ?? '');    
 
     $tax            = array("cgst"=>'', "sgst"=>'', "igst"=>'');
 
@@ -61,29 +61,30 @@
     $group=0;
 
     for($i=0;$i<116;$i++){
-        if($array[$i]['po_product_name'] != '' && $array[$i]['po_qty'] != ''){
+        $row = is_array($array[$i] ?? null) ? $array[$i] : [];
+        if(($row['po_product_name'] ?? '') != '' && ($row['po_qty'] ?? '') != ''){
 
-            $pr = $array[$i]['po_product_name'];
+            $pr = $row['po_product_name'];
 
-            $items['product'][]     = replace_improper($array[$i]['po_product_name']);
-            $items['desc'][]        = replace_improper($array[$i]['po_product_description']);
-            $items['long_desc'][]   = replace_improper_textarea($array[$i]['po_product_add_description']);
-            $items['group'][]       = $array[$i]['po_display_make'];
-            $items['quantity'][]    = replace_improper($array[$i]['po_qty']);
+            $items['product'][]     = replace_improper($row['po_product_name'] ?? '');
+            $items['desc'][]        = replace_improper($row['po_product_description'] ?? '');
+            $items['long_desc'][]   = replace_improper_textarea($row['po_product_add_description'] ?? '');
+            $items['group'][]       = $row['po_display_make'] ?? '';
+            $items['quantity'][]    = replace_improper($row['po_qty'] ?? '');
             $items['received'][]    = '0';
-            $items['unit'][]        = replace_improper($array[$i]['po_unit']);
-            $items['price'][]       = replace_improper($array[$i]['po_rate']);
-            $items['discount'][]    = replace_improper($array[$i]['po_dsc']);
-            $items['hsn'][]         = replace_improper($array[$i]['po_hsn']);
-            $items['tax'][]         = replace_improper($array[$i]['po_tax']);
+            $items['unit'][]        = replace_improper($row['po_unit'] ?? '');
+            $items['price'][]       = replace_improper_amount($row['po_rate'] ?? '');
+            $items['discount'][]    = replace_improper($row['po_dsc'] ?? '');
+            $items['hsn'][]         = replace_improper($row['po_hsn'] ?? '');
+            $items['tax'][]         = replace_improper($row['po_tax'] ?? '');
             if($state == 'WEST BENGAL'){
-                $items['cgst'][]        = $array[$i]['po_cgst'];
-                $items['sgst'][]        = $array[$i]['po_sgst'];
-                $tax['cgst']            += $array[$i]['po_cgst'];
-                $tax['sgst']            += $array[$i]['po_sgst'];
+                $items['cgst'][]        = $row['po_cgst'] ?? 0;
+                $items['sgst'][]        = $row['po_sgst'] ?? 0;
+                $tax['cgst']            += (float)($row['po_cgst'] ?? 0);
+                $tax['sgst']            += (float)($row['po_sgst'] ?? 0);
             }else{
-                $items['igst'][]        = $array[$i]['po_igst'];
-                $tax['igst']            +=$array[$i]['po_igst'];
+                $items['igst'][]        = $row['po_igst'] ?? 0;
+                $tax['igst']            += (float)($row['po_igst'] ?? 0);
             }             
 
             $sql_temp = "DELETE FROM purchase_bag WHERE product_name = '$pr'";
@@ -100,21 +101,21 @@
 
         $addons['freight']['cgst'] = $po_freight_cgst;
         $addons['freight']['sgst'] = $po_freight_sgst;
-        $tax['cgst'] += $po_freight_cgst;
-        $tax['sgst'] += $po_freight_sgst;
+        $tax['cgst'] += (float)$po_freight_cgst;
+        $tax['sgst'] += (float)$po_freight_sgst;
 
         $addons['pf']['cgst'] = $po_pf_cgst;
         $addons['pf']['sgst'] = $po_pf_sgst;
-        $tax['cgst'] += $po_pf_cgst;
-        $tax['sgst'] += $po_pf_sgst;
+        $tax['cgst'] += (float)$po_pf_cgst;
+        $tax['sgst'] += (float)$po_pf_sgst;
 
     }else{
 
         $addons['freight']['igst'] = $po_freight_igst;
-        $tax['igst'] += $po_freight_igst;
+        $tax['igst'] += (float)$po_freight_igst;
 
         $addons['pf']['igst'] = $po_pf_igst;
-        $tax['igst'] += $po_pf_igst;
+        $tax['igst'] += (float)$po_pf_igst;
 
     }
 
@@ -157,7 +158,13 @@
                     $validator['success'] = false;
                     $validator['messages'] = "There was some error saving the records";
                 }
+            } else {
+                $validator['success'] = false;
+                $validator['messages'] = "Purchase order counter is not configured correctly.";
             }
+        } else {
+            $validator['success'] = false;
+            $validator['messages'] = "Purchase order counter not found.";
         }
     }
     else{

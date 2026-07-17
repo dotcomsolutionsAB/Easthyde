@@ -1,31 +1,36 @@
 <?php
 
+session_start();
 require_once "../connect.php";
 
-$memberId = $_REQUEST['member_id'];
-$status = $_REQUEST['status'];
-$script = $_REQUEST['script'];
+header('Content-Type: application/json; charset=utf-8');
 
-if($script=='quotation')
-{
-	$sql = "UPDATE quotation SET `status` = '$status' WHERE `quotation_no`= '$memberId' ";
+$memberId = (string)($_REQUEST['member_id'] ?? '');
+$status = (string)($_REQUEST['status'] ?? '');
+$script = (string)($_REQUEST['script'] ?? '');
+
+if ($memberId === '' || $status === '' || $script === '') {
+	echo json_encode(['success' => false, 'messages' => 'Missing required parameters']);
+	exit;
 }
+
+if ($script !== 'quotation') {
+	echo json_encode(['success' => false, 'messages' => 'Invalid script type']);
+	exit;
+}
+
+$safeMemberId = $db->real_escape_string($memberId);
+$safeStatus = $db->real_escape_string($status);
+
+$sql = "UPDATE quotation SET `status` = '$safeStatus' WHERE `quotation_no`= '$safeMemberId' ";
 $query = $db->query($sql);
 
 $db->close();
 
-if($query===true)
-    {
-        $validator['success'] = true;
-        $validator['messages'] = "Switched to completed";
-    }
-else
-    {
-        $validator['success'] = false;
-        $validator['messages'] = "There was some error saving the records";
-
-    }
- 
-echo json_encode($validator);
+if ($query === true) {
+	echo json_encode(['success' => true, 'messages' => 'Switched to completed']);
+} else {
+	echo json_encode(['success' => false, 'messages' => 'There was some error saving the records']);
+}
 
 ?>

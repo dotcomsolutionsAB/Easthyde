@@ -4,7 +4,7 @@
 
     session_start();
 
-    $validator = array("success"=>true, "messages"=>"There was some error saving the records", "so"=>"");
+    $validator = array("success"=>false, "messages"=>"There was some error saving the records", "so"=>"");
 
     $so_id = $_REQUEST['member_id'] ?? '';
     $log_user = $_SESSION['username'] ?? '';

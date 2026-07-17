@@ -5,25 +5,22 @@
     session_start();
 
     $array = $_REQUEST['assemblies'] ?? [];
+    if (!is_array($array)) { $array = []; }
     $l = sizeof($array);
 
     $composite = replace_improper($_REQUEST['composite_product_2'] ?? '');
     $log_user = $_SESSION['username'] ?? '';
     $log_date = date('Y-m-d', strtotime("today"));
-    $validator = array("success"=>true, "messages"=>"There was some error saving the records");
+    $validator = array("success"=>false, "messages"=>"There was some error saving the records");
 
     $spares=array('product'=>array(),'quantity'=>array());
 
     for($i=0;$i<$l;$i++){
-        if($array[$i]['a_product_name'] != '' && $array[$i]['a_qty'] != ''){
+        $row = is_array($array[$i] ?? null) ? $array[$i] : [];
+        if(($row['a_product_name'] ?? '') != '' && ($row['a_qty'] ?? '') != ''){
 
-            $pr = $array[$i]['e_product_name'];
-            $sql_temp = "SELECT * FROM product WHERE name = '$pr'";
-            $query_temp = $db->query($sql_temp);
-            $row_temp = ($query_temp && $query_temp->num_rows > 0) ? $query_temp->fetch_assoc() : null;
-
-            $spares['product'][] =replace_improper($array[$i]['a_product_name']);
-            $spares['quantity'][] = replace_improper($array[$i]['a_qty']);
+            $spares['product'][] = replace_improper($row['a_product_name'] ?? '');
+            $spares['quantity'][] = replace_improper($row['a_qty'] ?? '');
         }
     }
     $spare=json_encode($spares);

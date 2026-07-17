@@ -136,7 +136,7 @@
         }
     }
 
-    $validator      = array("success"=>true, "messages"=>"There was some error saving the records","pi"=>"");
+    $validator      = array("success"=>false, "messages"=>"There was some error saving the records","pi"=>"");
 
     $pi_id          = $input->edit_pi_id ?? '';
    
@@ -200,21 +200,22 @@
     $secondary_total = 0;
     $purchase_invoice_items = $array['purchase_invoice'] ?? [];
     if (!is_array($purchase_invoice_items)) { $purchase_invoice_items = []; }
-foreach ($purchase_invoice_items as $item) {
-        if ($item['pi_product_name'] != '' && $item['pi_qty'] != '') {
+foreach ($purchase_invoice_items as $line_item) {
+        if (!is_array($line_item)) { continue; }
+        if (($line_item['pi_product_name'] ?? '') != '' && ($line_item['pi_qty'] ?? '') != '') {
             // Add items to the array
-            $items['product'][] = replace_improper($item['pi_product_name']);
-            $items['desc'][] = replace_improper($item['pi_product_description']);
-            $items['long_desc'][] = replace_improper_textarea($item['pi_product_add_description']);
-            $items['quantity'][] = replace_improper($item['pi_qty']);
-            $items['unit'][] = replace_improper($item['pi_unit']);
-            $items['price'][] = replace_improper($item['pi_rate']);
-            $items['tax'][] = replace_improper($item['pi_tax']);
+            $items['product'][] = replace_improper($line_item['pi_product_name'] ?? '');
+            $items['desc'][] = replace_improper($line_item['pi_product_description'] ?? '');
+            $items['long_desc'][] = replace_improper_textarea($line_item['pi_product_add_description'] ?? '');
+            $items['quantity'][] = replace_improper($line_item['pi_qty'] ?? '');
+            $items['unit'][] = replace_improper($line_item['pi_unit'] ?? '');
+            $items['price'][] = replace_improper_amount($line_item['pi_rate'] ?? '');
+            $items['tax'][] = replace_improper($line_item['pi_tax'] ?? '');
     
             // Handle tax values
-            $cgst = isset($item['pi_cgst']) ? (float)$item['pi_cgst'] : 0.0;
-            $sgst = isset($item['pi_sgst']) ? (float)$item['pi_sgst'] : 0.0;
-            $igst = isset($item['pi_igst']) ? (float)$item['pi_igst'] : 0.0;
+            $cgst = (float)($line_item['pi_cgst'] ?? 0);
+            $sgst = (float)($line_item['pi_sgst'] ?? 0);
+            $igst = (float)($line_item['pi_igst'] ?? 0);
     
             if ($state == 'WEST BENGAL') {
                 $items['cgst'][] = $cgst;
@@ -223,20 +224,17 @@ foreach ($purchase_invoice_items as $item) {
                 $tax['sgst'] += $sgst;
             } else {
                 $items['igst'][] = $igst;
-                $tax['igst'] += 1;
+                $tax['igst'] += $igst;
             }
          
             
-            $secondary_total = $secondary_total + $item['pi_gross_pr'];
+            $secondary_total += (float)($line_item['pi_gross_pr'] ?? 0);
 
      
         }
     }
         
 
-            $secondary_total = $secondary_total + $item['pi_gross_pr'];
-
-     
     $item=json_encode($items);
 
     $status=0;
@@ -266,7 +264,7 @@ foreach ($purchase_invoice_items as $item) {
     $tax['igst'] = number_format((float)$tax['igst'], 2, '.', '');
     
 
-    $addons['roundoff'] = $input->pi_round ?? '';
+    $addons['roundoff'] = replace_improper_amount($input->pi_round ?? '');
 
     $addon      = json_encode($addons);
     $tax_json   = json_encode($tax);
@@ -369,6 +367,6 @@ foreach ($purchase_invoice_items as $item) {
     echo json_encode($validator);
 
     function TrimTrailingZeroes($nbr) {
-        return strpos($nbr,'.')!==false ? rtrim(rtrim($nbr,'0'),'.') : $nbr;
+        return strpos((string)$nbr,'.')!==false ? rtrim(rtrim((string)$nbr,'0'),'.') : (string)$nbr;
     }
 ?>

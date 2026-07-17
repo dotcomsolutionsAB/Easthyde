@@ -4,7 +4,7 @@
 
     session_start();
 
-    $validator = array("success"=>true, "messages"=>"There was some error saving the records");
+    $validator = array("success"=>false, "messages"=>"There was some error saving the records");
 
     $e_id = $_REQUEST['ai_e_id'] ?? '';
     $product = replace_improper($_REQUEST['ai_e_product'] ?? '');

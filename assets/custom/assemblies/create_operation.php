@@ -5,24 +5,26 @@
 	$log_user       = $_SESSION['username'] ?? '';
     $assembly_date_raw = $_REQUEST['assembly_date'] ?? '';
     $log_date       = ($assembly_date_raw !== '') ? date('Y-m-d', strtotime((string)$assembly_date_raw)) : '';
-    $validator      = array("success"=>true, "messages"=>"There was some error saving the records");
+    $validator      = array("success"=>false, "messages"=>"There was some error saving the records");
     $edit_as_id     = $_REQUEST['edit_as_id'] ?? '';
 
-	$composite      = $_REQUEST['composite_product'] ?? '';
-    $quantity       = $_REQUEST['composite_qty'] ?? '';
-    $operation      = $_REQUEST['as_type'] ?? '';
+	$composite      = replace_improper($_REQUEST['composite_product'] ?? '');
+    $quantity       = replace_improper($_REQUEST['composite_qty'] ?? '');
+    $operation      = replace_improper($_REQUEST['as_type'] ?? '');
 
 	$array      = $_REQUEST['assembly'] ?? [];
+    if (!is_array($array)) { $array = []; }
     $l          = sizeof($array);
 
     $items = array('product'=>array(),'quantity'=>array(),'place'=>array());
 
     for($i=0;$i<$l;$i++){
-        if($array[$i]['as_product_name'] != '' && $array[$i]['as_qty'] != ''){
+        $row = is_array($array[$i] ?? null) ? $array[$i] : [];
+        if(($row['as_product_name'] ?? '') != '' && ($row['as_qty'] ?? '') != ''){
 
-            $items['product'][]     = $array[$i]['as_product_name'];
-            $items['quantity'][]    = $array[$i]['as_qty'];
-            $items['place'][]       = $array[$i]['as_place'];
+            $items['product'][]     = replace_improper($row['as_product_name'] ?? '');
+            $items['quantity'][]    = replace_improper($row['as_qty'] ?? '');
+            $items['place'][]       = replace_improper($row['as_place'] ?? '');
 
         }
     }

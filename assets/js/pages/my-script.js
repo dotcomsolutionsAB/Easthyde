@@ -18903,21 +18903,27 @@ var Payments = function () {
                         swal.fire({
                             position: 'top-right',
                             type: 'error',
-                            title: 'The totals do not tally.',
-                            showConfirmButton: false,
-                            timer: 1500
+                            title: response.messages || 'The totals do not tally.',
+                            showConfirmButton: true
                         });
                     } else {
                         swal.fire({
                             position: 'top-right',
                             type: 'error',
-                            title: 'There were some errors in your submission.',
-                            showConfirmButton: false,
-                            timer: 1500
+                            title: response.messages || 'There were some errors in your submission.',
+                            showConfirmButton: true
                         });
                     }
 
 
+                },
+                error: function (xhr) {
+                    swal.fire({
+                        position: 'top-right',
+                        type: 'error',
+                        title: 'Payment save failed (' + (xhr.status || 'error') + ').',
+                        showConfirmButton: true
+                    });
                 }
             });
 

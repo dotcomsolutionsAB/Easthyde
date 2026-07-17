@@ -4,7 +4,7 @@
 
     session_start();
 
-    $validator = array("success"=>true, "messages"=>"There was some error saving the records", "q_no"=>"");
+    $validator = array("success"=>false, "messages"=>"There was some error saving the records", "q_no"=>"");
 
     $id = $_REQUEST['journal_edit_id'] ?? '';
     $quotation_no = $_REQUEST['quotation_no'] ?? '';
@@ -16,19 +16,21 @@
     $date = ($journal_date_raw !== '') ? date('Y-m-d', strtotime((string)$journal_date_raw)) : '';
     
     $array = $_REQUEST['journal'] ?? [];
+    if (!is_array($array)) { $array = []; }
     $l = sizeof($array);
 
     $items=array();
 
     for($i=0;$i<$l;$i++){
-        if($array[$i]['journal_master'] != ''){
+        $row = is_array($array[$i] ?? null) ? $array[$i] : [];
+        if(($row['journal_master'] ?? '') != ''){
 
             $temp = array();
 
-            $temp['master']      = replace_improper($array[$i]['journal_master']);
-            $temp['particular']  = replace_improper($array[$i]['journal_particular']);
-            $temp['debit']       = replace_improper($array[$i]['journal_debit']);
-            $temp['credit']      = replace_improper($array[$i]['journal_credit']);
+            $temp['master']      = replace_improper($row['journal_master'] ?? '');
+            $temp['particular']  = replace_improper($row['journal_particular'] ?? '');
+            $temp['debit']       = replace_improper_amount($row['journal_debit'] ?? '');
+            $temp['credit']      = replace_improper_amount($row['journal_credit'] ?? '');
 
             $items[] = $temp;
         }

@@ -9,9 +9,10 @@
     $log_user               = $_SESSION['username'] ?? '';
     $log_date               = date('Y-m-d', strtotime("today"));
 
-    $validator              = array("success"=>true, "messages"=>"There was some error saving the records","si"=>"");
+    $validator              = array("success"=>false, "messages"=>"There was some error saving the records","si"=>"");
 
     $array                  = $_REQUEST['debit_note'] ?? [];
+    if (!is_array($array)) { $array = []; }
     $l                      = sizeof($array);
 
     $supplier                 = replace_improper($_REQUEST['dn_supplier'] ?? '');
@@ -24,7 +25,7 @@
     $dn_pi_date             = ($dn_pi_date_raw !== '') ? date('Y-m-d', strtotime((string)$dn_pi_date_raw)) : '';
 
 
-    $state                  = $_REQUEST['dn_state'] ?? '';
+    $state                  = strtoupper((string)($_REQUEST['dn_state'] ?? ''));
 
     $tot_amount             = 0;
     $order_no               = '';
@@ -34,38 +35,44 @@
     $tax                    = array("cgst"=>'0', "sgst"=>'0', "igst"=>'0');
 
     for($i=0;$i<$l;$i++){
-        if($array[$i]['dn_product_name'] != '' && $array[$i]['dn_qty'] != ''){
+        $row = is_array($array[$i] ?? null) ? $array[$i] : [];
+        if(($row['dn_product_name'] ?? '') != '' && ($row['dn_qty'] ?? '') != ''){
 
             $cgst=0;
             $sgst=0;
             $igst=0;
 
-            $total_temp = ($array[$i]['dn_rate'] * $array[$i]['dn_qty']) - ($array[$i]['dn_rate'] * $array[$i]['dn_qty'] * $array[$i]['dn_dsc'] / 100 );
+            $qty = (float)($row['dn_qty'] ?? 0);
+            $rate = (float)str_replace(',', '', (string)($row['dn_rate'] ?? '0'));
+            $dsc = (float)($row['dn_dsc'] ?? 0);
+            $tax_pct = (float)($row['dn_tax'] ?? 0);
+
+            $total_temp = ($rate * $qty) - ($rate * $qty * $dsc / 100 );
 
             if($state == 'WEST BENGAL'){
 
-                $taxper = $array[$i]['dn_tax']/2;
+                $taxper = $tax_pct/2;
                 $cgst = $total_temp * $taxper / 100;
                 $sgst = $total_temp * $taxper / 100;
                 $cgst = round($cgst*100)/100;
                 $sgst = round($sgst*100)/100;
             }
             else{
-                $taxper = $array[$i]['dn_tax'];
+                $taxper = $tax_pct;
                 $igst = $total_temp * $taxper / 100;
                 $igst = round($igst*100)/100;
             }
 
-            $items['product'][]     = replace_improper($array[$i]['dn_product_name']);
-            $items['desc'][]        = replace_improper_same($array[$i]['dn_product_description']);
-            $items['long_desc'][]   = replace_improper_textarea($array[$i]['dn_product_add_description']);
-            $items['group'][]       = $array[$i]['dn_display_make'];
-            $items['quantity'][]    = replace_improper($array[$i]['dn_qty']);
-            $items['unit'][]        = replace_improper($array[$i]['dn_unit']);
-            $items['price'][]       = replace_improper($array[$i]['dn_rate']);
-            $items['discount'][]    = replace_improper($array[$i]['dn_dsc']);
-            $items['hsn'][]         = replace_improper($array[$i]['dn_hsn']);
-            $items['tax'][]         = replace_improper($array[$i]['dn_tax']);
+            $items['product'][]     = replace_improper($row['dn_product_name'] ?? '');
+            $items['desc'][]        = replace_improper_same($row['dn_product_description'] ?? '');
+            $items['long_desc'][]   = replace_improper_textarea($row['dn_product_add_description'] ?? '');
+            $items['group'][]       = $row['dn_display_make'] ?? '';
+            $items['quantity'][]    = replace_improper($row['dn_qty'] ?? '');
+            $items['unit'][]        = replace_improper($row['dn_unit'] ?? '');
+            $items['price'][]       = replace_improper_amount($row['dn_rate'] ?? '');
+            $items['discount'][]    = replace_improper($row['dn_dsc'] ?? '');
+            $items['hsn'][]         = replace_improper($row['dn_hsn'] ?? '');
+            $items['tax'][]         = replace_improper($row['dn_tax'] ?? '');
             if($state == 'WEST BENGAL'){
                 $items['cgst'][]        = $cgst;
                 $items['sgst'][]        = $sgst;
@@ -73,12 +80,12 @@
                 $tax['sgst']            += $sgst;
             }else{
                 $items['igst'][]        = $igst;
-                $tax['igst']            +=$igst;
+                $tax['igst']            += $igst;
             }
-            $total = $array[$i]['dn_qty'] * $array[$i]['dn_rate'];
+            $total = $qty * $rate;
 
-            if ($array[$i]['dn_dsc'] != '') {
-                $total = $total - ($array[$i]['dn_qty'] * $array[$i]['dn_rate']) * ($array[$i]['dn_dsc'] / 100);
+            if ($dsc != 0) {
+                $total = $total - ($qty * $rate) * ($dsc / 100);
             }
 
             $tot_amount += $total + $cgst + $sgst + $igst;  
@@ -87,19 +94,21 @@
     }
     $item       = json_encode($items);
 
-    $dn_pf      = replace_improper($_REQUEST['dn_pf'] ?? '');    
-    $dn_freight = replace_improper($_REQUEST['dn_freight'] ?? '');    
+    $dn_pf      = replace_improper_amount($_REQUEST['dn_pf'] ?? '');    
+    $dn_freight = replace_improper_amount($_REQUEST['dn_freight'] ?? '');    
    
 
     $dn_pf           = str_replace(',', '', $dn_pf);
     $dn_freight      = str_replace(',', '', $dn_freight);
+    $dn_pf_f         = (float)$dn_pf;
+    $dn_freight_f    = (float)$dn_freight;
     
 
     $addons = array('freight'=>array('value'=>$dn_freight,'cgst'=>'','sgst'=>'','igst'=>''),'pf'=>array('value'=>$dn_pf,'cgst'=>'','sgst'=>'','igst'=>''),'roundoff'=>'');
 
     if($state == 'WEST BENGAL'){
-        if($dn_freight != '0' && $dn_freight != '0.00' && $dn_freight != ''){
-            $tax_value = $dn_freight * 9 / 100;
+        if($dn_freight_f != 0){
+            $tax_value = $dn_freight_f * 9 / 100;
         }
         else{
             $tax_value = 0;
@@ -110,10 +119,10 @@
         $tax['cgst'] += round($tax_value,2);
         $tax['sgst'] += round($tax_value,2);
 
-        $tot_amount += $dn_freight + $tax_value + $tax_value;
+        $tot_amount += $dn_freight_f + $tax_value + $tax_value;
 
-        if($dn_pf != '0' && $dn_pf != '0.00' && $dn_pf != ''){
-            $tax_value = $dn_pf * 9 / 100;
+        if($dn_pf_f != 0){
+            $tax_value = $dn_pf_f * 9 / 100;
         }
         else{
             $tax_value = 0;
@@ -123,11 +132,11 @@
         $tax['cgst'] += round($tax_value,2);
         $tax['sgst'] += round($tax_value,2);
 
-        $tot_amount += $dn_pf + $tax_value + $tax_value;
+        $tot_amount += $dn_pf_f + $tax_value + $tax_value;
 
     }else{
-        if($dn_freight != '0' && $dn_freight != '0.00' && $dn_freight != ''){
-            $tax_value = $dn_freight * 18 / 100;
+        if($dn_freight_f != 0){
+            $tax_value = $dn_freight_f * 18 / 100;
         }
         else{
             $tax_value = 0;
@@ -135,10 +144,10 @@
         $addons['freight']['igst'] = round($tax_value,2);
         $tax['igst'] += round($tax_value,2);
 
-        $tot_amount += $dn_freight + $tax_value;
+        $tot_amount += $dn_freight_f + $tax_value;
 
-        if($dn_pf != '0' && $dn_pf != '0.00' && $dn_pf != ''){
-            $tax_value = $dn_pf * 18 / 100;
+        if($dn_pf_f != 0){
+            $tax_value = $dn_pf_f * 18 / 100;
         }
         else{
             $tax_value = 0;
@@ -146,7 +155,7 @@
         $addons['pf']['igst'] = round($tax_value,2);
         $tax['igst'] += round($tax_value,2);
 
-        $tot_amount += $dn_pf + $tax_value;
+        $tot_amount += $dn_pf_f + $tax_value;
 
     }
 
@@ -183,25 +192,22 @@
         
         $sql_counter = "SELECT * FROM counter WHERE `key` = 'debit_note'";
         $query_counter = $db->query($sql_counter);
-        $row_counter = ($query_counter && $query_counter->num_rows > 0) ? $query_counter->fetch_assoc() : null;
-        $row_counter_arr = ($row_counter && isset($row_counter['value'])) ? json_decode($row_counter['value'], true) : null;
+        if ($query_counter && $query_counter->num_rows > 0) {
+        $row_counter = $query_counter->fetch_assoc();
+        $row_counter_arr = json_decode($row_counter['value'] ?? '', true);
 
-        if(is_array($row_counter_arr) && isset($row_counter_arr['prefix'][0]) && isset($row_counter_arr['number'][0]) && isset($row_counter_arr['postfix'][0])){
-            $order_no = $row_counter_arr['prefix'][0].str_pad($row_counter_arr['number'][0],4,'0', STR_PAD_LEFT).$row_counter_arr['postfix'][0];
+        if(is_array($row_counter_arr) && isset($row_counter_arr['prefix'][0], $row_counter_arr['number'][0], $row_counter_arr['postfix'][0])){
+            $order_no = $row_counter_arr['prefix'][0].str_pad((string)$row_counter_arr['number'][0],4,'0', STR_PAD_LEFT).$row_counter_arr['postfix'][0];
             $row_counter_arr['number'][0] = $row_counter_arr['number'][0] + 1;
-        }
 
-        $sql = "INSERT INTO debit_note (`supplier`,`purchase_invoice`,`dn_pi_date`,`dn_no`,`dn_date`,`state`,`items`,`addons`,`total`,`tax`,`status`,`log_user`,`log_date`) VALUES ('$supplier','$purchase_invoice','$dn_pi_date','$dn_no', '$dn_date','$state','$item','$addon','$tot_amount','$tax_json','$status','$log_user','$log_date')";
+        $sql = "INSERT INTO debit_note (`supplier`,`purchase_invoice`,`dn_pi_date`,`dn_no`,`dn_date`,`state`,`items`,`addons`,`total`,`tax`,`status`,`log_user`,`log_date`) VALUES ('$supplier','$purchase_invoice','$dn_pi_date','$order_no', '$dn_date','$state','$item','$addon','$tot_amount','$tax_json','$status','$log_user','$log_date')";
         $query = $db->query($sql);
 
         if($query===true)
         {
-           
-            if(is_array($row_counter_arr) && isset($row_counter_arr['prefix'][0])){
                 $counter_array = json_encode($row_counter_arr);
                 $sql_counter = "UPDATE counter SET `value` = '$counter_array' WHERE `key` = 'debit_note'";
                 $query_counter = $db->query($sql_counter);
-            }
             
             $validator['success'] = true;
             $validator['messages'] = "Successfully Added";
@@ -212,6 +218,14 @@
             $validator['success'] = false;
             $validator['messages'] = "There was some error saving the records";
 
+        }
+        } else {
+            $validator['success'] = false;
+            $validator['messages'] = "Debit note counter is not configured correctly.";
+        }
+        } else {
+            $validator['success'] = false;
+            $validator['messages'] = "Debit note counter not found.";
         }
     }
     else
@@ -237,6 +251,6 @@
     echo json_encode($validator);
 
     function TrimTrailingZeroes($nbr) {
-        return strpos($nbr,'.')!==false ? rtrim(rtrim($nbr,'0'),'.') : $nbr;
+        return strpos((string)$nbr,'.')!==false ? rtrim(rtrim((string)$nbr,'0'),'.') : (string)$nbr;
     }
 ?>
