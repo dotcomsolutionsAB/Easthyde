@@ -332,7 +332,7 @@ for($i=0;$i<$l;$i++){
 
 		$temp = $items['desc'][$i];
 		$product = dotcom_wordwrap($temp,40);
-		$co = count($product);
+		$co = (is_array($product) ? count($product) : 1);
 
 		if($make == '1')
 			$temp = $items['product'][$i].', Make : '.$pr_group;
@@ -509,7 +509,7 @@ for($i=0;$i<$l;$i++){
 
 		$temp = $items['desc'][$i];
 		$product = dotcom_wordwrap($temp,40);
-		$co = count($product);
+		$co = (is_array($product) ? count($product) : 1);
 
 		if($make == '1')
 			$temp = $items['product'][$i].', Make : '.$pr_group;

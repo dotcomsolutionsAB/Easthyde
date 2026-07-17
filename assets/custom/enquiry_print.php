@@ -261,7 +261,7 @@ for($i=0;$i<$l;$i++){
 
 	$temp = $items['desc'][$i];
 	$product = dotcom_wordwrap($temp,75);
-	$co = count($product);
+	$co = (is_array($product) ? count($product) : 1);
 
 	$temp = $items['product'][$i];
 
