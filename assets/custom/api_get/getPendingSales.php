@@ -33,8 +33,8 @@ if ($row_opening && ($row_opening['opening_balance'] ?? '') != '') {
 		$response['si_details_sn'][] = $serial_no;
 		$response['si_details_si'][] = 'Opening';
 		$response['si_details_date'][] = 'N/A';
-		$response['si_details_amount'][] = number_format($due, 2);
-		$response['due'][] = number_format($due, 2);
+		$response['si_details_amount'][] = number_format($due, 2, '.', '');
+		$response['due'][] = number_format($due, 2, '.', '');
 		$serial_no++;
 	}
 }
@@ -54,8 +54,8 @@ if ($query) {
 			$response['si_details_sn'][] = $serial_no;
 			$response['si_details_si'][] = $sales_invoice;
 			$response['si_details_date'][] = $sales_date;
-			$response['si_details_amount'][] = number_format($amount, 2);
-			$response['due'][] = number_format($amount, 2);
+			$response['si_details_amount'][] = number_format($amount, 2, '.', '');
+			$response['due'][] = number_format($amount, 2, '.', '');
 		} else {
 			$received = 0;
 			$safeSi = $db->real_escape_string($sales_invoice);
@@ -80,8 +80,8 @@ if ($query) {
 			$response['si_details_sn'][] = $serial_no;
 			$response['si_details_si'][] = $sales_invoice;
 			$response['si_details_date'][] = $sales_date;
-			$response['si_details_amount'][] = number_format($due, 2);
-			$response['due'][] = number_format($due, 2);
+			$response['si_details_amount'][] = number_format($due, 2, '.', '');
+			$response['due'][] = number_format($due, 2, '.', '');
 		}
 		$serial_no++;
 	}
