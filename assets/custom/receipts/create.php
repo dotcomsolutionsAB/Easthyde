@@ -21,9 +21,9 @@
 	$instrument = replace_improper($_REQUEST['rc_instrument'] ?? '');
 	$ins_date 	= replace_improper($_REQUEST['rc_ins_date'] ?? '');
 	$ins_date 	= ($ins_date !== '') ? date('Y-m-d', strtotime($ins_date)) : '';
-	// Invalid/empty instrument dates must be NULL (MySQL rejects '')
-	if ($ins_date === '' || $ins_date === '1970-01-01' || $ins_date === false) {
-		$ins_date = '';
+	// Column is NOT NULL — fall back to receipt date when instrument date is blank
+	if ($ins_date === '' || $ins_date === '1970-01-01') {
+		$ins_date = $date;
 	}
 	$adv_amount = replace_improper_amount($_REQUEST['rc_advance_amount'] ?? '');
 

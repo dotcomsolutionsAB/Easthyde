@@ -16,9 +16,6 @@
 	$instrument = replace_improper($_REQUEST['py_instrument'] ?? '');
 	$ins_date = replace_improper($_REQUEST['py_ins_date'] ?? '');
 	$ins_date 	= ($ins_date !== '') ? date('Y-m-d', strtotime($ins_date)) : '';
-	if ($ins_date === '' || $ins_date === '1970-01-01') {
-		$ins_date = '';
-	}
 	$adv_amount = replace_improper_amount($_REQUEST['py_advance_amount'] ?? '');
 
 	$status		= 1;
@@ -28,6 +25,10 @@
 	$log_user = $_SESSION['username'] ?? '';
 	$date = ($date !== '') ? date('Y-m-d', strtotime($date)) : '';
 	fy_assert_or_exit_json($date, "Payment date");
+	// Column is NOT NULL — fall back to payment date when instrument date is blank
+	if ($ins_date === '' || $ins_date === '1970-01-01') {
+		$ins_date = $date;
+	}
 
 	$validator = array("success"=>false, "messages"=>"There was some error saving the records", "r_no"=>'');
 
