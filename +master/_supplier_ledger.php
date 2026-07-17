@@ -1,198 +1,123 @@
 <?php
-//error_reporting(E_ALL);
-//ini_set('display_errors', 1);
-
-session_start();
+if (session_status() !== PHP_SESSION_ACTIVE) {
+	session_start();
+}
 require_once "../assets/custom/connect.php";
 setlocale(LC_MONETARY, 'en_IN');
 
-$start = $_SESSION['start'];
-$end = $_SESSION['end'];
+$start = $_SESSION['start'] ?? '';
+$end = $_SESSION['end'] ?? '';
 
-$start_year = date('Y', strtotime($start));
-$end_year = date('Y', strtotime($end));
+if ($start === '' || $end === '') {
+	echo '<div class="alert alert-danger">Financial year session is not set. Please re-login or select a financial year.</div>';
+	return;
+}
 
-$year = $start_year.'-'.substr($end, 2,2);
+$start_year = (int)date('Y', strtotime($start));
+$end_year = (int)date('Y', strtotime($end));
+$year = $start_year.'-'.substr((string)$end_year, 2, 2);
 
-$id = $_REQUEST['id'];
-$supplier_id = $_REQUEST['id'];
-$result=array('particulars'=>array(),'date'=>array(),'voucher'=>array(),'credit'=>array(),'debit'=>array());
+$id = $_REQUEST['id'] ?? '';
+$supplier_id = $id;
+if ($id === '') {
+	echo '<div class="alert alert-danger">Supplier ID missing.</div>';
+	return;
+}
 
+$result = ['particulars'=>[], 'date'=>[], 'voucher'=>[], 'credit'=>[], 'debit'=>[]];
 
-$sql_fetch = "SELECT * FROM suppliers WHERE id = '$id'";
+$esc_id = $db->real_escape_string((string)$id);
+$sql_fetch = "SELECT * FROM suppliers WHERE id = '$esc_id'";
 $query_fetch = $db->query($sql_fetch);
-$row_fetch = $query_fetch->fetch_assoc();
-
-$supplier = $row_fetch['name'];
-
-$new_opening_balance = json_decode($row_fetch['new_opening_balance'],true);
-$len = sizeof($new_opening_balance['year']);
-
-for($i=0;$i<$len;$i++)
-{
-    if($new_opening_balance['year'][$i] == $year)
-    {
-        $opening = $new_opening_balance['balance'][$i];
-    }
+$row_fetch = $query_fetch ? $query_fetch->fetch_assoc() : null;
+if (!$row_fetch) {
+	echo '<div class="alert alert-danger">Supplier not found.</div>';
+	return;
 }
 
-// $opening = $row_fetch['opening_balance'];
-$contacts = json_decode($row_fetch['contacts'], true) ?? [];
-$email = $contacts['email'][0] ?? '';
-$mobile = $contacts['mobile'][0] ?? '';
+$supplier = (string)($row_fetch['name'] ?? '');
 
+$opening = 0.0;
+$new_opening_balance = json_decode($row_fetch['new_opening_balance'] ?? '', true);
+if (!is_array($new_opening_balance)) {
+	$new_opening_balance = ['year' => [], 'balance' => []];
+}
+$ob_years = is_array($new_opening_balance['year'] ?? null) ? $new_opening_balance['year'] : [];
+$ob_balances = is_array($new_opening_balance['balance'] ?? null) ? $new_opening_balance['balance'] : [];
+$len = count($ob_years);
 
-$count=1;
-$total=0;
-$debit=0;
-$credit=0;
-$d_debit=0;
-$c_credit=0;
+for ($i = 0; $i < $len; $i++) {
+	if (($ob_years[$i] ?? '') == $year) {
+		$opening = (float)($ob_balances[$i] ?? 0);
+	}
+}
 
-if (isset($opening) && $opening != 0)
-{
+$contacts = json_decode($row_fetch['contacts'] ?? '', true);
+if (!is_array($contacts)) {
+	$contacts = [];
+}
+$email = (string)($contacts['email'][0] ?? '');
+$mobile = (string)($contacts['mobile'][0] ?? '');
+
+$count = 0;
+$total = 0.0;
+$debit = 0.0;
+$credit = 0.0;
+$d_debit = 0.0;
+$c_credit = 0.0;
+
+if ($opening != 0.0) {
 	$result['particulars'][] = 'Opening Balance';
-    $result['date'][] = $start;
-    $result['voucher'][] = '';
-    $result['credit'][] = $opening;
-    $result['debit'][] = '';
+	$result['date'][] = $start;
+	$result['voucher'][] = '';
+	$result['credit'][] = $opening;
+	$result['debit'][] = 0.0;
 }
 
-$sql = "SELECT * FROM purchase_invoice WHERE `supplier_name`='$supplier' AND `pi_date` BETWEEN '$start' AND '$end' ORDER BY `pi_date` ASC";
+$esc_supplier = $db->real_escape_string($supplier);
+$esc_start = $db->real_escape_string((string)$start);
+$esc_end = $db->real_escape_string((string)$end);
+
+$sql = "SELECT * FROM purchase_invoice WHERE `supplier_name`='$esc_supplier' AND `pi_date` BETWEEN '$esc_start' AND '$esc_end' ORDER BY `pi_date` ASC";
 $query = $db->query($sql);
-while($row = $query->fetch_assoc()){
-	$count++;
-
-	$tax_details = json_decode($row['tax'], true);
-
-    $total = $row['total'];
-    $tax = $tax_details['cgst'] + $tax_details['sgst'] + $tax_details['igst'];
-
-    $id = $row['id'];
-
-    $result['particulars'][] = '<a target="_blank" href="/assets/custom/purchase_invoice_print.php?id='.$row['id'].'&type=print">'.$row['pi_no'].'</a>';
-    $result['date'][] = $row['pi_date'];
-    $result['voucher'][] = 'Purchase';
-    $result['credit'][] = $total;
-    $result['debit'][] = '';
-
+if ($query) {
+	while ($row = $query->fetch_assoc()) {
+		$count++;
+		$inv_total = (float)($row['total'] ?? 0);
+		$result['particulars'][] = '<a target="_blank" href="/assets/custom/purchase_invoice_print.php?id='.htmlspecialchars((string)($row['id'] ?? '')).'&type=print">'.htmlspecialchars((string)($row['pi_no'] ?? '')).'</a>';
+		$result['date'][] = $row['pi_date'] ?? '';
+		$result['voucher'][] = 'Purchase';
+		$result['credit'][] = $inv_total;
+		$result['debit'][] = 0.0;
+	}
 }
 
-// $sql = "SELECT * FROM debit_note WHERE `supplier`='$supplier' AND `dn_date` BETWEEN '$start' AND '$end' ORDER BY `dn_date` ASC";
-// $query = $db->query($sql);
-// while($row = $query->fetch_assoc()){
-//     $count++;
-
-//     $tax_details = json_decode($row['tax'], true) ?? [];
-//     $cgst = isset($tax_details['cgst']) ? $tax_details['cgst'] : 0;
-//     $sgst = isset($tax_details['sgst']) ? $tax_details['sgst'] : 0;
-//     $igst = isset($tax_details['igst']) ? $tax_details['igst'] : 0;
-//     $tax = $cgst + $sgst + $igst;
-
-
-//     $total = $row['total'];
-//     // $tax = $tax_details['cgst'] + $tax_details['sgst'] + $tax_details['igst'];
-
-//     $result['particulars'][] = '<a target="_blank" href="/assets/custom/debit_note_print.php?id='.$row['dn_no'].'&type=print">'.$row['dn_no'].'</a>';
-//     $result['date'][] = $row['dn_date'];
-//     $result['voucher'][] = 'Debit Note';
-//     $result['credit'][] = '';
-//     $result['debit'][] = $total;
-
-// }
-
-$sql = "SELECT * FROM payments WHERE `supplier` = '$supplier' AND `date` BETWEEN '$start' AND '$end' ORDER BY `date` ASC";
+$sql = "SELECT * FROM payments WHERE `supplier` = '$esc_supplier' AND `date` BETWEEN '$esc_start' AND '$esc_end' ORDER BY `date` ASC";
 $query = $db->query($sql);
+if ($query) {
+	while ($row = $query->fetch_assoc()) {
+		$purchase_invoice = json_decode($row['purchase_invoice'] ?? '', true);
+		$purchase_invoice_no = (is_array($purchase_invoice) && isset($purchase_invoice['pi_no']) && is_array($purchase_invoice['pi_no']))
+			? implode(', ', $purchase_invoice['pi_no'])
+			: 'N/A';
 
-while ($row = $query->fetch_assoc()) {
-    // Decode the JSON stored in 'purchase_invoice'
-    $purchase_invoice = json_decode($row['purchase_invoice'], true);
-
-    // Check if 'pi_no' exists and is an array. If so, concatenate all elements with commas.
-    $purchase_invoice_no = isset($purchase_invoice['pi_no']) ? implode(', ', $purchase_invoice['pi_no']) : 'N/A';
-    
-    // Prepare the result data
-    $result['particulars'][] = 'Payment - ' . $row['mode'] . ' (' . $row['instrument'] . ')<br/>PI #: ' . $purchase_invoice_no;
-    $result['date'][]        = $row['date'];
-    $result['voucher'][]     = 'Payment';
-    $result['credit'][]      = '0';
-    $result['debit'][]       = $row['amount'];
+		$result['particulars'][] = 'Payment - ' . htmlspecialchars((string)($row['mode'] ?? '')) . ' (' . htmlspecialchars((string)($row['instrument'] ?? '')) . ')<br/>PI #: ' . htmlspecialchars($purchase_invoice_no);
+		$result['date'][]        = $row['date'] ?? '';
+		$result['voucher'][]     = 'Payment';
+		$result['credit'][]      = 0.0;
+		$result['debit'][]       = (float)($row['amount'] ?? 0);
+	}
 }
 
-// $sql = "SELECT * FROM `journal` where `items` LIKE '%$supplier%' AND `date` BETWEEN '$start' AND '$end' ORDER BY `date` ASC";
-// $query = $db->query($sql);
-// while($row = $query->fetch_assoc()){
-
-//     $items = json_decode($row['items'], true);
-
-//     if($items['debit'][0] != '')
-//     {
-//         $result['particulars'][]    = $row['id'].' - '.$items['master'][0];
-//         $result['date'][]           = $row['date'];
-//         $result['voucher'][]        = 'Journal';
-//         $result['credit'][]         = '0';
-//         $result['debit'][]          = $items['debit'][0];
-//     }
-
-//     if($items['debit'][1] != ''){
-//         $result['particulars'][]    = $row['id'].' - '.$items['master'][1];
-//         $result['date'][]           = $row['date'];
-//         $result['voucher'][]        = 'Journal';
-//         $result['credit'][]         = '0';
-//         $result['debit'][]          = $items['debit'][1];
-
-//     }
-
-// }
-
-// $sql = "SELECT * FROM `journal` where `items` LIKE '%$supplier%' AND `date` BETWEEN '$start' AND '$end' ORDER BY `date` ASC";
-// $query = $db->query($sql);
-// while($row = $query->fetch_assoc()){
-
-//     $items = json_decode($row['items'], true);
-//     if(is_array($items))
-//         $len = sizeof($items);
-//     else
-//         $len = 1;
-
-//     for($i=0;$i<$len;$i++){
-//         $master = $items[$i]['master'];
-//         if($master == $supplier)
-//         {
-//             $result['particulars'][]    = $items[1]['master'];
-//             $result['date'][]           = $row['date'];
-//             $result['voucher'][]        = 'Journal';
-//             $result['credit'][]         = $items[$i]['credit'];
-//             $result['debit'][]          = $items[$i]['debit'];
-//         }
-//     }
-
-// }
-
-$len = sizeof($result['date']);
-
-for($m=0;$m<$len-1;$m++){
-	for($n=$m+1;$n<$len;$n++){
-		if($result['date'][$m] > $result['date'][$n]){
-			$temp = $result['date'][$m];
-			$result['date'][$m] = $result['date'][$n];
-			$result['date'][$n] = $temp;
-
-			$temp = $result['particulars'][$m];
-			$result['particulars'][$m] = $result['particulars'][$n];
-			$result['particulars'][$n] = $temp;
-
-			$temp = $result['voucher'][$m];
-            $result['voucher'][$m] = $result['voucher'][$n];
-            $result['voucher'][$n] = $temp;
-
-			$temp = $result['credit'][$m];
-			$result['credit'][$m] = $result['credit'][$n];
-			$result['credit'][$n] = $temp;
-
-			$temp = $result['debit'][$m];
-			$result['debit'][$m] = $result['debit'][$n];
-			$result['debit'][$n] = $temp;
+$len = count($result['date']);
+for ($m = 0; $m < $len - 1; $m++) {
+	for ($n = $m + 1; $n < $len; $n++) {
+		if ($result['date'][$m] > $result['date'][$n]) {
+			foreach (['date', 'particulars', 'voucher', 'credit', 'debit'] as $key) {
+				$temp = $result[$key][$m];
+				$result[$key][$m] = $result[$key][$n];
+				$result[$key][$n] = $temp;
+			}
 		}
 	}
 }
@@ -293,20 +218,25 @@ for($m=0;$m<$len-1;$m++){
 								<tbody>
 									<?php 
 										$count = 1;
-                                        $total=0;
-										$len = sizeof($result['particulars']);
-										for($i=0;$i<$len;$i++){ ?>
+                                        $total = 0.0;
+                                        $debit = 0.0;
+                                        $credit = 0.0;
+										$len = count($result['particulars']);
+										for($i=0;$i<$len;$i++){
+											$row_debit = (float)($result['debit'][$i] ?? 0);
+											$row_credit = (float)($result['credit'][$i] ?? 0);
+									?>
 									<tr>
-										<td style="text-align: center"><?php echo date('d-m-Y',strtotime($result['date'][$i])); ?></td>
+										<td style="text-align: center"><?php echo date('d-m-Y',strtotime((string)$result['date'][$i])); ?></td>
 										<td><?php echo $result['particulars'][$i]; ?></td>
                                         <td style="text-align: center"><?php echo $result['voucher'][$i]; ?></td>
-										<td style="text-align: center;"><?php echo number_format($result['debit'][$i],2); ?></td>
-										<td style="text-align: center;"><?php if($result['credit'][$i] != 0){ echo number_format($result['credit'][$i],2); } ?></td>
+										<td style="text-align: center;"><?php echo number_format($row_debit, 2); ?></td>
+										<td style="text-align: center;"><?php if($row_credit != 0){ echo number_format($row_credit, 2); } ?></td>
 									</tr>
     								<?php
-                                        $total=$total+$result['credit'][$i]-$result['debit'][$i];
-                                        $debit=$debit+$result['debit'][$i];
-                                        $credit=$credit+$result['credit'][$i];
+                                        $total = $total + $row_credit - $row_debit;
+                                        $debit = $debit + $row_debit;
+                                        $credit = $credit + $row_credit;
                                         } 
                                     ?>
                                     <tr>
@@ -380,21 +310,25 @@ for($m=0;$m<$len-1;$m++){
                                     <th>Actions</th>
                                 </tr>
                                 <?php
-                                    
-                                    $new_opening_balance = json_decode($row_fetch['new_opening_balance'],true);
-                                    $len = sizeof($new_opening_balance['year']);
+                                    $new_opening_balance = json_decode($row_fetch['new_opening_balance'] ?? '', true);
+                                    if (!is_array($new_opening_balance)) {
+                                        $new_opening_balance = ['year' => [], 'balance' => []];
+                                    }
+                                    $ob_years = is_array($new_opening_balance['year'] ?? null) ? $new_opening_balance['year'] : [];
+                                    $ob_balances = is_array($new_opening_balance['balance'] ?? null) ? $new_opening_balance['balance'] : [];
+                                    $len = count($ob_years);
 
                                     for($i=0;$i<$len;$i++){
 
-                                        $year = $new_opening_balance['year'][$i];
-                                        $opening_balance = $new_opening_balance['balance'][$i];
+                                        $year = $ob_years[$i] ?? '';
+                                        $opening_balance = (float)($ob_balances[$i] ?? 0);
 
                                 ?>
                                 <tr>
-                                    <td><?php echo $year; ?></td>
+                                    <td><?php echo htmlspecialchars((string)$year); ?></td>
                                     <td><?php echo number_format($opening_balance,2); ?></td>
                                     <td>
-                                        <a href="javascript:;" class="btn btn-sm btn-clean btn-icon btn-icon-sm" data-toggle="modal" data-target="#kt_modal_update_supplier_opening_balance" onclick='updateSupplierOpeningBalance("<?php echo $year;?>" , "<?php echo $opening_balance; ?>" , "<?php echo $supplier_id; ?>")' title="Edit">
+                                        <a href="javascript:;" class="btn btn-sm btn-clean btn-icon btn-icon-sm" data-toggle="modal" data-target="#kt_modal_update_supplier_opening_balance" onclick='updateSupplierOpeningBalance("<?php echo htmlspecialchars((string)$year, ENT_QUOTES);?>" , "<?php echo $opening_balance; ?>" , "<?php echo htmlspecialchars((string)$supplier_id, ENT_QUOTES); ?>")' title="Edit">
                                             <i style="color: #6d3e12" class="flaticon2-paper"></i>
                                         </a>
                                     </td>
