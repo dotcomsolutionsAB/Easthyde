@@ -237,9 +237,13 @@ if($row_temp != null) {
 if (!is_array($address)) { $address = []; }
 
 
-$GLOBALS["gross_total"] = '0';
+$GLOBALS["gross_total"] = 0;
 $GLOBALS["q_no"] = $q_no;
 $GLOBALS["dt"] = !empty($row['quotation_date']) ? date('d-m-Y', strtotime($row['quotation_date'])) : '';
+$GLOBALS['label'] = $GLOBALS['label'] ?? '';
+$GLOBALS['vendor'] = '';
+$GLOBALS['top3'] = '';
+$GLOBALS['top4'] = '';
 
 if($row_temp && ($row_temp['print_name'] ?? '') != '')
 	$GLOBALS['client'] = $row_temp['print_name'];
@@ -250,6 +254,12 @@ if($row_temp && ($row_temp['vendor_code'] ?? null)!=null)
 	{
 		$GLOBALS["vendor"] = "Vendor Code       :  ".$row_temp['vendor_code'];
 	}
+
+// Contact person / number from client contacts when available
+if (!empty($contacts) && isset($contacts['name'][0])) {
+	$GLOBALS['top3'] = (string)($contacts['name'][0] ?? '');
+	$GLOBALS['top4'] = (string)($contacts['mobile'][0] ?? ($contacts['phone'][0] ?? ''));
+}
 
 $GLOBALS['add1'] 	= $address["address_1"] ?? '';
 $GLOBALS['add2'] 	= $address["address_2"] ?? '';
@@ -883,7 +893,7 @@ if($display_totals == 1)
 	if($addons_array['roundoff']!='' && $addons_array['roundoff'] != 0)
 	{
 		if($addons_array['roundoff'] < 0){
-			$roundoff_temp = $addons_array['roundoff'] * -1;
+			$roundoff_temp = (float)($addons_array['roundoff'] ?? 0) * -1;
 			$pdf->Cell(95,5,'',0,0,L);
 			$pdf->SetFont('Arial','I',9);
 			$pdf->Cell(72,5,'Less : Rounded Off (-)','R',0,L);

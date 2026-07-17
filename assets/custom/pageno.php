@@ -437,12 +437,12 @@ for($ij=1;$ij<=$copies;$ij++){
 
 		if($state_flag == 0)
 		{
-			$tax = $items['tax'][$i]/2;
+			$tax = (float)($items['tax'][$i] ?? 0)/2;
 			$tax_amount = $items['tax_amount'][$i] / 2;
 			$pr = $items['product'][$i];
 			$make = $items['group'][$i];
 
-			$line_total = $items['quantity'][$i]*$items['price'][$i]*(100-$items['discount'][$i])/100;
+			$line_total = (float)($items['quantity'][$i] ?? 0)*(float)($items['price'][$i] ?? 0)*(100-(float)($items['discount'][$i] ?? 0))/100;
 			$GLOBALS["gross_total"] += $line_total;
 
 			$sql_make = "SELECT * FROM product WHERE name = '$pr'";
@@ -615,12 +615,12 @@ for($ij=1;$ij<=$copies;$ij++){
 			}
 
 		}else{
-			$tax = $items['tax'][$i];
+			$tax = (float)($items['tax'][$i] ?? 0);
 			$tax_amount = $items['tax_amount'][$i];
 			$pr = $items['product'][$i];
 			$make = $items['group'][$i];
 
-			$line_total = $items['quantity'][$i]*$items['price'][$i]*(100-$items['discount'][$i])/100;
+			$line_total = (float)($items['quantity'][$i] ?? 0)*(float)($items['price'][$i] ?? 0)*(100-(float)($items['discount'][$i] ?? 0))/100;
 			$GLOBALS["gross_total"] += $line_total;
 
 			$sql_make = "SELECT * FROM product WHERE name = '$pr'";
@@ -783,7 +783,7 @@ for($ij=1;$ij<=$copies;$ij++){
 			}
 		}
 
-		$grand_total_qty+=$items['quantity'][$i];
+		$grand_total_qty+=(float)($items['quantity'][$i] ?? 0);
 
 		$hsn = $items['hsn'][$i];
 		$pos = '-1';
@@ -804,7 +804,7 @@ for($ij=1;$ij<=$copies;$ij++){
 
 		}else{
 			$tax_details['hsn'][] = $items['hsn'][$i];
-			$tax_details['rate'][] = $items['tax'][$i];
+			$tax_details['rate'][] = (float)($items['tax'][$i] ?? 0);
 			$tax_details['taxable'][] = $items['amount'][$i] - $items['tax_amount'][$i];
 			$tax_details['cgst'][] = $items['tax_amount'][$i] / 2;
 			$tax_details['sgst'][] = $items['tax_amount'][$i] / 2;
@@ -905,9 +905,9 @@ for($ij=1;$ij<=$copies;$ij++){
 
 	$len = sizeof($tax_details['hsn']);
 	for($j=0;$j<$len;$j++){
-		$sgst += $tax_details['sgst'][$j];
-		$cgst += $tax_details['cgst'][$j];
-		$igst += $tax_details['igst'][$j];
+		$sgst += (float)($tax_details['sgst'][$j] ?? 0);
+		$cgst += (float)($tax_details['cgst'][$j] ?? 0);
+		$igst += (float)($tax_details['igst'][$j] ?? 0);
 	}
 
 	if($state_flag == '0'){
@@ -942,7 +942,7 @@ for($ij=1;$ij<=$copies;$ij++){
 	if($addons_array['roundoff']!='' && $addons_array['roundoff'] != 0)
 	{
 		if($addons_array['roundoff'] < 0){
-			$roundoff_temp = $addons_array['roundoff'] * -1;
+			$roundoff_temp = (float)($addons_array['roundoff'] ?? 0) * -1;
 			$pdf->Cell(95,5,'',0,0,L);
 			$pdf->SetFont('Arial','I',9);
 			$pdf->Cell(72,5,'Less : Rounded Off (-)','R',0,L);

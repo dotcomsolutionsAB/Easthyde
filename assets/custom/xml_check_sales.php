@@ -16,7 +16,7 @@ while($row = $query->fetch_assoc()){
 	$len = sizeof($items['product']);
 
 	for($i=0;$i<$len;$i++){
-		$line_total = $items['quantity'][$i]*$items['price'][$i]*(100-$items['discount'][$i])/100;
+		$line_total = (float)($items['quantity'][$i] ?? 0)*(float)($items['price'][$i] ?? 0)*(100-(float)($items['discount'][$i] ?? 0))/100;
 		$total_amount += round($line_total,2);
 		$total_tax += $items['cgst'][$i] + $items['sgst'][$i] + $items['igst'][$i];
 	}

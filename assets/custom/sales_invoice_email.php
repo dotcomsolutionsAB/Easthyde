@@ -436,13 +436,13 @@ for($ij=1;$ij<=$copies;$ij++){
 
 		if($state_flag == 0)
 		{
-			$tax = $items['tax'][$i]/2;
-			$cgst = $items['cgst'][$i];
-			$sgst = $items['sgst'][$i];
+			$tax = (float)($items['tax'][$i] ?? 0)/2;
+			$cgst = (float)($items['cgst'][$i] ?? 0);
+			$sgst = (float)($items['sgst'][$i] ?? 0);
 			$pr = $items['product'][$i];
 			$make = $items['group'][$i];
 
-			$line_total = $items['quantity'][$i]*$items['price'][$i]*(100-$items['discount'][$i])/100;
+			$line_total = (float)($items['quantity'][$i] ?? 0)*(float)($items['price'][$i] ?? 0)*(100-(float)($items['discount'][$i] ?? 0))/100;
 			$GLOBALS["gross_total"] += round($line_total,2);
 
 			$sql_make = "SELECT * FROM product WHERE name = '$pr'";
@@ -615,12 +615,12 @@ for($ij=1;$ij<=$copies;$ij++){
 			}
 
 		}else{
-			$tax = $items['tax'][$i];
-			$igst = $items['igst'][$i];
+			$tax = (float)($items['tax'][$i] ?? 0);
+			$igst = (float)($items['igst'][$i] ?? 0);
 			$pr = $items['product'][$i];
 			$make = $items['group'][$i];
 
-			$line_total = $items['quantity'][$i]*$items['price'][$i]*(100-$items['discount'][$i])/100;
+			$line_total = (float)($items['quantity'][$i] ?? 0)*(float)($items['price'][$i] ?? 0)*(100-(float)($items['discount'][$i] ?? 0))/100;
 			$GLOBALS["gross_total"] += round($line_total,2);
 
 			$sql_make = "SELECT * FROM product WHERE name = '$pr'";
@@ -783,7 +783,7 @@ for($ij=1;$ij<=$copies;$ij++){
 			}
 		}
 
-		$grand_total_qty+=$items['quantity'][$i];
+		$grand_total_qty+=(float)($items['quantity'][$i] ?? 0);
 
 		$hsn = $items['hsn'][$i];
 		$pos = '-1';
@@ -797,19 +797,19 @@ for($ij=1;$ij<=$copies;$ij++){
 
 		if($pos != '-1'){
 			$tax_details['taxable'][$pos] += $line_total;
-			$tax_details['cgst'][$pos] += $items['cgst'][$i];
-			$tax_details['sgst'][$pos] += $items['sgst'][$i];
-			$tax_details['igst'][$pos] += $items['igst'][$i];
-			$tax_details['total'][$pos] += $items['cgst'][$i] + $items['sgst'][$i] + $items['igst'][$i];
+			$tax_details['cgst'][$pos] += (float)($items['cgst'][$i] ?? 0);
+			$tax_details['sgst'][$pos] += (float)($items['sgst'][$i] ?? 0);
+			$tax_details['igst'][$pos] += (float)($items['igst'][$i] ?? 0);
+			$tax_details['total'][$pos] += (float)($items['cgst'][$i] ?? 0) + (float)($items['sgst'][$i] ?? 0) + (float)($items['igst'][$i] ?? 0);
 
 		}else{
 			$tax_details['hsn'][] = $items['hsn'][$i];
-			$tax_details['rate'][] = $items['tax'][$i];
+			$tax_details['rate'][] = (float)($items['tax'][$i] ?? 0);
 			$tax_details['taxable'][] = $line_total;
-			$tax_details['cgst'][] = $items['cgst'][$i];
-			$tax_details['sgst'][] = $items['sgst'][$i];
-			$tax_details['igst'][] = $items['igst'][$i];
-			$tax_details['total'][] = $items['cgst'][$i] + $items['sgst'][$i] + $items['igst'][$i];
+			$tax_details['cgst'][] = (float)($items['cgst'][$i] ?? 0);
+			$tax_details['sgst'][] = (float)($items['sgst'][$i] ?? 0);
+			$tax_details['igst'][] = (float)($items['igst'][$i] ?? 0);
+			$tax_details['total'][] = (float)($items['cgst'][$i] ?? 0) + (float)($items['sgst'][$i] ?? 0) + (float)($items['igst'][$i] ?? 0);
 		}
 
 	}
@@ -844,20 +844,20 @@ for($ij=1;$ij<=$copies;$ij++){
 		}
 
 		if($pos != '-1'){
-			$tax_details['taxable'][$pos] += $addons_array['pf']['value'];
-			$tax_details['cgst'][$pos] += $addons_array['pf']['cgst'];
-			$tax_details['sgst'][$pos] += $addons_array['pf']['sgst'];
-			$tax_details['igst'][$pos] += $addons_array['pf']['igst'];
-			$tax_details['total'][$pos] += $addons_array['pf']['cgst'] + $addons_array['pf']['sgst'] + $addons_array['pf']['igst'];
+			$tax_details['taxable'][$pos] += (float)($addons_array['pf']['value'] ?? 0);
+			$tax_details['cgst'][$pos] += (float)($addons_array['pf']['cgst'] ?? 0);
+			$tax_details['sgst'][$pos] += (float)($addons_array['pf']['sgst'] ?? 0);
+			$tax_details['igst'][$pos] += (float)($addons_array['pf']['igst'] ?? 0);
+			$tax_details['total'][$pos] += (float)($addons_array['pf']['cgst'] ?? 0) + (float)($addons_array['pf']['sgst'] ?? 0) + (float)($addons_array['pf']['igst'] ?? 0);
 
 		}else{
 			$tax_details['hsn'][] = $hsn;
 			$tax_details['rate'][] = '18';
-			$tax_details['taxable'][] = $addons_array['pf']['value'];
-			$tax_details['cgst'][] = $addons_array['pf']['cgst'];
-			$tax_details['sgst'][] = $addons_array['pf']['sgst'];
-			$tax_details['igst'][] = $addons_array['pf']['igst'];
-			$tax_details['total'][] = $addons_array['pf']['cgst'] + $addons_array['pf']['sgst'] + $addons_array['pf']['igst'];
+			$tax_details['taxable'][] = (float)($addons_array['pf']['value'] ?? 0);
+			$tax_details['cgst'][] = (float)($addons_array['pf']['cgst'] ?? 0);
+			$tax_details['sgst'][] = (float)($addons_array['pf']['sgst'] ?? 0);
+			$tax_details['igst'][] = (float)($addons_array['pf']['igst'] ?? 0);
+			$tax_details['total'][] = (float)($addons_array['pf']['cgst'] ?? 0) + (float)($addons_array['pf']['sgst'] ?? 0) + (float)($addons_array['pf']['igst'] ?? 0);
 		}
 	}
 
@@ -879,20 +879,20 @@ for($ij=1;$ij<=$copies;$ij++){
 		}
 
 		if($pos != '-1'){
-			$tax_details['taxable'][$pos] += $addons_array['freight']['value'];
-			$tax_details['cgst'][$pos] += $addons_array['freight']['cgst'];
-			$tax_details['sgst'][$pos] += $addons_array['freight']['sgst'];
-			$tax_details['igst'][$pos] += $addons_array['freight']['igst'];
-			$tax_details['total'][$pos] += $addons_array['freight']['cgst'] + $addons_array['freight']['csgst']+ $addons_array['freight']['igst'];
+			$tax_details['taxable'][$pos] += (float)($addons_array['freight']['value'] ?? 0);
+			$tax_details['cgst'][$pos] += (float)($addons_array['freight']['cgst'] ?? 0);
+			$tax_details['sgst'][$pos] += (float)($addons_array['freight']['sgst'] ?? 0);
+			$tax_details['igst'][$pos] += (float)($addons_array['freight']['igst'] ?? 0);
+			$tax_details['total'][$pos] += (float)($addons_array['freight']['cgst'] ?? 0) + (float)($addons_array['freight']['sgst'] ?? 0) + (float)($addons_array['freight']['igst'] ?? 0);
 
 		}else{
 			$tax_details['hsn'][] = $hsn;
 			$tax_details['rate'][] = '18';
-			$tax_details['taxable'][] = $addons_array['freight']['value'];
-			$tax_details['cgst'][] = $addons_array['freight']['cgst'];
-			$tax_details['sgst'][] = $addons_array['freight']['sgst'];
-			$tax_details['igst'][] = $addons_array['freight']['igst'];
-			$tax_details['total'][] = $addons_array['freight']['cgst'] + $addons_array['freight']['sgst'] + $addons_array['freight']['igst'];
+			$tax_details['taxable'][] = (float)($addons_array['freight']['value'] ?? 0);
+			$tax_details['cgst'][] = (float)($addons_array['freight']['cgst'] ?? 0);
+			$tax_details['sgst'][] = (float)($addons_array['freight']['sgst'] ?? 0);
+			$tax_details['igst'][] = (float)($addons_array['freight']['igst'] ?? 0);
+			$tax_details['total'][] = (float)($addons_array['freight']['cgst'] ?? 0) + (float)($addons_array['freight']['sgst'] ?? 0) + (float)($addons_array['freight']['igst'] ?? 0);
 		}
 	}
 
@@ -902,9 +902,9 @@ for($ij=1;$ij<=$copies;$ij++){
 
 	$len = sizeof($tax_details['hsn']);
 	for($j=0;$j<$len;$j++){
-		$sgst += $tax_details['sgst'][$j];
-		$cgst += $tax_details['cgst'][$j];
-		$igst += $tax_details['igst'][$j];
+		$sgst += (float)($tax_details['sgst'][$j] ?? 0);
+		$cgst += (float)($tax_details['cgst'][$j] ?? 0);
+		$igst += (float)($tax_details['igst'][$j] ?? 0);
 	}
 
 	if($state_flag == '0'){
@@ -930,7 +930,7 @@ for($ij=1;$ij<=$copies;$ij++){
 	if($addons_array['roundoff']!='' && $addons_array['roundoff'] != 0)
 	{
 		if($addons_array['roundoff'] < 0){
-			$roundoff_temp = $addons_array['roundoff'] * -1;
+			$roundoff_temp = (float)($addons_array['roundoff'] ?? 0) * -1;
 			$pdf->Cell(95,5,'',0,0,L);
 			$pdf->SetFont('Arial','I',9);
 			$pdf->Cell(72,5,'Less : Rounded Off (-)','R',0,L);
@@ -956,9 +956,9 @@ for($ij=1;$ij<=$copies;$ij++){
 	$pdf->Cell(77,7,'GRAND TOTAL',0,0,R);
 
 	if($state_flag == '0'){
-		$total_amount = $GLOBALS["gross_total"] + $addons_array['pf']['value'] + $addons_array['freight']['value'] + $sgst + $cgst + $addons_array['roundoff'];
+		$total_amount = (float)$GLOBALS["gross_total"] + (float)($addons_array['pf']['value'] ?? 0) + (float)($addons_array['freight']['value'] ?? 0) + (float)$sgst + (float)$cgst + (float)($addons_array['roundoff'] ?? 0);
 	}else{
-		$total_amount = $GLOBALS["gross_total"] + $addons_array['pf']['value'] + $addons_array['freight']['value'] + $igst + $addons_array['roundoff'];
+		$total_amount = (float)$GLOBALS["gross_total"] + (float)($addons_array['pf']['value'] ?? 0) + (float)($addons_array['freight']['value'] ?? 0) + (float)$igst + (float)($addons_array['roundoff'] ?? 0);
 	}
 
 	$pdf->Cell(23,7,money_format('%!i', $total_amount),'LB',1,R);
