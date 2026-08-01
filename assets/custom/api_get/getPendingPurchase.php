@@ -3,7 +3,8 @@
 require_once "../connect.php";
 setlocale(LC_MONETARY, 'en_IN');
 
-$memberId = urldecode((string)($_REQUEST['member_id'] ?? ''));
+$memberId = (string)($_REQUEST['member_id'] ?? '');
+$memberId = urldecode($memberId);
 $safeMember = $db->real_escape_string($memberId);
 
 $response = array(
@@ -16,6 +17,31 @@ $response = array(
 );
 
 $serial_no = 1;
+
+/**
+ * Sum amounts allocated to a given purchase invoice across active payments for this supplier.
+ * Matches via decoded JSON (LIKE on pi_no fails when JSON stores \/ for /).
+ */
+$paidForInvoice = function ($pi_no) use ($db, $safeMember) {
+	$paid = 0.0;
+	$sql = "SELECT purchase_invoice FROM payments WHERE supplier = '$safeMember' AND status = '1'";
+	$query = $db->query($sql);
+	if (!$query) {
+		return $paid;
+	}
+	while ($row = $query->fetch_assoc()) {
+		$pi_arr = json_decode($row['purchase_invoice'] ?? '', true);
+		if (!is_array($pi_arr) || !isset($pi_arr['pi_no']) || !is_array($pi_arr['pi_no'])) {
+			continue;
+		}
+		foreach ($pi_arr['pi_no'] as $i => $no) {
+			if ((string)$no === (string)$pi_no) {
+				$paid += (float)str_replace(',', '', (string)($pi_arr['amount'][$i] ?? 0));
+			}
+		}
+	}
+	return $paid;
+};
 
 $sql_opening = "SELECT * FROM suppliers WHERE name = '$safeMember'";
 $query_opening = $db->query($sql_opening);
@@ -57,45 +83,23 @@ $sql = "SELECT * FROM purchase_invoice WHERE supplier_name = '$safeMember' AND s
 $query = $db->query($sql);
 if ($query) {
 	while ($row = $query->fetch_assoc()) {
-		$purchase_invoice = $row['pi_no'] ?? '';
+		$purchase_invoice = (string)($row['pi_no'] ?? '');
 		$purchase_date = !empty($row['pi_date']) ? date('d-m-Y', strtotime($row['pi_date'])) : '';
-		$status = (string)($row['status'] ?? '');
-		$amount = (float)($row['total'] ?? 0);
+		$amount = (float)str_replace(',', '', (string)($row['total'] ?? 0));
 
-		if ($status === '0') {
-			$response['id'][] = $row['id'] ?? '';
-			$response['pi_details_sn'][] = $serial_no;
-			$response['pi_details_pi'][] = $purchase_invoice;
-			$response['pi_details_date'][] = $purchase_date;
-			$response['pi_details_amount'][] = number_format($amount, 2, '.', '');
-			$response['due'][] = number_format($amount, 2, '.', '');
-		} else {
-			$received = 0;
-			$safePi = $db->real_escape_string($purchase_invoice);
-			$sql_temp = "SELECT * FROM payments WHERE purchase_invoice LIKE '%$safePi%' AND supplier = '$safeMember' AND status = '1'";
-			$query_temp = $db->query($sql_temp);
-			if ($query_temp) {
-				while ($row_temp = $query_temp->fetch_assoc()) {
-					$pi_arr = json_decode($row_temp['purchase_invoice'] ?? '', true);
-					if (!is_array($pi_arr) || !isset($pi_arr['pi_no']) || !is_array($pi_arr['pi_no'])) {
-						continue;
-					}
-					foreach ($pi_arr['pi_no'] as $i => $pi_no) {
-						if ($pi_no == $purchase_invoice) {
-							$received += (float)($pi_arr['amount'][$i] ?? 0);
-						}
-					}
-				}
-			}
+		$paid = $paidForInvoice($purchase_invoice);
+		$due = round($amount - $paid, 2);
 
-			$due = $amount - $received;
-			$response['id'][] = $row['id'] ?? '';
-			$response['pi_details_sn'][] = $serial_no;
-			$response['pi_details_pi'][] = $purchase_invoice;
-			$response['pi_details_date'][] = $purchase_date;
-			$response['pi_details_amount'][] = number_format($due, 2, '.', '');
-			$response['due'][] = number_format($due, 2, '.', '');
+		if ($due <= 0.005) {
+			continue;
 		}
+
+		$response['id'][] = $row['id'] ?? '';
+		$response['pi_details_sn'][] = $serial_no;
+		$response['pi_details_pi'][] = $purchase_invoice;
+		$response['pi_details_date'][] = $purchase_date;
+		$response['pi_details_amount'][] = number_format($amount, 2, '.', '');
+		$response['due'][] = number_format($due, 2, '.', '');
 		$serial_no++;
 	}
 }
