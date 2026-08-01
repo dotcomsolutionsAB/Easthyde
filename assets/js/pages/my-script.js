@@ -457,16 +457,12 @@ jQuery(document).ready(function () {
                             temp = "input[name$='payment[" + c + "][py_details_amount]']";
                             $(temp).val(obj.pi_details_amount[i]);
     
-    
-                            var amount = obj.pi_details_amount[i].replace(/,/g, '');
-                            amount = parseFloat(amount);
-                            console.log(amount);
-    
-                            total = total + amount;
-    
-    
                             temp = "input[name$='payment[" + c + "][py_due]']";
                             $(temp).val(obj.due[i]);
+
+                            var amount = String(obj.due[i] || '0').replace(/,/g, '');
+                            amount = parseFloat(amount) || 0;
+                            total = total + amount;
                             c++;
     
                         }
@@ -10955,14 +10951,12 @@ var Select2 = function () {
                         temp = "input[name$='receipt[" + c + "][rc_details_amount]']";
                         $(temp).val(obj.si_details_amount[i]);
 
-                        var amount = obj.si_details_amount[i].replace(/,/g, '');
-                        amount = parseFloat(amount);
-                        console.log(amount);
-
-                        total = total + amount;
-
                         temp = "input[name$='receipt[" + c + "][rc_due]']";
                         $(temp).val(obj.due[i]);
+
+                        var amount = String(obj.due[i] || '0').replace(/,/g, '');
+                        amount = parseFloat(amount) || 0;
+                        total = total + amount;
                         c++;
 
                     }
@@ -11429,16 +11423,12 @@ var Select2 = function () {
                         temp = "input[name$='payment[" + c + "][py_details_amount]']";
                         $(temp).val(obj.pi_details_amount[i]);
 
-
-                        var amount = obj.pi_details_amount[i].replace(/,/g, '');
-                        amount = parseFloat(amount);
-                        console.log(amount);
-
-                        total = total + amount;
-
-
                         temp = "input[name$='payment[" + c + "][py_due]']";
                         $(temp).val(obj.due[i]);
+
+                        var amount = String(obj.due[i] || '0').replace(/,/g, '');
+                        amount = parseFloat(amount) || 0;
+                        total = total + amount;
                         c++;
 
                     }
