@@ -129,36 +129,9 @@ if ($bankKeywords !== []) {
 	$expenseMatch = '(' . $expenseAccount . ' OR (' . implode(' OR ', $kwParts) . '))';
 }
 
-/** Account aliases for exact bank match */
-$bankAccountAliases = [strtoupper(trim($bank_id))];
-$upperBank = strtoupper(trim($bank_id));
-if (in_array($upperBank, ['CASH2', 'CASH (PRIMARY)', 'CASH(PRIMARY)', 'CASH'], true)) {
-	$bankAccountAliases = array_merge($bankAccountAliases, ['CASH', 'CASH2', 'CASH (PRIMARY)', 'CASH(PRIMARY)']);
-}
-$bankAccountAliases = array_values(array_unique($bankAccountAliases));
-
-/**
- * Keyword-matched salary/related expenses → credit.
- * Expenses actually paid from this bank account (no keyword) → debit.
- */
-$classifyExpense = function ($account, $category, $description) use ($bankKeywords, $bankAccountAliases) {
-	$hay = strtoupper(trim((string)$category . ' ' . (string)$description));
-	foreach ($bankKeywords as $kw) {
-		if ($kw !== '' && strpos($hay, $kw) !== false) {
-			return 'credit'; // salary / personal related
-		}
-	}
-	$acc = strtoupper(trim((string)$account));
-	if (in_array($acc, $bankAccountAliases, true)) {
-		return 'debit';
-	}
-	// Keyword matched via account name only — still treat as related credit
-	foreach ($bankKeywords as $kw) {
-		if ($kw !== '' && strpos($acc, $kw) !== false) {
-			return 'credit';
-		}
-	}
-	return 'debit';
+/** All expenses show as credit on this bank ledger. */
+$classifyExpense = function ($account, $category, $description) {
+	return 'credit';
 };
 
 $current_balance = $opening_balance;
@@ -271,7 +244,7 @@ if ($query) {
 	}
 }
 
-// Expenses — keyword (e.g. GURU salary) as credit; paid-from-this-bank otherwise as debit
+// Expenses — always credit on this ledger
 $sql = "SELECT date, category, description, amount, account
 		FROM expense
 		WHERE $expenseMatch AND date BETWEEN '$safeStart' AND '$safeEnd'";
