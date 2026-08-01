@@ -2,20 +2,31 @@
 session_start();
 require_once "../connect.php";
 
+header('Content-Type: application/json; charset=utf-8');
+
 $draw = (int)($_REQUEST['draw'] ?? 0);
 $start = (int)($_REQUEST['start'] ?? 0);
 $length = (int)($_REQUEST['length'] ?? 10);
-$search_value = (string)(($_REQUEST['search'] ?? [])['value'] ?? '');
-$bank_id = (string)($_REQUEST['bank_id'] ?? '');
+$search_value = trim((string)(($_REQUEST['search'] ?? [])['value'] ?? ''));
+$bank_id = trim((string)($_REQUEST['bank_id'] ?? ''));
 $start_date_raw = (string)($_REQUEST['start_date'] ?? '');
 $end_date_raw = (string)($_REQUEST['end_date'] ?? '');
+
 $start_date = $start_date_raw !== '' ? date('Y-m-d', strtotime($start_date_raw)) : date('Y-m-d');
 $end_date = $end_date_raw !== '' ? date('Y-m-d', strtotime($end_date_raw)) : date('Y-m-d');
+if ($start_date === '1970-01-01' || $start_date === false) {
+	$start_date = date('Y-m-d');
+}
+if ($end_date === '1970-01-01' || $end_date === false) {
+	$end_date = date('Y-m-d');
+}
 
 $safeBank = $db->real_escape_string($bank_id);
 $safeSearch = $db->real_escape_string($search_value);
+$safeStart = $db->real_escape_string($start_date);
+$safeEnd = $db->real_escape_string($end_date);
 
-$empty = function () use ($draw) {
+$empty = function ($draw) {
 	echo json_encode([
 		'draw' => $draw,
 		'recordsTotal' => 0,
@@ -24,166 +35,282 @@ $empty = function () use ($draw) {
 	]);
 };
 
-$ledger_entries = array();
-
-$sql = "SELECT opening_balance, updated_on FROM bank WHERE bank_name = '$safeBank'";
-$query = $db->query($sql);
-$bank = ($query) ? $query->fetch_assoc() : null;
-
-if (!$bank) {
-	$empty();
-	return;
+if ($bank_id === '' || strcasecmp($bank_id, 'Select Bank') === 0) {
+	$empty($draw);
+	exit;
 }
 
-$opening_balance = (float)($bank['opening_balance'] ?? 0);
-$updated_on = $bank['updated_on'] ?? '';
+// Resolve bank row (exact match, then trim-insensitive)
+$sql = "SELECT opening_balance, updated_on, bank_name FROM bank WHERE bank_name = '$safeBank' LIMIT 1";
+$query = $db->query($sql);
+$bank = ($query) ? $query->fetch_assoc() : null;
+if (!$bank) {
+	$sql = "SELECT opening_balance, updated_on, bank_name FROM bank WHERE TRIM(bank_name) = '$safeBank' LIMIT 1";
+	$query = $db->query($sql);
+	$bank = ($query) ? $query->fetch_assoc() : null;
+}
+
+// Allow synthetic cash accounts that may not exist in bank table
+$opening_balance = 0.0;
+$updated_on = '';
+if ($bank) {
+	$opening_balance = (float)($bank['opening_balance'] ?? 0);
+	$updated_on = (string)($bank['updated_on'] ?? '');
+	$bank_id = (string)($bank['bank_name'] ?? $bank_id);
+	$safeBank = $db->real_escape_string($bank_id);
+}
+
+// Treat invalid / zero dates as unset
+$updated_ts = ($updated_on !== '') ? strtotime($updated_on) : false;
+if ($updated_ts === false || (int)date('Y', $updated_ts) < 1971) {
+	$updated_on = '';
+}
+
+/**
+ * Match expense/receipt/payment account to selected bank.
+ * Also map common cash aliases used across modules.
+ */
+$accountMatchSql = function ($column) use ($db, $bank_id) {
+	$aliases = [trim($bank_id)];
+	$upper = strtoupper(trim($bank_id));
+	if (in_array($upper, ['CASH2', 'CASH (PRIMARY)', 'CASH(PRIMARY)', 'CASH'], true)) {
+		$aliases = array_merge($aliases, ['CASH', 'Cash', 'CASH2', 'CASH (Primary)', 'CASH(Primary)']);
+	}
+	if ($upper === 'CASH(SECONDARY)' || $upper === 'CASH (SECONDARY)') {
+		$aliases = array_merge($aliases, ['CASH(Secondary)', 'CASH (Secondary)', 'CASH Secondary']);
+	}
+	$aliases = array_values(array_unique(array_filter($aliases, function ($a) {
+		return $a !== '';
+	})));
+	$parts = [];
+	foreach ($aliases as $a) {
+		$parts[] = "$column = '" . $db->real_escape_string($a) . "'";
+	}
+	return '(' . implode(' OR ', $parts) . ')';
+};
+
+$receiptAccount = $accountMatchSql('account');
+$paymentAccount = $accountMatchSql('account');
+$expenseAccount = $accountMatchSql('account');
+
 $current_balance = $opening_balance;
 
+// Roll opening balance forward from bank.updated_on up to day before start_date
 if ($updated_on !== '' && $start_date < $updated_on) {
 	$opening_balance = 0;
 	$current_balance = 0;
 } elseif ($updated_on !== '' && $start_date > $updated_on) {
+	$roll_end = date('Y-m-d', strtotime($start_date . ' -1 day'));
 	$sql = "SELECT date, amount, 'credit' AS type FROM receipts 
-			WHERE account = '$safeBank' AND date BETWEEN '$updated_on' AND '$start_date'
-			UNION
+			WHERE $receiptAccount AND date BETWEEN '$updated_on' AND '$roll_end'
+			UNION ALL
 			SELECT date, amount, 'debit' AS type FROM payments 
-			WHERE account = '$safeBank' AND date BETWEEN '$updated_on' AND '$start_date'
-			UNION
+			WHERE $paymentAccount AND date BETWEEN '$updated_on' AND '$roll_end'
+			UNION ALL
 			SELECT date, amount, 'debit' AS type FROM expense 
-			WHERE account = '$safeBank' AND date BETWEEN '$updated_on' AND '$start_date'
-			ORDER BY date";
-
+			WHERE $expenseAccount AND date BETWEEN '$updated_on' AND '$roll_end'
+			ORDER BY date ASC, type ASC";
 	$query = $db->query($sql);
 	if ($query) {
 		while ($entry = $query->fetch_assoc()) {
+			$amt = (float)str_replace(',', '', (string)($entry['amount'] ?? 0));
 			if (($entry['type'] ?? '') === 'credit') {
-				$opening_balance += (float)($entry['amount'] ?? 0);
+				$opening_balance += $amt;
 			} else {
-				$opening_balance -= (float)($entry['amount'] ?? 0);
+				$opening_balance -= $amt;
 			}
 		}
 	}
 	$current_balance = $opening_balance;
 }
 
+$ledger_entries = [];
+
+$opening_date_src = ($updated_on !== '' && $start_date >= $updated_on) ? $updated_on : $start_date;
 $ledger_entries[] = [
-	'date' => ($updated_on !== '' && $start_date < $updated_on)
-		? date('d-m-Y', strtotime($start_date))
-		: date('d-m-Y', strtotime($updated_on !== '' ? $updated_on : $start_date)),
+	'date' => date('d-m-Y', strtotime($opening_date_src)),
+	'sort_date' => $opening_date_src,
 	'particular' => 'Opening Balance',
 	'reference_no' => '',
 	'debit' => '',
 	'credit' => $opening_balance,
-	'balance' => $opening_balance
+	'balance' => $opening_balance,
+	'is_opening' => 1
 ];
 
-// Credit Entries
-$sql = "SELECT date, client AS particular, sales_invoice, amount FROM receipts 
-		WHERE account = '$safeBank' AND date BETWEEN '$start_date' AND '$end_date'";
+$searchSql = '';
 if ($safeSearch !== '') {
-	$sql .= " AND (client LIKE '%$safeSearch%' OR sales_invoice LIKE '%$safeSearch%')";
-}
-$sql .= " ORDER BY date ASC";
-if ($length != -1) {
-	$sql .= " LIMIT $start, $length";
+	$searchSql = $safeSearch;
 }
 
+// Receipts (credit)
+$sql = "SELECT date, client AS particular, sales_invoice, amount, 'credit' AS entry_type, 'receipt' AS source
+		FROM receipts
+		WHERE $receiptAccount AND date BETWEEN '$safeStart' AND '$safeEnd'";
+if ($searchSql !== '') {
+	$sql .= " AND (client LIKE '%$searchSql%' OR sales_invoice LIKE '%$searchSql%')";
+}
 $query = $db->query($sql);
-$count_q = $db->query("SELECT COUNT(*) as count FROM receipts WHERE account = '$safeBank' AND date BETWEEN '$start_date' AND '$end_date'");
-$count_row = ($count_q) ? $count_q->fetch_assoc() : null;
-$total_filtered_entries = (int)($count_row['count'] ?? 0);
-
 if ($query) {
 	while ($entry = $query->fetch_assoc()) {
 		$si_arr = json_decode($entry['sales_invoice'] ?? '', true);
-		$si_no = (is_array($si_arr) && isset($si_arr['si_no'][0])) ? $si_arr['si_no'][0] : '';
+		$si_no = '';
+		if (is_array($si_arr) && isset($si_arr['si_no']) && is_array($si_arr['si_no'])) {
+			$si_no = implode(', ', array_filter(array_map('strval', $si_arr['si_no'])));
+		}
 		$ledger_entries[] = [
 			'date' => !empty($entry['date']) ? date('d-m-Y', strtotime($entry['date'])) : '',
+			'sort_date' => $entry['date'] ?? '',
 			'particular' => $entry['particular'] ?? '',
 			'reference_no' => $si_no,
 			'debit' => '',
-			'credit' => $entry['amount'] ?? '',
-			'balance' => 0
+			'credit' => (float)str_replace(',', '', (string)($entry['amount'] ?? 0)),
+			'balance' => 0,
+			'is_opening' => 0
 		];
 	}
 }
 
-// Debit Entries (Payments)
-$sql = "SELECT date, supplier AS particular, purchase_invoice, amount FROM payments 
-		WHERE account = '$safeBank' AND date BETWEEN '$start_date' AND '$end_date'";
-if ($safeSearch !== '') {
-	$sql .= " AND (supplier LIKE '%$safeSearch%' OR purchase_invoice LIKE '%$safeSearch%')";
+// Payments (debit)
+$sql = "SELECT date, supplier AS particular, purchase_invoice, amount
+		FROM payments
+		WHERE $paymentAccount AND date BETWEEN '$safeStart' AND '$safeEnd'";
+if ($searchSql !== '') {
+	$sql .= " AND (supplier LIKE '%$searchSql%' OR purchase_invoice LIKE '%$searchSql%')";
 }
-$sql .= " ORDER BY date ASC";
-if ($length != -1) {
-	$sql .= " LIMIT $start, $length";
-}
-
 $query = $db->query($sql);
 if ($query) {
 	while ($entry = $query->fetch_assoc()) {
 		$pi_arr = json_decode($entry['purchase_invoice'] ?? '', true);
-		$pi_no = (is_array($pi_arr) && isset($pi_arr['pi_no'][0])) ? $pi_arr['pi_no'][0] : '';
+		$pi_no = '';
+		if (is_array($pi_arr) && isset($pi_arr['pi_no']) && is_array($pi_arr['pi_no'])) {
+			$pi_no = implode(', ', array_filter(array_map('strval', $pi_arr['pi_no'])));
+		}
 		$ledger_entries[] = [
 			'date' => !empty($entry['date']) ? date('d-m-Y', strtotime($entry['date'])) : '',
+			'sort_date' => $entry['date'] ?? '',
 			'particular' => $entry['particular'] ?? '',
-			'reference_no' => $pi_no,
-			'debit' => $entry['amount'] ?? '',
+			'reference_no' => $pi_no !== '' ? $pi_no : 'NIL',
+			'debit' => (float)str_replace(',', '', (string)($entry['amount'] ?? 0)),
 			'credit' => '',
-			'balance' => 0
+			'balance' => 0,
+			'is_opening' => 0
 		];
 	}
 }
 
-// Debit Entries (Expenses)
-$sql = "SELECT date, CONCAT(category, ' - ', description) AS particular, amount FROM expense 
-		WHERE account = '$safeBank' AND date BETWEEN '$start_date' AND '$end_date'";
-if ($safeSearch !== '') {
-	$sql .= " AND (category LIKE '%$safeSearch%' OR description LIKE '%$safeSearch%')";
+// Expenses (debit) — include for the selected bank/cash account
+$sql = "SELECT date, category, description, amount
+		FROM expense
+		WHERE $expenseAccount AND date BETWEEN '$safeStart' AND '$safeEnd'";
+if ($searchSql !== '') {
+	$sql .= " AND (category LIKE '%$searchSql%' OR description LIKE '%$searchSql%')";
 }
-$sql .= " ORDER BY date ASC";
-if ($length != -1) {
-	$sql .= " LIMIT $start, $length";
-}
-
 $query = $db->query($sql);
 if ($query) {
 	while ($entry = $query->fetch_assoc()) {
+		$category = trim((string)($entry['category'] ?? ''));
+		$description = trim((string)($entry['description'] ?? ''));
+		if ($category !== '' && $description !== '') {
+			$particular = $category . ' - ' . $description;
+		} elseif ($category !== '') {
+			$particular = $category;
+		} else {
+			$particular = $description !== '' ? $description : 'Expense';
+		}
+
 		$ledger_entries[] = [
 			'date' => !empty($entry['date']) ? date('d-m-Y', strtotime($entry['date'])) : '',
-			'particular' => $entry['particular'] ?? '',
-			'reference_no' => 'NIL',
-			'debit' => $entry['amount'] ?? '',
+			'sort_date' => $entry['date'] ?? '',
+			'particular' => $particular,
+			'reference_no' => 'EXP',
+			'debit' => (float)str_replace(',', '', (string)($entry['amount'] ?? 0)),
 			'credit' => '',
-			'balance' => 0
+			'balance' => 0,
+			'is_opening' => 0
 		];
 	}
 }
 
+// Chronological order for running balance (opening first)
 usort($ledger_entries, function ($a, $b) {
-	return strtotime($b['date'] ?? '') - strtotime($a['date'] ?? '');
+	$ao = (int)($a['is_opening'] ?? 0);
+	$bo = (int)($b['is_opening'] ?? 0);
+	if ($ao !== $bo) {
+		return $bo <=> $ao; // opening first
+	}
+	$ta = strtotime($a['sort_date'] ?? '') ?: 0;
+	$tb = strtotime($b['sort_date'] ?? '') ?: 0;
+	if ($ta === $tb) {
+		return strcmp((string)($a['particular'] ?? ''), (string)($b['particular'] ?? ''));
+	}
+	return $ta <=> $tb;
 });
 
+$running = 0.0;
 foreach ($ledger_entries as &$entry) {
-	if ($entry['credit'] !== '' && $entry['credit'] !== null) {
-		$current_balance += (float)$entry['credit'];
-	} elseif ($entry['debit'] !== '' && $entry['debit'] !== null) {
-		$current_balance -= (float)$entry['debit'];
+	if (!empty($entry['is_opening'])) {
+		$running = (float)$entry['credit'];
+		$entry['balance'] = $running;
+		continue;
 	}
-	$entry['balance'] = $current_balance;
+	if ($entry['credit'] !== '' && $entry['credit'] !== null) {
+		$running += (float)$entry['credit'];
+	}
+	if ($entry['debit'] !== '' && $entry['debit'] !== null) {
+		$running -= (float)$entry['debit'];
+	}
+	$entry['balance'] = $running;
 }
 unset($entry);
 
-$total_entries_sql = "SELECT COUNT(*) as count FROM receipts WHERE account = '$safeBank' AND date BETWEEN '$start_date' AND '$end_date'";
-$total_q = $db->query($total_entries_sql);
-$total_row = ($total_q) ? $total_q->fetch_assoc() : null;
-$total_entries = (int)($total_row['count'] ?? 0);
+// Newest first for display
+usort($ledger_entries, function ($a, $b) {
+	$ao = (int)($a['is_opening'] ?? 0);
+	$bo = (int)($b['is_opening'] ?? 0);
+	// Keep opening at the bottom when newest-first
+	if ($ao !== $bo) {
+		return $ao <=> $bo;
+	}
+	$ta = strtotime($a['sort_date'] ?? '') ?: 0;
+	$tb = strtotime($b['sort_date'] ?? '') ?: 0;
+	if ($ta === $tb) {
+		return strcmp((string)($b['particular'] ?? ''), (string)($a['particular'] ?? ''));
+	}
+	return $tb <=> $ta;
+});
 
-$response = [
+// recordsFiltered excludes opening row for DataTables count consistency with prior UI
+$total_with_opening = count($ledger_entries);
+$total_filtered = max(0, $total_with_opening - 1);
+
+// Server-side pagination over the merged list
+if ($length == -1) {
+	$page_rows = $ledger_entries;
+} else {
+	if ($start < 0) {
+		$start = 0;
+	}
+	$page_rows = array_slice($ledger_entries, $start, $length);
+}
+
+// Strip internal fields
+$data = [];
+foreach ($page_rows as $row) {
+	$data[] = [
+		'date' => $row['date'],
+		'particular' => $row['particular'],
+		'reference_no' => $row['reference_no'],
+		'debit' => $row['debit'] === '' ? '' : $row['debit'],
+		'credit' => $row['credit'] === '' ? '' : $row['credit'],
+		'balance' => $row['balance']
+	];
+}
+
+echo json_encode([
 	'draw' => $draw,
-	'recordsTotal' => $total_entries,
-	'recordsFiltered' => $total_filtered_entries,
-	'data' => $ledger_entries
-];
-echo json_encode($response);
+	'recordsTotal' => $total_filtered,
+	'recordsFiltered' => $total_filtered,
+	'data' => $data
+]);
 ?>
