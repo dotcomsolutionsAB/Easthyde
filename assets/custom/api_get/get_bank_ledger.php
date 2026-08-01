@@ -129,6 +129,38 @@ if ($bankKeywords !== []) {
 	$expenseMatch = '(' . $expenseAccount . ' OR (' . implode(' OR ', $kwParts) . '))';
 }
 
+/** Account aliases for exact bank match */
+$bankAccountAliases = [strtoupper(trim($bank_id))];
+$upperBank = strtoupper(trim($bank_id));
+if (in_array($upperBank, ['CASH2', 'CASH (PRIMARY)', 'CASH(PRIMARY)', 'CASH'], true)) {
+	$bankAccountAliases = array_merge($bankAccountAliases, ['CASH', 'CASH2', 'CASH (PRIMARY)', 'CASH(PRIMARY)']);
+}
+$bankAccountAliases = array_values(array_unique($bankAccountAliases));
+
+/**
+ * Keyword-matched salary/related expenses → credit.
+ * Expenses actually paid from this bank account (no keyword) → debit.
+ */
+$classifyExpense = function ($account, $category, $description) use ($bankKeywords, $bankAccountAliases) {
+	$hay = strtoupper(trim((string)$category . ' ' . (string)$description));
+	foreach ($bankKeywords as $kw) {
+		if ($kw !== '' && strpos($hay, $kw) !== false) {
+			return 'credit'; // salary / personal related
+		}
+	}
+	$acc = strtoupper(trim((string)$account));
+	if (in_array($acc, $bankAccountAliases, true)) {
+		return 'debit';
+	}
+	// Keyword matched via account name only — still treat as related credit
+	foreach ($bankKeywords as $kw) {
+		if ($kw !== '' && strpos($acc, $kw) !== false) {
+			return 'credit';
+		}
+	}
+	return 'debit';
+};
+
 $current_balance = $opening_balance;
 
 // Roll opening balance forward from bank.updated_on up to day before start_date
@@ -137,20 +169,24 @@ if ($updated_on !== '' && $start_date < $updated_on) {
 	$current_balance = 0;
 } elseif ($updated_on !== '' && $start_date > $updated_on) {
 	$roll_end = date('Y-m-d', strtotime($start_date . ' -1 day'));
-	$sql = "SELECT date, amount, 'credit' AS type FROM receipts 
+	$sql = "SELECT date, amount, 'credit' AS type, '' AS category, '' AS description, '' AS account FROM receipts 
 			WHERE $receiptAccount AND date BETWEEN '$updated_on' AND '$roll_end'
 			UNION ALL
-			SELECT date, amount, 'debit' AS type FROM payments 
+			SELECT date, amount, 'debit' AS type, '' AS category, '' AS description, '' AS account FROM payments 
 			WHERE $paymentAccount AND date BETWEEN '$updated_on' AND '$roll_end'
 			UNION ALL
-			SELECT date, amount, 'debit' AS type FROM expense 
+			SELECT date, amount, 'expense' AS type, category, description, account FROM expense 
 			WHERE $expenseMatch AND date BETWEEN '$updated_on' AND '$roll_end'
-			ORDER BY date ASC, type ASC";
+			ORDER BY date ASC";
 	$query = $db->query($sql);
 	if ($query) {
 		while ($entry = $query->fetch_assoc()) {
 			$amt = (float)str_replace(',', '', (string)($entry['amount'] ?? 0));
-			if (($entry['type'] ?? '') === 'credit') {
+			$type = $entry['type'] ?? '';
+			if ($type === 'expense') {
+				$type = $classifyExpense($entry['account'] ?? '', $entry['category'] ?? '', $entry['description'] ?? '');
+			}
+			if ($type === 'credit') {
 				$opening_balance += $amt;
 			} else {
 				$opening_balance -= $amt;
@@ -235,8 +271,8 @@ if ($query) {
 	}
 }
 
-// Expenses (debit) — selected bank account OR keyword match (e.g. GURU)
-$sql = "SELECT date, category, description, amount
+// Expenses — keyword (e.g. GURU salary) as credit; paid-from-this-bank otherwise as debit
+$sql = "SELECT date, category, description, amount, account
 		FROM expense
 		WHERE $expenseMatch AND date BETWEEN '$safeStart' AND '$safeEnd'";
 if ($searchSql !== '') {
@@ -255,13 +291,16 @@ if ($query) {
 			$particular = $description !== '' ? $description : 'Expense';
 		}
 
+		$amt = (float)str_replace(',', '', (string)($entry['amount'] ?? 0));
+		$side = $classifyExpense($entry['account'] ?? '', $category, $description);
+
 		$ledger_entries[] = [
 			'date' => !empty($entry['date']) ? date('d-m-Y', strtotime($entry['date'])) : '',
 			'sort_date' => $entry['date'] ?? '',
 			'particular' => $particular,
 			'reference_no' => 'EXP',
-			'debit' => (float)str_replace(',', '', (string)($entry['amount'] ?? 0)),
-			'credit' => '',
+			'debit' => $side === 'debit' ? $amt : '',
+			'credit' => $side === 'credit' ? $amt : '',
 			'balance' => 0,
 			'is_opening' => 0
 		];
