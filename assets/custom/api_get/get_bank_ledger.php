@@ -89,9 +89,45 @@ $accountMatchSql = function ($column) use ($db, $bank_id) {
 	return '(' . implode(' OR ', $parts) . ')';
 };
 
+/**
+ * Distinctive words from bank name (e.g. GURU from "BANK OF INDIA (GURU PERSONAL)")
+ * used to pull related expense rows even if paid from another account.
+ */
+$bankKeywords = [];
+$stopwords = [
+	'BANK', 'OF', 'THE', 'AND', 'LTD', 'LIMITED', 'PVT', 'PRIVATE', 'INDIA',
+	'PERSONAL', 'ACCOUNT', 'PRIMARY', 'SECONDARY', 'CASH', 'AXIS', 'STATE',
+	'SBI', 'BOI', 'HDFC', 'ICICI', 'MMLE', 'CO', 'COMPANY'
+];
+preg_match_all('/[A-Za-z0-9]+/', $bank_id, $kwMatches);
+foreach ($kwMatches[0] as $token) {
+	$tokenUp = strtoupper($token);
+	if (strlen($tokenUp) < 3) {
+		continue;
+	}
+	if (in_array($tokenUp, $stopwords, true)) {
+		continue;
+	}
+	$bankKeywords[$tokenUp] = $tokenUp;
+}
+$bankKeywords = array_values($bankKeywords);
+
 $receiptAccount = $accountMatchSql('account');
 $paymentAccount = $accountMatchSql('account');
 $expenseAccount = $accountMatchSql('account');
+
+// Expenses: exact bank account OR category/description/account contains bank keyword (e.g. GURU)
+$expenseMatch = $expenseAccount;
+if ($bankKeywords !== []) {
+	$kwParts = [];
+	foreach ($bankKeywords as $kw) {
+		$esc = $db->real_escape_string($kw);
+		$kwParts[] = "category LIKE '%$esc%'";
+		$kwParts[] = "description LIKE '%$esc%'";
+		$kwParts[] = "account LIKE '%$esc%'";
+	}
+	$expenseMatch = '(' . $expenseAccount . ' OR (' . implode(' OR ', $kwParts) . '))';
+}
 
 $current_balance = $opening_balance;
 
@@ -108,7 +144,7 @@ if ($updated_on !== '' && $start_date < $updated_on) {
 			WHERE $paymentAccount AND date BETWEEN '$updated_on' AND '$roll_end'
 			UNION ALL
 			SELECT date, amount, 'debit' AS type FROM expense 
-			WHERE $expenseAccount AND date BETWEEN '$updated_on' AND '$roll_end'
+			WHERE $expenseMatch AND date BETWEEN '$updated_on' AND '$roll_end'
 			ORDER BY date ASC, type ASC";
 	$query = $db->query($sql);
 	if ($query) {
@@ -199,10 +235,10 @@ if ($query) {
 	}
 }
 
-// Expenses (debit) — include for the selected bank/cash account
+// Expenses (debit) — selected bank account OR keyword match (e.g. GURU)
 $sql = "SELECT date, category, description, amount
 		FROM expense
-		WHERE $expenseAccount AND date BETWEEN '$safeStart' AND '$safeEnd'";
+		WHERE $expenseMatch AND date BETWEEN '$safeStart' AND '$safeEnd'";
 if ($searchSql !== '') {
 	$sql .= " AND (category LIKE '%$searchSql%' OR description LIKE '%$searchSql%')";
 }
