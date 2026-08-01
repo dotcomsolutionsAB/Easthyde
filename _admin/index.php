@@ -206,7 +206,7 @@ License: You must have a valid license purchased only from themeforest(the above
 		<!--begin::Page Scripts(used by this page) -->
 		<script src="../assets/plugins/custom/image-picker/image-picker.min.js" type="text/javascript"></script>
 		<script src="../assets/js/pages/dashboard.js" type="text/javascript"></script>
-		<script src="../assets/js/pages/my-script.js" type="text/javascript"></script>
+		<script src="../assets/js/pages/my-script.js?v=<?php echo @filemtime(__DIR__ . '/../assets/js/pages/my-script.js') ?: time(); ?>" type="text/javascript"></script>
 		<script src="../assets/js/pages/consignment-mrn.js" type="text/javascript"></script>
 		<script src="../assets/js/pages/my-toastr.js" type="text/javascript"></script>
 		<script src="../assets/js/pages/calculator.js" type="text/javascript"></script>

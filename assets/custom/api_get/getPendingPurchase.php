@@ -98,7 +98,8 @@ if ($query) {
 		$response['pi_details_sn'][] = $serial_no;
 		$response['pi_details_pi'][] = $purchase_invoice;
 		$response['pi_details_date'][] = $purchase_date;
-		$response['pi_details_amount'][] = number_format($amount, 2, '.', '');
+		// Remaining due (UI Total Due currently sums this field in production JS)
+		$response['pi_details_amount'][] = number_format($due, 2, '.', '');
 		$response['due'][] = number_format($due, 2, '.', '');
 		$serial_no++;
 	}
