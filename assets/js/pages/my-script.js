@@ -9684,10 +9684,14 @@ var Select2 = function () {
         });
 
         $('#q_client').on("select2:select", function (e) {
-            $('[data-repeater-list="quotation"]').empty();
-            $('[data-repeater-create="quotation"]').click();
-            var tmp = "input[name$='quotation[0][q_sn]']";
-            $(tmp).val(1);
+            // Keep existing items when changing client on an already-saved quotation
+            var isEdit = ($('#q_id').val() || '') !== '';
+            if (!isEdit) {
+                $('[data-repeater-list="quotation"]').empty();
+                $('[data-repeater-create="quotation"]').click();
+                var tmp = "input[name$='quotation[0][q_sn]']";
+                $(tmp).val(1);
+            }
             selected_client = $(e.currentTarget).val();
             $.ajax({
                 url: '../assets/custom/api_get/get_client_address.php',
@@ -19927,7 +19931,10 @@ function editQuotation(id) {
                 $("#validity").val(terms.validity);
                 $("#remarks").val(terms.remarks);
 
-                $("#q_client").attr("readonly", true);
+                $("#q_client").prop("readonly", false).prop("disabled", false);
+                if ($("#q_client").data('select2')) {
+                    $("#q_client").select2('enable');
+                }
                 $("#quotation_no").attr("readonly", true);
 
                 var e_nos = JSON.parse(response.quotation_top);
