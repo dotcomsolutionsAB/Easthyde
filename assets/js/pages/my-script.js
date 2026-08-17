@@ -9883,10 +9883,12 @@ var Select2 = function () {
                 url: '../assets/custom/api_get/get_quotation.php',
                 type: 'POST',
                 dataType: 'json',
-                data: function (term, page) {
+                data: function (params) {
+                    var term = (params && typeof params === 'object') ? (params.term || '') : (params || '');
+                    var client = selected_client || $('#so_client').val() || '';
                     return {
-                        q: term, // search term
-                        client: selected_client //Get your value from other elements using Query, for example.
+                        q: term,
+                        client: client
                     };
                 }
             },
@@ -10448,10 +10450,12 @@ var Select2 = function () {
                 url: '../assets/custom/api_get/get_quotation.php',
                 type: 'POST',
                 dataType: 'json',
-                data: function (term, page) {
+                data: function (params) {
+                    var term = (params && typeof params === 'object') ? (params.term || '') : (params || '');
+                    var client = selected_client || $('#si_client').val() || '';
                     return {
-                        q: term, // search term
-                        client: selected_client //Get your value from other elements using Query, for example.
+                        q: term,
+                        client: client
                     };
                 }
             },
