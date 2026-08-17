@@ -2,36 +2,34 @@
 
 session_start();
 require_once "../connect.php";
+require_once "select2_helpers.php";
 
-// $term = '%';
-$q = $_REQUEST['q'] ?? [];
-if (!is_array($q)) {
-    $q = [];
-}
-$term = (string)($q['term'] ?? '');
-$supplier = $_REQUEST['supplier'] ?? '';
-// $supplier = '%';
+$term = select2_term($db);
+$supplier = (string)($_REQUEST['supplier'] ?? '');
 
-$json = array("results"=>array());
+$json = [];
 
-$sql = "SELECT * FROM purchase_invoice WHERE `pi_no` LIKE '%$term%' AND `supplier_name` LIKE '%$supplier%'";
+$sql = "SELECT `pi_no` FROM purchase_invoice WHERE `pi_no` LIKE '%$term%' AND " . select2_name_match('supplier_name', $db, $supplier) . " GROUP BY `pi_no` ORDER BY MAX(`id`) DESC";
 $query = $db->query($sql);
 if ($query) {
-while($row = $query->fetch_assoc()){
-
-     $json["results"][] = ['id'=>$row['pi_no'], 'text'=>$row['pi_no']];
+	while ($row = $query->fetch_assoc()) {
+		$no = (string)($row['pi_no'] ?? '');
+		if ($no !== '') {
+			$json[] = ['id' => $no, 'text' => $no];
+		}
+	}
 }
-}
 
-$sql = "SELECT * FROM payments WHERE `py_no` LIKE '%$term%' AND `supplier` LIKE '%$supplier%'";
+$sql = "SELECT `py_no` FROM payments WHERE `py_no` LIKE '%$term%' AND " . select2_name_match('supplier', $db, $supplier) . " GROUP BY `py_no` ORDER BY MAX(`id`) DESC";
 $query = $db->query($sql);
 if ($query) {
-while($row = $query->fetch_assoc()){
-
-     $json["results"][] = ['id'=>$row['py_no'], 'text'=>$row['py_no']];
+	while ($row = $query->fetch_assoc()) {
+		$no = (string)($row['py_no'] ?? '');
+		if ($no !== '') {
+			$json[] = ['id' => $no, 'text' => $no];
+		}
+	}
 }
-}
 
-echo json_encode($json);
-
+select2_results_json($json);
 ?>

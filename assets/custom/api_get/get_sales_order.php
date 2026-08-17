@@ -2,29 +2,30 @@
 
 session_start();
 require_once "../connect.php";
+require_once "select2_helpers.php";
 
-// $term = '%';
-$q = $_REQUEST['q'] ?? [];
-if (!is_array($q)) {
-    $q = [];
-}
-$term = (string)($q['term'] ?? '');
-$client = $_REQUEST['client'] ?? '';
-// $supplier = '%';
+$term = select2_term($db);
+$client = (string)($_REQUEST['client'] ?? '');
+$clientMatch = select2_name_match('client_name', $db, $client);
 
-$sql = "SELECT * FROM sales_order WHERE `so_no` LIKE '%$term%' AND `client_name` LIKE '%$client%' AND status = '0' ORDER BY so_no";
+$sql = "SELECT `so_no`
+		FROM sales_order
+		WHERE `so_no` LIKE '%$term%' AND $clientMatch
+		AND (`status` IS NULL OR `status` = '' OR `status` = '0' OR `status` = '1')
+		AND (`cancelled` IS NULL OR `cancelled` = '' OR `cancelled` = '0' OR `cancelled` = 0)
+		GROUP BY `so_no`
+		ORDER BY MAX(`id`) DESC";
 $query = $db->query($sql);
 
-$json = array("results"=>array());
-
+$json = [];
 if ($query) {
-while($row = $query->fetch_assoc()){
-
-     $json["results"][] = ['id'=>$row['so_no'], 'text'=>$row['so_no']];
-
+	while ($row = $query->fetch_assoc()) {
+		$no = (string)($row['so_no'] ?? '');
+		if ($no !== '') {
+			$json[] = ['id' => $no, 'text' => $no];
+		}
+	}
 }
-}
 
-echo json_encode($json);
-
+select2_results_json($json);
 ?>

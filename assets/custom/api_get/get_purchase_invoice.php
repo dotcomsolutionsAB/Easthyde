@@ -2,29 +2,28 @@
 
 session_start();
 require_once "../connect.php";
+require_once "select2_helpers.php";
 
-// $term = '%';
-$q = $_REQUEST['q'] ?? [];
-if (!is_array($q)) {
-    $q = [];
-}
-$term = (string)($q['term'] ?? '');
-$supplier = $_REQUEST['supplier'] ?? '';
-// $supplier = '%';
+$term = select2_term($db);
+$supplier = (string)($_REQUEST['supplier'] ?? '');
+$supplierMatch = select2_name_match('supplier_name', $db, $supplier);
 
-$sql = "SELECT * FROM purchase_invoice WHERE `pi_invoice` LIKE '%$term%' AND `supplier_name` LIKE '%$supplier%'";
+$sql = "SELECT `pi_no`
+		FROM purchase_invoice
+		WHERE `pi_no` LIKE '%$term%' AND $supplierMatch
+		GROUP BY `pi_no`
+		ORDER BY MAX(`id`) DESC";
 $query = $db->query($sql);
 
-$json = array("results"=>array());
-
+$json = [];
 if ($query) {
-while($row = $query->fetch_assoc()){
-
-     $json["results"][] = ['id'=>$row['pi_invoice'], 'text'=>$row['pi_invoice']];
-
+	while ($row = $query->fetch_assoc()) {
+		$no = (string)($row['pi_no'] ?? '');
+		if ($no !== '') {
+			$json[] = ['id' => $no, 'text' => $no];
+		}
+	}
 }
-}
 
-echo json_encode($json);
-
+select2_results_json($json);
 ?>

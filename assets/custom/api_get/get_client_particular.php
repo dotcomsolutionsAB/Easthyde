@@ -2,36 +2,34 @@
 
 session_start();
 require_once "../connect.php";
+require_once "select2_helpers.php";
 
-// $term = '%';
-$q = $_REQUEST['q'] ?? [];
-if (!is_array($q)) {
-    $q = [];
-}
-$term = (string)($q['term'] ?? '');
-$client = $_REQUEST['client'] ?? '';
-// $client = '%';
+$term = select2_term($db);
+$client = (string)($_REQUEST['client'] ?? '');
 
-$json = array("results"=>array());
+$json = [];
 
-$sql = "SELECT * FROM sales_invoice WHERE `si_no` LIKE '%$term%' AND `client_name` LIKE '%$client%'";
+$sql = "SELECT `si_no` FROM sales_invoice WHERE `si_no` LIKE '%$term%' AND " . select2_name_match('client_name', $db, $client) . " GROUP BY `si_no` ORDER BY MAX(`id`) DESC";
 $query = $db->query($sql);
 if ($query) {
-while($row = $query->fetch_assoc()){
-
-     $json["results"][] = ['id'=>$row['si_no'], 'text'=>$row['si_no']];
+	while ($row = $query->fetch_assoc()) {
+		$no = (string)($row['si_no'] ?? '');
+		if ($no !== '') {
+			$json[] = ['id' => $no, 'text' => $no];
+		}
+	}
 }
-}
 
-$sql = "SELECT * FROM receipts WHERE `r_no` LIKE '%$term%' AND `client` LIKE '%$client%'";
+$sql = "SELECT `r_no` FROM receipts WHERE `r_no` LIKE '%$term%' AND " . select2_name_match('client', $db, $client) . " GROUP BY `r_no` ORDER BY MAX(`id`) DESC";
 $query = $db->query($sql);
 if ($query) {
-while($row = $query->fetch_assoc()){
-
-     $json["results"][] = ['id'=>$row['r_no'], 'text'=>$row['r_no']];
+	while ($row = $query->fetch_assoc()) {
+		$no = (string)($row['r_no'] ?? '');
+		if ($no !== '') {
+			$json[] = ['id' => $no, 'text' => $no];
+		}
+	}
 }
-}
 
-echo json_encode($json);
-
+select2_results_json($json);
 ?>

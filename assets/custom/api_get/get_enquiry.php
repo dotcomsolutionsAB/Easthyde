@@ -2,29 +2,31 @@
 
 session_start();
 require_once "../connect.php";
+require_once "select2_helpers.php";
 
-$q = $_REQUEST['q'] ?? [];
-if (!is_array($q)) {
-    $q = [];
-}
-$term = (string)($q['term'] ?? '');
-$client = $_REQUEST['client'] ?? '';
+$term = select2_term($db);
+$client = (string)($_REQUEST['client'] ?? '');
+$clientMatch = select2_name_match('client', $db, $client);
 
-$sql = "SELECT * FROM enquiry WHERE `enquiry_no` LIKE '%$term%' AND `client` LIKE '%$client%' AND status != '1' ORDER BY id DESC";
+$sql = "SELECT `enquiry_no`, `enquiry_date`
+		FROM enquiry
+		WHERE `enquiry_no` LIKE '%$term%' AND $clientMatch
+		AND (`status` IS NULL OR `status` = '' OR `status` != '1')
+		ORDER BY `id` DESC";
 $query = $db->query($sql);
 
-$json = array("results"=>array());
-
+$json = [];
 if ($query) {
-while($row = $query->fetch_assoc()){
-
-	$text = $row['enquiry_no'].' - '.date('d-m-Y', strtotime($row['enquiry_date']));
-
-     $json["results"][] = ['id'=>$row['enquiry_no'], 'text'=>$text];
-
+	while ($row = $query->fetch_assoc()) {
+		$no = (string)($row['enquiry_no'] ?? '');
+		if ($no === '') {
+			continue;
+		}
+		$date = !empty($row['enquiry_date']) ? date('d-m-Y', strtotime($row['enquiry_date'])) : '';
+		$text = $date !== '' ? ($no . ' - ' . $date) : $no;
+		$json[] = ['id' => $no, 'text' => $text];
+	}
 }
-}
 
-echo json_encode($json);
-
+select2_results_json($json);
 ?>

@@ -2,27 +2,28 @@
 
 session_start();
 require_once "../connect.php";
+require_once "select2_helpers.php";
 
-$q = $_REQUEST['q'] ?? [];
-if (!is_array($q)) {
-    $q = [];
-}
-$term = (string)($q['term'] ?? '');
-$client = $_REQUEST['client'] ?? '';
+$term = select2_term($db);
+$client = (string)($_REQUEST['client'] ?? '');
+$clientMatch = select2_name_match('client_name', $db, $client);
 
-$sql = "SELECT DISTINCT(pr_no) FROM proforma WHERE `pr_no` LIKE '%$term%' AND `client_name` = '$client' ORDER BY id DESC";
+$sql = "SELECT `pr_no`
+		FROM proforma
+		WHERE `pr_no` LIKE '%$term%' AND $clientMatch
+		GROUP BY `pr_no`
+		ORDER BY MAX(`id`) DESC";
 $query = $db->query($sql);
 
-$json = array("results"=>array());
-
+$json = [];
 if ($query) {
-while($row = $query->fetch_assoc()){
-
-     $json["results"][] = ['id'=>$row['pr_no'], 'text'=>$row['pr_no']];
-
+	while ($row = $query->fetch_assoc()) {
+		$no = (string)($row['pr_no'] ?? '');
+		if ($no !== '') {
+			$json[] = ['id' => $no, 'text' => $no];
+		}
+	}
 }
-}
 
-echo json_encode($json);
-
+select2_results_json($json);
 ?>

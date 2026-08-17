@@ -57,6 +57,10 @@ var selected_client = '';
 var composite_quantity = '';
 var type_receipt = '';
 
+function select2SearchTerm(params) {
+    return (params && typeof params === 'object') ? (params.term || '') : (params || '');
+}
+
 jQuery(document).ready(function () {
     Datatables.init();
     FormRepeater.init();
@@ -8548,10 +8552,10 @@ var FormRepeater = function () {
                         url: '../assets/custom/api_get/get_supplier_particular.php',
                         type: 'POST',
                         dataType: 'json',
-                        data: function (term, page) {
+                        data: function (params) {
                             return {
-                                q: term, // search term
-                                supplier: selected_value //Get your value from other elements using Query, for example.
+                                q: select2SearchTerm(params),
+                                supplier: selected_value
                             };
                         }
                     },
@@ -8586,10 +8590,10 @@ var FormRepeater = function () {
                         url: '../assets/custom/api_get/get_supplier_particular.php',
                         type: 'POST',
                         dataType: 'json',
-                        data: function (term, page) {
+                        data: function (params) {
                             return {
-                                q: term, // search term
-                                supplier: selected_value //Get your value from other elements using Query, for example.
+                                q: select2SearchTerm(params),
+                                supplier: selected_value
                             };
                         }
                     },
@@ -8645,10 +8649,10 @@ var FormRepeater = function () {
                         url: '../assets/custom/api_get/get_client_particular.php',
                         type: 'POST',
                         dataType: 'json',
-                        data: function (term, page) {
+                        data: function (params) {
                             return {
-                                q: term, // search term
-                                client: selected_value //Get your value from other elements using Query, for example.
+                                q: select2SearchTerm(params),
+                                client: selected_value
                             };
                         }
                     },
@@ -8683,10 +8687,10 @@ var FormRepeater = function () {
                         url: '../assets/custom/api_get/get_client_particular.php',
                         type: 'POST',
                         dataType: 'json',
-                        data: function (term, page) {
+                        data: function (params) {
                             return {
-                                q: term, // search term
-                                client: selected_value //Get your value from other elements using Query, for example.
+                                q: select2SearchTerm(params),
+                                client: selected_value
                             };
                         }
                     },
@@ -8773,11 +8777,11 @@ var FormRepeater = function () {
                         url: '../assets/custom/api_get/get_particular.php',
                         type: 'POST',
                         dataType: 'json',
-                        data: function (term, page) {
+                        data: function (params) {
                             return {
-                                q: term, // search term
+                                q: select2SearchTerm(params),
                                 master: selected_value,
-                                type: selected_type, //Get your value from other elements using Query, for example.
+                                type: selected_type
                             };
                         }
                     },
@@ -8876,11 +8880,11 @@ var FormRepeater = function () {
                         url: '../assets/custom/api_get/get_particular.php',
                         type: 'POST',
                         dataType: 'json',
-                        data: function (term, page) {
+                        data: function (params) {
                             return {
-                                q: term, // search term
+                                q: select2SearchTerm(params),
                                 master: selected_value,
-                                type: selected_type, //Get your value from other elements using Query, for example.
+                                type: selected_type
                             };
                         }
                     },
@@ -9671,10 +9675,10 @@ var Select2 = function () {
                 url: '../assets/custom/api_get/get_enquiry.php',
                 type: 'POST',
                 dataType: 'json',
-                data: function (term, page) {
+                data: function (params) {
                     return {
-                        q: term, // search term
-                        client: selected_client //Get your value from other elements using Query, for example.
+                        q: select2SearchTerm(params),
+                        client: selected_client || $('#q_client').val() || ''
                     };
                 }
             },
@@ -10190,10 +10194,10 @@ var Select2 = function () {
                 url: '../assets/custom/api_get/get_sales_order.php',
                 type: 'POST',
                 dataType: 'json',
-                data: function (term, page) {
+                data: function (params) {
                     return {
-                        q: term, // search term
-                        client: selected_client //Get your value from other elements using Query, for example.
+                        q: select2SearchTerm(params),
+                        client: selected_client || $('#pr_client').val() || ''
                     };
                 }
             },
@@ -10433,10 +10437,10 @@ var Select2 = function () {
                 url: '../assets/custom/api_get/get_sales_order.php',
                 type: 'POST',
                 dataType: 'json',
-                data: function (term, page) {
+                data: function (params) {
                     return {
-                        q: term, // search term
-                        client: selected_client //Get your value from other elements using Query, for example.
+                        q: select2SearchTerm(params),
+                        client: selected_client || $('#si_client').val() || ''
                     };
                 }
             },
@@ -10469,10 +10473,10 @@ var Select2 = function () {
                 url: '../assets/custom/api_get/get_proforma_invoice.php',
                 type: 'POST',
                 dataType: 'json',
-                data: function (term, page) {
+                data: function (params) {
                     return {
-                        q: term, // search term
-                        client: selected_client //Get your value from other elements using Query, for example.
+                        q: select2SearchTerm(params),
+                        client: selected_client || $('#si_client').val() || ''
                     };
                 }
             },
@@ -10981,9 +10985,9 @@ var Select2 = function () {
                 url: '../assets/custom/api_get/get_sale_invoice.php',
                 type: 'POST',
                 dataType: 'json',
-                data: function (term, page) {
+                data: function (params) {
                     return {
-                        q: term, // search term
+                        q: select2SearchTerm(params)
                     };
                 }
             },
@@ -11153,10 +11157,10 @@ var Select2 = function () {
                 url: '../assets/custom/api_get/get_purchase_order.php',
                 type: 'POST',
                 dataType: 'json',
-                data: function (term, page) {
+                data: function (params) {
                     return {
-                        q: term, // search term
-                        supplier: selected_supplier //Get your value from other elements using Query, for example.
+                        q: select2SearchTerm(params),
+                        supplier: selected_supplier || $('#pi_supplier').val() || ''
                     };
                 }
             },
@@ -11453,9 +11457,9 @@ var Select2 = function () {
                 url: '../assets/custom/api_get/get_purchase_invoice.php',
                 type: 'POST',
                 dataType: 'json',
-                data: function (term, page) {
+                data: function (params) {
                     return {
-                        q: term, // search term
+                        q: select2SearchTerm(params)
                     };
                 }
             },
