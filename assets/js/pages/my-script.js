@@ -61,6 +61,22 @@ function select2SearchTerm(params) {
     return (params && typeof params === 'object') ? (params.term || '') : (params || '');
 }
 
+/** Empty → auto-round. Explicit 0 / 0.00 → keep zero (no auto-calc). Any other value → auto-round. */
+function shouldAutoCalculateRoundoff(roundoff) {
+    if (roundoff === null || roundoff === undefined) {
+        return true;
+    }
+    var s = String(roundoff).trim().replace(/,/g, '');
+    if (s === '') {
+        return true;
+    }
+    var n = parseFloat(s);
+    if (isNaN(n)) {
+        return true;
+    }
+    return Math.abs(n) > 0.00001;
+}
+
 jQuery(document).ready(function () {
     Datatables.init();
     FormRepeater.init();
@@ -12932,7 +12948,7 @@ function q_preview(e) {
             var roundoff = $('#q_round').val();
             console.log(roundoff);
 
-            if (roundoff != '0') {
+            if (shouldAutoCalculateRoundoff(roundoff)) {
 
                 if (fraction >= 0.5) {
                     var add_fraction = 1 - fraction;
@@ -13167,7 +13183,7 @@ function so_preview(e) {
             var roundoff = $('#so_round').val();
             console.log(roundoff);
 
-            if (roundoff != '0') {
+            if (shouldAutoCalculateRoundoff(roundoff)) {
 
                 if (fraction >= 0.5) {
                     var add_fraction = 1 - fraction;
@@ -13577,7 +13593,7 @@ function dn_preview(e) {
             var roundoff = $('#dn_round').val();
             console.log(roundoff);
 
-            if (roundoff != '0') {
+            if (shouldAutoCalculateRoundoff(roundoff)) {
 
                 if (fraction >= 0.5) {
                     var add_fraction = 1 - fraction;
@@ -13812,7 +13828,7 @@ function pr_preview(e) {
             var roundoff = $('#pr_round').val();
             console.log(roundoff);
 
-            if (roundoff != '0') {
+            if (shouldAutoCalculateRoundoff(roundoff)) {
 
                 if (fraction >= 0.5) {
                     var add_fraction = 1 - fraction;
@@ -14062,7 +14078,7 @@ function si_preview(e) {
             var roundoff = $('#si_round').val();
             console.log(roundoff);
 
-            if (roundoff != '0') {
+            if (shouldAutoCalculateRoundoff(roundoff)) {
 
                 if (fraction >= 0.5) {
                     var add_fraction = 1 - fraction;
@@ -14288,7 +14304,7 @@ function si_preview_new(e) {
 
             var roundoff = $('#so_round').val();
 
-            if (roundoff != '0') {
+            if (shouldAutoCalculateRoundoff(roundoff)) {
 
                 if (fraction >= 0.5) {
                     var add_fraction = 1 - fraction;
@@ -19972,6 +19988,10 @@ function editQuotation(id) {
                 var addons = JSON.parse(response.addons);
                 $("#q_freight").val(addons.freight.value);
                 $("#q_pf").val(addons.pf.value);
+                var savedRound = (addons.roundoff !== undefined && addons.roundoff !== null && addons.roundoff !== '')
+                    ? addons.roundoff
+                    : '';
+                $("#q_round").val(savedRound);
 
                 var quotation_date = new Date(response.quotation_date);
                 var formatted_date = appendLeadingZeroes(quotation_date.getDate()) + "-" + appendLeadingZeroes(quotation_date.getMonth() + 1) + "-" + quotation_date.getFullYear();
@@ -20654,6 +20674,10 @@ function editSalesOrder(id) {
                     var addons = JSON.parse(response.addons);
                     $("#so_freight").val(addons.freight.value);
                     $("#so_pf").val(addons.pf.value);
+                    var savedRound = (addons.roundoff !== undefined && addons.roundoff !== null && addons.roundoff !== '')
+                        ? addons.roundoff
+                        : '';
+                    $("#so_round").val(savedRound);
                 }
 
                 if (response.items != '' && response.items != null) {
@@ -21317,6 +21341,10 @@ function editSalesInvoice(id) {
                     var addons = JSON.parse(response.addons);
                     $("#si_freight").val(addons.freight.value);
                     $("#si_pf").val(addons.pf.value);
+                    var savedRound = (addons.roundoff !== undefined && addons.roundoff !== null && addons.roundoff !== '')
+                        ? addons.roundoff
+                        : '';
+                    $("#si_round").val(savedRound);
                 }
 
                 if (response.items != '') {
@@ -21495,6 +21523,10 @@ function makePrimaryInvoice(id) {
                     var addons = JSON.parse(response.addons);
                     $("#si_freight").val(addons.freight.value);
                     $("#si_pf").val(addons.pf.value);
+                    var savedRound = (addons.roundoff !== undefined && addons.roundoff !== null && addons.roundoff !== '')
+                        ? addons.roundoff
+                        : '';
+                    $("#si_round").val(savedRound);
                 }
 
                 if (response.items != '') {
@@ -23975,6 +24007,10 @@ function editProformaInvoice(id) {
                 var addons = JSON.parse(response.addons);
                 $("#pr_freight").val(addons.freight.value);
                 $("#pr_pf").val(addons.pf.value);
+                var savedRound = (addons.roundoff !== undefined && addons.roundoff !== null && addons.roundoff !== '')
+                    ? addons.roundoff
+                    : '';
+                $("#pr_round").val(savedRound);
 
                 var items = JSON.parse(response.items);
                 var len = items.product.length;
@@ -24573,6 +24609,10 @@ function editDebitNote(id) {
                     var addons = JSON.parse(response.addons);
                     $("#dn_freight").val(addons.freight.value);
                     $("#dn_pf").val(addons.pf.value);
+                    var savedRound = (addons.roundoff !== undefined && addons.roundoff !== null && addons.roundoff !== '')
+                        ? addons.roundoff
+                        : '';
+                    $("#dn_round").val(savedRound);
                 }
 
                 if (response.items != '') {
