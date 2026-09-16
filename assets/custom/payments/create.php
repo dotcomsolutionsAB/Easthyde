@@ -2,6 +2,7 @@
 	include ("../connect.php");
 	include ("../php_replace_improper.php");
 	include ("../fy_access.php");
+	require_once "../api_set/sync_allocation_status.php";
 
 	session_start();
 
@@ -107,6 +108,8 @@
 						$sql_counter = "UPDATE counter SET `value` = '" . $esc($counter_array) . "' WHERE `key` = 'payment'";
 						$db->query($sql_counter);
 
+						sync_purchase_documents($db, $pi_arr['pi_no'], $supplier);
+
 						$validator['success'] = true;
 						$validator['messages'] = "Successfully Added";
 						$validator['py_no'] = $py_no;
@@ -133,8 +136,12 @@
 	else
 	{
 		if(abs($total - $amount) < 0.005){
-			$cheque = '';
-			$ifsc = '';
+			$old_pi_nos = [];
+			$old_q = $db->query("SELECT purchase_invoice FROM payments WHERE id = '" . $esc($py_id) . "' LIMIT 1");
+			if ($old_q && ($old_row = $old_q->fetch_assoc())) {
+				$old_pi_nos = payment_pi_numbers($old_row['purchase_invoice'] ?? '');
+			}
+
 			$sql = "UPDATE payments SET "
 				. "`date`=" . $sqldate($date) . ","
 				. "`purchase_invoice`='" . $esc($purchase_invoice) . "',"
@@ -142,16 +149,20 @@
 				. "`amount`='" . $esc($amount) . "',"
 				. "`mode`='" . $esc($mode) . "',"
 				. "`bank_name`='" . $esc($bank_name) . "',"
-				. "`cheque`='" . $esc($cheque) . "',"
-				. "`ifsc`='" . $esc($ifsc) . "',"
+				. "`instrument`='" . $esc($instrument) . "',"
+				. "`ins_date`=" . $sqldate($ins_date) . ","
 				. "`status`='" . $esc($status) . "'"
 				. " WHERE `id` = '" . $esc($py_id) . "'";
 			$query = $db->query($sql);
 
 			if($query===true)
 			{
+				$union = array_values(array_unique(array_merge($old_pi_nos, $pi_arr['pi_no'])));
+				sync_purchase_documents($db, $union, $supplier);
+
 				$validator['success'] = true;
 				$validator['messages'] = "Successfully Updated";
+				$validator['py_no'] = $py_no;
 				$validator['r_no'] = $py_no;
 			}
 			else

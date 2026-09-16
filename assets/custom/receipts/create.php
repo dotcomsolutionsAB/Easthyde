@@ -2,6 +2,7 @@
 	include ("../connect.php");
 	include ("../php_replace_improper.php");
 	include ("../fy_access.php");
+	require_once "../api_set/sync_allocation_status.php";
 
 	session_start();
 
@@ -107,6 +108,8 @@
 						$sql_counter = "UPDATE counter SET `value` = '" . $esc($counter_array) . "' WHERE `key` = 'receipt'";
 						$db->query($sql_counter);
 
+						sync_sales_documents($db, $si_arr['si_no'], $client);
+
 						$validator['success'] = true;
 						$validator['messages'] = "Successfully Added";
 						$validator['r_no'] = $r_no;
@@ -133,6 +136,12 @@
 	else
 	{
 		if(abs($total - $amount) < 0.005){
+			$old_si_nos = [];
+			$old_q = $db->query("SELECT sales_invoice FROM receipts WHERE id = '" . $esc($rc_id) . "' LIMIT 1");
+			if ($old_q && ($old_row = $old_q->fetch_assoc())) {
+				$old_si_nos = receipt_si_numbers($old_row['sales_invoice'] ?? '');
+			}
+
 			$sql = "UPDATE receipts SET "
 				. "`date`=" . $sqldate($date) . ","
 				. "`sales_invoice`='" . $esc($sales_invoice) . "',"
@@ -149,6 +158,9 @@
 
 			if($query===true)
 			{
+				$union = array_values(array_unique(array_merge($old_si_nos, $si_arr['si_no'])));
+				sync_sales_documents($db, $union, $client);
+
 				$validator['success'] = true;
 				$validator['messages'] = "Successfully Updated";
 				$validator['r_no'] = $r_no;

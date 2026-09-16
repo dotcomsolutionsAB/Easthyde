@@ -56,6 +56,180 @@ var selected_supplier = '';
 var selected_client = '';
 var composite_quantity = '';
 var type_receipt = '';
+var receiptHydrating = false;
+var paymentHydrating = false;
+var receiptEditAllocations = null;
+var paymentEditAllocations = null;
+
+function dummyPreviewEvent(name) {
+    return { currentTarget: { name: name || 'x' } };
+}
+
+function formatVoucherDate(d) {
+    if (!d || d === '0000-00-00') {
+        return '';
+    }
+    var dt = new Date(d);
+    if (isNaN(dt.getTime())) {
+        return '';
+    }
+    return appendLeadingZeroes(dt.getDate()) + "-" + appendLeadingZeroes(dt.getMonth() + 1) + "-" + dt.getFullYear();
+}
+
+function allocationMapFromSaved(saved, noKey) {
+    var map = {};
+    var advance = 0;
+    if (!saved || !saved[noKey] || !saved.amount) {
+        return { map: map, advance: 0 };
+    }
+    for (var i = 0; i < saved[noKey].length; i++) {
+        var no = String(saved[noKey][i] || '');
+        var amt = String(saved.amount[i] == null ? '0' : saved.amount[i]).replace(/,/g, '');
+        if (no.toUpperCase() === 'ADVANCE') {
+            advance += parseFloat(amt) || 0;
+            continue;
+        }
+        map[no] = amt;
+        if (no.toUpperCase() === 'OPENING') {
+            map['Opening'] = amt;
+            map['OPENING'] = amt;
+        }
+    }
+    return { map: map, advance: advance };
+}
+
+function applySavedReceiptAllocations(saved) {
+    var parsed = allocationMapFromSaved(saved, 'si_no');
+    $('[data-repeater-list="receipt"] [data-repeater-item]').each(function () {
+        var si = String($(this).find("input[name$='[rc_details_si]']").val() || '');
+        if (Object.prototype.hasOwnProperty.call(parsed.map, si)) {
+            $(this).find("input[name$='[rc_amount]']").val(parsed.map[si]);
+        }
+    });
+    if (parsed.advance > 0) {
+        $('#rc_advance_amount').val(parsed.advance).css('display', 'block');
+    }
+}
+
+function applySavedPaymentAllocations(saved) {
+    var parsed = allocationMapFromSaved(saved, 'pi_no');
+    $('[data-repeater-list="payment"] [data-repeater-item]').each(function () {
+        var pi = String($(this).find("input[name$='[py_details_pi]']").val() || '');
+        if (Object.prototype.hasOwnProperty.call(parsed.map, pi)) {
+            $(this).find("input[name$='[py_amount]']").val(parsed.map[pi]);
+        }
+    });
+    if (parsed.advance > 0) {
+        $('#py_advance_amount').val(parsed.advance).css('display', 'block');
+    }
+}
+
+function fillReceiptPendingRows(obj) {
+    var length = (obj && obj.si_details_sn) ? obj.si_details_sn.length : 0;
+    var total = 0;
+    var c = 0;
+    var i;
+    for (i = 0; i < length; i++) {
+        $('#rc_btn_add').click();
+    }
+    for (i = 0; i < length; i++) {
+        $("input[name$='receipt[" + c + "][rc_invoice_id]']").val(obj.id[i]);
+        $("input[name$='receipt[" + c + "][rc_details_sn]']").val(obj.si_details_sn[i]);
+        $("input[name$='receipt[" + c + "][rc_details_si]']").val(obj.si_details_si[i]);
+        $("input[name$='receipt[" + c + "][rc_details_date]']").val(obj.si_details_date[i]);
+        $("input[name$='receipt[" + c + "][rc_details_amount]']").val(obj.si_details_amount[i]);
+        $("input[name$='receipt[" + c + "][rc_due]']").val(obj.due[i]);
+        var amount = parseFloat(String(obj.due[i] || '0').replace(/,/g, '')) || 0;
+        total += amount;
+        c++;
+    }
+    $('#rc_amount_total').text('Total Due: ' + parseFloat(total).toFixed(2));
+}
+
+function fillPaymentPendingRows(obj) {
+    var length = (obj && obj.pi_details_sn) ? obj.pi_details_sn.length : 0;
+    var total = 0;
+    var c = 0;
+    var i;
+    for (i = 0; i < length; i++) {
+        $('#py_btn_add').click();
+    }
+    for (i = 0; i < length; i++) {
+        $("input[name$='payment[" + c + "][py_invoice_id]']").val(obj.id[i]);
+        $("input[name$='payment[" + c + "][py_details_sn]']").val(obj.pi_details_sn[i]);
+        $("input[name$='payment[" + c + "][py_details_pi]']").val(obj.pi_details_pi[i]);
+        $("input[name$='payment[" + c + "][py_details_date]']").val(obj.pi_details_date[i]);
+        $("input[name$='payment[" + c + "][py_details_amount]']").val(obj.pi_details_amount[i]);
+        $("input[name$='payment[" + c + "][py_due]']").val(obj.due[i]);
+        var amount = parseFloat(String(obj.due[i] || '0').replace(/,/g, '')) || 0;
+        total += amount;
+        c++;
+    }
+    $('#py_amount_total').text('Total Due: ' + parseFloat(total).toFixed(2));
+}
+
+function loadReceiptPendingInvoices(client, afterFn) {
+    $('[data-repeater-list="receipt"]').empty();
+    if (!client) {
+        if (typeof afterFn === 'function') afterFn();
+        return;
+    }
+    var data = {
+        member_id: encodeURIComponent(client),
+        rc_type: encodeURIComponent(type_receipt || '')
+    };
+    var exclude = $('#rc_id').val();
+    if (exclude) {
+        data.exclude_id = exclude;
+    }
+    $.ajax({
+        url: '../assets/custom/api_get/getPendingSales.php',
+        type: 'post',
+        data: data,
+        dataType: 'json',
+        success: function (response) {
+            var obj = {};
+            try { obj = JSON.parse(response.result); } catch (err) { obj = {}; }
+            fillReceiptPendingRows(obj);
+            if (receiptEditAllocations) {
+                applySavedReceiptAllocations(receiptEditAllocations);
+                receiptEditAllocations = null;
+            }
+            if (typeof afterFn === 'function') afterFn();
+            rc_preview(dummyPreviewEvent('rc_client'));
+        }
+    });
+}
+
+function loadPaymentPendingInvoices(supplier, afterFn) {
+    $('[data-repeater-list="payment"]').empty();
+    if (!supplier) {
+        if (typeof afterFn === 'function') afterFn();
+        return;
+    }
+    var data = { member_id: encodeURIComponent(supplier) };
+    var exclude = $('#py_id').val();
+    if (exclude) {
+        data.exclude_id = exclude;
+    }
+    $.ajax({
+        url: '../assets/custom/api_get/getPendingPurchase.php',
+        type: 'post',
+        data: data,
+        dataType: 'json',
+        success: function (response) {
+            var obj = {};
+            try { obj = JSON.parse(response.result); } catch (err) { obj = {}; }
+            fillPaymentPendingRows(obj);
+            if (paymentEditAllocations) {
+                applySavedPaymentAllocations(paymentEditAllocations);
+                paymentEditAllocations = null;
+            }
+            if (typeof afterFn === 'function') afterFn();
+            py_preview(dummyPreviewEvent('py_supplier'));
+        }
+    });
+}
 
 function select2SearchTerm(params) {
     return (params && typeof params === 'object') ? (params.term || '') : (params || '');
@@ -522,63 +696,6 @@ jQuery(document).ready(function () {
             if (totalAmount) {
                 $("#payment_amount").val(totalAmount).trigger('keyup');  // Populate total amount
             }
-
-            $('#py_supplier').on("select2:select", function (e) {
-                $('[data-repeater-list="payment"]').empty();
-                // $('[data-repeater-create="payment"]').click();
-                // var tmp = "input[name$='payment[0][py_sn]']";
-                // $(tmp).val(1);
-    
-                var id = $(e.currentTarget).val();
-                id = encodeURIComponent(id);
-                $.ajax({
-                    url: '../assets/custom/api_get/getPendingPurchase.php',
-                    type: 'post',
-                    data: { member_id: id },
-                    dataType: 'json',
-                    success: function (response) {
-    
-                        var temp = '';
-                        var obj = JSON.parse(response.result);
-    
-                        var length = obj.pi_details_sn.length;
-    
-                        var c = 0;
-    
-                        var total = 0;
-    
-                        for (var i = 0; i < length; i++) {
-                            $('#py_btn_add').click();
-                        }
-                        for (var i = 0; i < length; i++) {
-    
-                            temp = "input[name$='payment[" + c + "][py_invoice_id]']";
-                            $(temp).val(obj.id[i]);
-                            temp = "input[name$='payment[" + c + "][py_details_sn]']";
-                            $(temp).val(obj.pi_details_sn[i]);
-                            temp = "input[name$='payment[" + c + "][py_details_pi]']";
-                            $(temp).val(obj.pi_details_pi[i]);
-                            temp = "input[name$='payment[" + c + "][py_details_date]']";
-                            $(temp).val(obj.pi_details_date[i]);
-                            temp = "input[name$='payment[" + c + "][py_details_amount]']";
-                            $(temp).val(obj.pi_details_amount[i]);
-    
-                            temp = "input[name$='payment[" + c + "][py_due]']";
-                            $(temp).val(obj.due[i]);
-
-                            var amount = String(obj.due[i] || '0').replace(/,/g, '');
-                            amount = parseFloat(amount) || 0;
-                            total = total + amount;
-                            c++;
-    
-                        }
-                        console.log(total);
-                        $('#py_amount_total').text('Total Due: ' + parseFloat(total).toFixed(2));
-    
-                        py_preview(e);
-                    } // /success
-                }); // /fetch selected member info
-            });
 
         });
 
@@ -10949,6 +11066,9 @@ var Select2 = function () {
 
         $('#sales_receipt1').on("change", function (e) {
             type_receipt = $(this).val();
+            if (receiptHydrating) {
+                return;
+            }
             $('#rc_client').val(null).trigger('change');
         });
 
@@ -11021,67 +11141,10 @@ var Select2 = function () {
         });
 
         $('#rc_client').on("select2:select", function (e) {
-            $('[data-repeater-list="receipt"]').empty();
-            // $('[data-repeater-create="receipt"]').click();
-            // var tmp = "input[name$='receipt[0][rc_sn]']";
-            // $(tmp).val(1);
-
-            var id = $(e.currentTarget).val();
-
-
-            id = encodeURIComponent(id);
-
-            type_receipt = encodeURIComponent(type_receipt);
-
-            $.ajax({
-                url: '../assets/custom/api_get/getPendingSales.php',
-                type: 'post',
-                data: { member_id: id, rc_type: type_receipt },
-                dataType: 'json',
-                success: function (response) {
-
-                    console.log(response);
-
-                    var temp = '';
-                    var obj = JSON.parse(response.result);
-
-                    var length = obj.si_details_sn.length;
-                    console.log(length);
-
-                    var total = 0;
-                    var c = 0;
-
-                    for (var i = 0; i < length; i++) {
-                        $('#rc_btn_add').click();
-                    }
-                    for (var i = 0; i < length; i++) {
-
-                        temp = "input[name$='receipt[" + c + "][rc_invoice_id]']";
-                        $(temp).val(obj.id[i]);
-                        temp = "input[name$='receipt[" + c + "][rc_details_sn]']";
-                        $(temp).val(obj.si_details_sn[i]);
-                        temp = "input[name$='receipt[" + c + "][rc_details_si]']";
-                        $(temp).val(obj.si_details_si[i]);
-                        temp = "input[name$='receipt[" + c + "][rc_details_date]']";
-                        $(temp).val(obj.si_details_date[i]);
-                        temp = "input[name$='receipt[" + c + "][rc_details_amount]']";
-                        $(temp).val(obj.si_details_amount[i]);
-
-                        temp = "input[name$='receipt[" + c + "][rc_due]']";
-                        $(temp).val(obj.due[i]);
-
-                        var amount = String(obj.due[i] || '0').replace(/,/g, '');
-                        amount = parseFloat(amount) || 0;
-                        total = total + amount;
-                        c++;
-
-                    }
-
-                    $('#rc_amount_total').text('Total Due: ' + parseFloat(total).toFixed(2));
-
-                    rc_preview(e);
-                } // /success
-            }); // /fetch selected member info
+            if (receiptHydrating) {
+                return;
+            }
+            loadReceiptPendingInvoices($(e.currentTarget).val());
         });
 
         $('#edit_rc_sales_invoice').select2({
@@ -11500,60 +11563,10 @@ var Select2 = function () {
         });
 
         $('#py_supplier').on("select2:select", function (e) {
-            $('[data-repeater-list="payment"]').empty();
-            // $('[data-repeater-create="payment"]').click();
-            // var tmp = "input[name$='payment[0][py_sn]']";
-            // $(tmp).val(1);
-
-            var id = $(e.currentTarget).val();
-            id = encodeURIComponent(id);
-            $.ajax({
-                url: '../assets/custom/api_get/getPendingPurchase.php',
-                type: 'post',
-                data: { member_id: id },
-                dataType: 'json',
-                success: function (response) {
-
-                    var temp = '';
-                    var obj = JSON.parse(response.result);
-
-                    var length = obj.pi_details_sn.length;
-
-                    var c = 0;
-
-                    var total = 0;
-
-                    for (var i = 0; i < length; i++) {
-                        $('#py_btn_add').click();
-                    }
-                    for (var i = 0; i < length; i++) {
-
-                        temp = "input[name$='payment[" + c + "][py_invoice_id]']";
-                        $(temp).val(obj.id[i]);
-                        temp = "input[name$='payment[" + c + "][py_details_sn]']";
-                        $(temp).val(obj.pi_details_sn[i]);
-                        temp = "input[name$='payment[" + c + "][py_details_pi]']";
-                        $(temp).val(obj.pi_details_pi[i]);
-                        temp = "input[name$='payment[" + c + "][py_details_date]']";
-                        $(temp).val(obj.pi_details_date[i]);
-                        temp = "input[name$='payment[" + c + "][py_details_amount]']";
-                        $(temp).val(obj.pi_details_amount[i]);
-
-                        temp = "input[name$='payment[" + c + "][py_due]']";
-                        $(temp).val(obj.due[i]);
-
-                        var amount = String(obj.due[i] || '0').replace(/,/g, '');
-                        amount = parseFloat(amount) || 0;
-                        total = total + amount;
-                        c++;
-
-                    }
-                    console.log(total);
-                    $('#py_amount_total').text('Total Due: ' + parseFloat(total).toFixed(2));
-
-                    py_preview(e);
-                } // /success
-            }); // /fetch selected member info
+            if (paymentHydrating) {
+                return;
+            }
+            loadPaymentPendingInvoices($(e.currentTarget).val());
         });
 
         $('#edit_py_sales_invoice').select2({
@@ -18881,10 +18894,18 @@ var Payments = function () {
 
         var ajaxAdd = function (form) {
             form = $(form);
+            var supplierLocked = $("#py_supplier").prop("disabled");
+            if (supplierLocked) {
+                $("#py_supplier").prop("disabled", false);
+            }
+            var payload = form.serialize();
+            if (supplierLocked) {
+                $("#py_supplier").prop("disabled", true);
+            }
             $.ajax({
                 type: "POST",
                 url: "../assets/custom/payments/create.php",
-                data: form.serialize(),
+                data: payload,
                 dataType: 'json',
                 success: function (response) {
                     if (response.success == true) {
@@ -18902,9 +18923,12 @@ var Payments = function () {
                             dataType: 'json',
                             success: function (response) { }
                         });
-                        //Reset The Form
+                        $("#py_supplier").prop("disabled", false);
+                        $("#py_id").val('');
+                        $("#py_no").val('');
+                        paymentEditAllocations = null;
+                        paymentHydrating = false;
                         $('#add_payment')[0].reset();
-                        // close the modal
                         managePaymentsTable.reload();
                         $('#py_supplier').val(null).trigger('change');
                         $('#py_bank').val(null).trigger('change');
@@ -19016,52 +19040,31 @@ function editPayments(id) {
             data: { member_id: id },
             dataType: 'json',
             success: function (response) {
+                paymentHydrating = true;
+                try {
+                    paymentEditAllocations = JSON.parse(response.purchase_invoice || '{}');
+                } catch (err) {
+                    paymentEditAllocations = null;
+                }
+
+                $("#py_supplier").prop("disabled", false);
                 $("#py_id").val(response.id);
-                $("#py_no").val(response.r_no);
-                $("#py_supplier").empty().append($("<option/>").val(response.supplier).text(response.supplier)).val(response.supplier).trigger("change");
-                var receipts_date = new Date(response.date);
-                var formatted_date = appendLeadingZeroes(receipts_date.getDate()) + "-" + appendLeadingZeroes(receipts_date.getMonth() + 1) + "-" + receipts_date.getFullYear();
-                // console.log(formatted_date);
-                $("#py_date").val(formatted_date);
+                $("#py_no").val(response.py_no);
+                $("#py_supplier").empty().append($("<option/>").val(response.supplier).text(response.supplier)).val(response.supplier);
+                $("#py_date").val(formatVoucherDate(response.date));
                 $("#py_bank").empty().append($("<option/>").val(response.account).text(response.account)).val(response.account).trigger("change");
-
-                $("#py_supplier").attr("readonly", true);
-
-                var purchase_invoice = JSON.parse(response.purchase_invoice);
-                var len = purchase_invoice.pi_no.length;
-
-                $('[data-repeater-list="payment"]').empty();
-                $('[data-repeater-create="payment"]').click();
-
-                for (var i = 1; i < len; i++) {
-                    $('#py_btn_add').click();
-                }
-
-                var tmp = '';
-                for (var i = 0; i < len; i++) {
-
-                    tmp = "input[name$='payment[" + i + "][py_sn]']";
-                    $(tmp).val(i + 1);
-                    tmp = "input[name$='payment[" + i + "][py_pi_no]']";
-                    $(tmp).val(purchase_invoice.pi_no[i]);
-                    tmp = "input[name$='payment[" + i + "][py_pi_amount]']";
-                    $(tmp).val(purchase_invoice.due[i]);
-                    tmp = "input[name$='payment[" + i + "][py_pi_amount_due]']";
-                    $(tmp).val(purchase_invoice.due[i]);
-                    tmp = "input[name$='payment[" + i + "][py_amount]']";
-                    $(tmp).val(purchase_invoice.amount[i]);
-
-
-
-                    KTUtil.scrollTop();
-                }
-
                 $("#py_mode").val(response.mode).trigger("change");
                 $("#py_bank_name").val(response.bank_name);
-                $("#py_cheque").val(response.cheque);
-                $("#py_ifsc").val(response.ifsc);
+                $("#py_instrument").val(response.instrument || response.cheque || '');
+                $("#py_ins_date").val(formatVoucherDate(response.ins_date));
+                $("#payment_amount").val(response.amount).trigger('keyup');
 
-
+                loadPaymentPendingInvoices(response.supplier, function () {
+                    $("#payment_amount").val(response.amount);
+                    $("#py_supplier").prop("disabled", true);
+                    paymentHydrating = false;
+                    KTUtil.scrollTop();
+                });
             }
         });
     } else {
@@ -21867,10 +21870,20 @@ var Receipts = function () {
 
         var ajaxAdd = function (form) {
             form = $(form);
+            var clientLocked = $("#rc_client").prop("disabled");
+            if (clientLocked) {
+                $("#rc_client").prop("disabled", false);
+                $("#sales_receipt1").prop("disabled", false);
+            }
+            var payload = form.serialize();
+            if (clientLocked) {
+                $("#rc_client").prop("disabled", true);
+                $("#sales_receipt1").prop("disabled", true);
+            }
             $.ajax({
                 type: "POST",
                 url: "../assets/custom/receipts/create.php",
-                data: form.serialize(),
+                data: payload,
                 dataType: 'json',
                 success: function (response) {
                     if (response.success == true) {
@@ -21888,9 +21901,13 @@ var Receipts = function () {
                             dataType: 'json',
                             success: function (response) { }
                         });
-                        //Reset The Form
+                        $("#rc_client").prop("disabled", false);
+                        $("#sales_receipt1").prop("disabled", false);
+                        $("#rc_id").val('');
+                        $("#r_no").val('');
+                        receiptEditAllocations = null;
+                        receiptHydrating = false;
                         $('#add_receipt')[0].reset();
-                        // close the modal
                         manageReceiptsTable.reload();
                         $('#rc_client').val(null).trigger('change');
                         $('#rc_bank').val(null).trigger('change');
@@ -22008,52 +22025,39 @@ function editReceipts(id) {
             data: { member_id: id },
             dataType: 'json',
             success: function (response) {
+                receiptHydrating = true;
+                try {
+                    receiptEditAllocations = JSON.parse(response.sales_invoice || '{}');
+                } catch (err) {
+                    receiptEditAllocations = null;
+                }
+
+                $("#rc_client").prop("disabled", false);
+                $("#sales_receipt1").prop("disabled", false);
                 $("#rc_id").val(response.id);
                 $("#r_no").val(response.r_no);
-                $("#rc_client").empty().append($("<option/>").val(response.client).text(response.client)).val(response.client).trigger("change");
-                var receipts_date = new Date(response.date);
-                var formatted_date = appendLeadingZeroes(receipts_date.getDate()) + "-" + appendLeadingZeroes(receipts_date.getMonth() + 1) + "-" + receipts_date.getFullYear();
-                // console.log(formatted_date);
-                $("#rc_date").val(formatted_date);
+
+                type_receipt = response.series || '';
+                if (type_receipt) {
+                    $("#sales_receipt1").empty().append($("<option/>").val(type_receipt).text(type_receipt)).val(type_receipt).trigger("change");
+                }
+
+                $("#rc_client").empty().append($("<option/>").val(response.client).text(response.client)).val(response.client);
+                $("#rc_date").val(formatVoucherDate(response.date));
                 $("#rc_bank").empty().append($("<option/>").val(response.account).text(response.account)).val(response.account).trigger("change");
-
-                $("#rc_client").attr("readonly", true);
-
-                var sales_invoice = JSON.parse(response.sales_invoice);
-                var len = sales_invoice.si_no.length;
-
-                $('[data-repeater-list="receipt"]').empty();
-                $('[data-repeater-create="receipt"]').click();
-
-                for (var i = 1; i < len; i++) {
-                    $('#rc_btn_add').click();
-                }
-
-                var tmp = '';
-                for (var i = 0; i < len; i++) {
-
-                    tmp = "input[name$='receipt[" + i + "][rc_sn]']";
-                    $(tmp).val(i + 1);
-                    tmp = "input[name$='receipt[" + i + "][rc_si_no]']";
-                    $(tmp).val(sales_invoice.si_no[i]);
-                    tmp = "input[name$='receipt[" + i + "][rc_si_amount]']";
-                    $(tmp).val(sales_invoice.due[i]);
-                    tmp = "input[name$='receipt[" + i + "][rc_si_amount_due]']";
-                    $(tmp).val(sales_invoice.due[i]);
-                    tmp = "input[name$='receipt[" + i + "][rc_amount]']";
-                    $(tmp).val(sales_invoice.amount[i]);
-
-
-
-                    KTUtil.scrollTop();
-                }
-
                 $("#rc_mode").val(response.mode).trigger("change");
                 $("#rc_bank_name").val(response.bank_name);
-                $("#rc_cheque").val(response.cheque);
-                $("#rc_ifsc").val(response.ifsc);
+                $("#rc_instrument").val(response.instrument || response.cheque || '');
+                $("#rc_ins_date").val(formatVoucherDate(response.ins_date));
+                $("#amount").val(response.amount).trigger('keyup');
 
-
+                loadReceiptPendingInvoices(response.client, function () {
+                    $("#amount").val(response.amount);
+                    $("#rc_client").prop("disabled", true);
+                    $("#sales_receipt1").prop("disabled", true);
+                    receiptHydrating = false;
+                    KTUtil.scrollTop();
+                });
             }
         });
     } else {

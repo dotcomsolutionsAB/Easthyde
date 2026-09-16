@@ -64,7 +64,7 @@ while($row = $query->fetch_assoc()){
 
     if(($menu_access['receipt']['edit'] ?? '') == '1' || $userlevel == "sadmin_df56fdg"){
 
-            $edit = '<li class="kt-nav__item"><a href="javascript:;" data-toggle="modal" data-target="#kt_modal_e_receipt" title="Edit" onclick=""class="kt-nav__link"><i class="kt-nav__link-icon flaticon2-edit"></i><span class="kt-nav__link-text">Edit</span></a></li>';
+            $edit = '<li class="kt-nav__item"><a href="javascript:;" title="Edit" onclick="editReceipts(\''.$row['id'].'\')" class="kt-nav__link"><i class="kt-nav__link-icon flaticon2-edit"></i><span class="kt-nav__link-text">Edit</span></a></li>';
     }
     
     if(($menu_access['receipt']['delete'] ?? '') == '1' || $userlevel == "sadmin_df56fdg"){

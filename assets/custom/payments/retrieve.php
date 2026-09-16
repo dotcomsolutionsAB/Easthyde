@@ -50,7 +50,7 @@ while($row = $query->fetch_assoc()){
 
     if(($menu_access['payments']['edit'] ?? '') == '1' || $userlevel == "sadmin_df56fdg"){
 
-            $edit = '';
+            $edit = '<li class="kt-nav__item"><a href="javascript:;" title="Edit" onclick="editPayments(\''.$row['id'].'\')" class="kt-nav__link"><i class="kt-nav__link-icon flaticon2-edit"></i><span class="kt-nav__link-text">Edit</span></a></li>';
     }
     
     if(($menu_access['payments']['delete'] ?? '') == '1' || $userlevel == "sadmin_df56fdg"){
@@ -61,7 +61,7 @@ while($row = $query->fetch_assoc()){
         $actionBtn = '<div class="dropdown"><a href="javascript:;" class="btn btn-sm btn-clean btn-icon btn-icon-md" data-toggle="dropdown"><i class="flaticon-more-1"></i></a><div class="dropdown-menu dropdown-menu-right">
     <ul class="kt-nav">
         <li class="kt-nav__item"><a href="javascript:;" data-toggle="modal" data-target="#kt_modal_whatsapp" onclick="Wa_payment(\''.$row['id'].'\')" title="Send Whatsapp"class="kt-nav__link"><i class="kt-nav__link-icon flaticon-whatsapp"></i><span class="kt-nav__link-text">Send Whatsapp</span></a></li>
-        '.$delete.'
+        '.$edit.$delete.'
     </ul>
     </div></div>';
 

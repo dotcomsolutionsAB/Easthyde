@@ -5,7 +5,9 @@ setlocale(LC_MONETARY, 'en_IN');
 
 $memberId = (string)($_REQUEST['member_id'] ?? '');
 $memberId = urldecode($memberId);
+$excludeId = (string)($_REQUEST['exclude_id'] ?? '');
 $safeMember = $db->real_escape_string($memberId);
+$safeExclude = $db->real_escape_string($excludeId);
 
 $response = array(
 	"id" => array(),
@@ -22,9 +24,12 @@ $serial_no = 1;
  * Sum amounts allocated to a given purchase invoice across active payments for this supplier.
  * Matches via decoded JSON (LIKE on pi_no fails when JSON stores \/ for /).
  */
-$paidForInvoice = function ($pi_no) use ($db, $safeMember) {
+$paidForInvoice = function ($pi_no) use ($db, $safeMember, $excludeId, $safeExclude) {
 	$paid = 0.0;
-	$sql = "SELECT purchase_invoice FROM payments WHERE supplier = '$safeMember' AND status = '1'";
+	$sql = "SELECT id, purchase_invoice FROM payments WHERE supplier = '$safeMember' AND status = '1'";
+	if ($excludeId !== '') {
+		$sql .= " AND id != '$safeExclude'";
+	}
 	$query = $db->query($sql);
 	if (!$query) {
 		return $paid;
@@ -35,7 +40,12 @@ $paidForInvoice = function ($pi_no) use ($db, $safeMember) {
 			continue;
 		}
 		foreach ($pi_arr['pi_no'] as $i => $no) {
-			if ((string)$no === (string)$pi_no) {
+			$no = (string)$no;
+			$match = ((string)$no === (string)$pi_no);
+			if (!$match && strtoupper(trim((string)$pi_no)) === 'OPENING' && strtoupper(trim($no)) === 'OPENING') {
+				$match = true;
+			}
+			if ($match) {
 				$paid += (float)str_replace(',', '', (string)($pi_arr['amount'][$i] ?? 0));
 			}
 		}
@@ -66,6 +76,9 @@ if ($row_opening) {
 
 	if ($opening != 0 && $opening != '') {
 		$received = (float)($row_opening['paid'] ?? 0);
+		if ($excludeId !== '') {
+			$received = $paidForInvoice('Opening');
+		}
 		if ($opening > $received) {
 			$due = $opening - $received;
 			$response['id'][] = 'Opening';
@@ -79,7 +92,11 @@ if ($row_opening) {
 	}
 }
 
-$sql = "SELECT * FROM purchase_invoice WHERE supplier_name = '$safeMember' AND status != '1' ORDER BY pi_date, pi_no";
+$statusFilter = ($excludeId === '')
+	? "AND status != '1'"
+	: "";
+
+$sql = "SELECT * FROM purchase_invoice WHERE supplier_name = '$safeMember' $statusFilter ORDER BY pi_date, pi_no";
 $query = $db->query($sql);
 if ($query) {
 	while ($row = $query->fetch_assoc()) {
@@ -98,7 +115,6 @@ if ($query) {
 		$response['pi_details_sn'][] = $serial_no;
 		$response['pi_details_pi'][] = $purchase_invoice;
 		$response['pi_details_date'][] = $purchase_date;
-		// Remaining due (UI Total Due currently sums this field in production JS)
 		$response['pi_details_amount'][] = number_format($due, 2, '.', '');
 		$response['due'][] = number_format($due, 2, '.', '');
 		$serial_no++;
