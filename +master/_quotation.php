@@ -455,7 +455,7 @@
 										</div>
 										<div class="col-md-2">
 											<div class="input-group">
-			                                    <input type="text" class="form-control" name="q_round" style="background-color: #eee;text-align:right;" id="q_round" readonly="">
+			                                    <input type="text" class="form-control" name="q_round" style="text-align:right;" id="q_round">
 											</div>
 										</div>
 									</div>

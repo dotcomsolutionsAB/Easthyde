@@ -17,6 +17,14 @@ function replace_improper_amount($s){
 	return $s;
 }
 
+function roundoff_or_zero($s){
+	$s = trim(replace_improper_amount($s ?? ''));
+	if ($s === '' || !is_numeric($s)) {
+		return '0';
+	}
+	return $s;
+}
+
 function replace_improper_same($s){
 	$s = (string)($s ?? '');
 	$s=str_replace("\"","",$s);

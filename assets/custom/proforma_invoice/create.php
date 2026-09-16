@@ -121,7 +121,7 @@
     $sales_order=json_encode($sales_order);
 
     $tot_amount = replace_improper_amount($_REQUEST['pr_total_final'] ?? '');
-    $addons['roundoff'] = replace_improper_amount($_REQUEST['pr_round'] ?? '');
+    $addons['roundoff'] = roundoff_or_zero($_REQUEST['pr_round'] ?? '');
 
     $addon      = json_encode($addons);
     $tax_json   = json_encode($tax);

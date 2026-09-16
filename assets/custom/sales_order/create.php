@@ -100,7 +100,7 @@
     }
 
     $tot_amount = replace_improper_amount($_REQUEST['so_total_final'] ?? '');
-    $addons['roundoff'] = replace_improper_amount($_REQUEST['so_round'] ?? '');
+    $addons['roundoff'] = roundoff_or_zero($_REQUEST['so_round'] ?? '');
 
     $addon      = json_encode($addons);
 

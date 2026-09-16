@@ -77,6 +77,92 @@ function shouldAutoCalculateRoundoff(roundoff) {
     return Math.abs(n) > 0.00001;
 }
 
+function parseRoundoffNumber(roundoff) {
+    var s = String(roundoff == null ? '' : roundoff).trim().replace(/,/g, '');
+    var n = parseFloat(s);
+    return isNaN(n) ? 0 : n;
+}
+
+function savedRoundoffValue(roundoff) {
+    if (roundoff === undefined || roundoff === null) {
+        return '0';
+    }
+    var s = String(roundoff).trim().replace(/,/g, '');
+    if (s === '' || isNaN(parseFloat(s))) {
+        return '0';
+    }
+    return s;
+}
+
+var roundoffHydrateTimers = {};
+
+function beginRoundoffHydrate($el) {
+    if (!$el || !$el.length) {
+        return;
+    }
+    $el.data('roundoffHydrating', true);
+    var id = $el.attr('id') || '';
+    if (roundoffHydrateTimers[id]) {
+        clearTimeout(roundoffHydrateTimers[id]);
+    }
+    roundoffHydrateTimers[id] = setTimeout(function () {
+        $el.removeData('roundoffHydrating');
+        delete roundoffHydrateTimers[id];
+    }, 1500);
+}
+
+function endRoundoffHydrateIfUserAction(e, $el) {
+    if (!$el || !$el.length || !e || e.isTrigger) {
+        return;
+    }
+    var type = e.type || '';
+    if (type !== 'keyup' && type !== 'click') {
+        return;
+    }
+    var target = e.currentTarget || e.target;
+    if (target && $el[0] === target) {
+        return;
+    }
+    $el.removeData('roundoffHydrating');
+    var id = $el.attr('id') || '';
+    if (roundoffHydrateTimers[id]) {
+        clearTimeout(roundoffHydrateTimers[id]);
+        delete roundoffHydrateTimers[id];
+    }
+}
+
+function applyAddonsRoundoff($el, addons) {
+    var raw = (addons && addons.roundoff !== undefined) ? addons.roundoff : '';
+    $el.val(savedRoundoffValue(raw));
+    beginRoundoffHydrate($el);
+}
+
+function applySavedOrAutoRoundoff($el, totalFinal, e) {
+    endRoundoffHydrateIfUserAction(e, $el);
+
+    var fromRoundField = !!(e && e.currentTarget && $el && $el.length && $el[0] === e.currentTarget);
+    var hydrating = !!$el.data('roundoffHydrating');
+    var roundoff = $el.val();
+
+    if (hydrating || fromRoundField || !shouldAutoCalculateRoundoff(roundoff)) {
+        var n = parseRoundoffNumber(roundoff);
+        if (fromRoundField) {
+            var s = String(roundoff == null ? '' : roundoff).trim().replace(/,/g, '');
+            if (s === '' || isNaN(parseFloat(s))) {
+                $el.val('0');
+                n = 0;
+            }
+        }
+        return totalFinal + n;
+    }
+
+    var decimal = Math.floor(totalFinal);
+    var fraction = totalFinal - decimal;
+    var add_fraction = (fraction >= 0.5) ? (1 - fraction) : (-1 * fraction);
+    $el.val(add_fraction.toFixed(2));
+    return totalFinal + add_fraction;
+}
+
 jQuery(document).ready(function () {
     Datatables.init();
     FormRepeater.init();
@@ -6932,6 +7018,7 @@ var FormRepeater = function () {
                 $(".dn_qty").change(function (e) { dn_preview(e); });
                 $(".dn_rate").keyup(function (e) { dn_preview(e); });
                 $(".dn_dsc").keyup(function (e) { dn_preview(e); });
+                $("#dn_round").change(function (e) { dn_preview(e); });
                 $('.dn_tax-select2').on("select2:select", function (e) { dn_preview(e); });
                 $(".dn_delete").click(function (e) { dn_preview(e); });
                 $("#dn_freight").change(function (e) { dn_preview(e); });
@@ -7013,6 +7100,7 @@ var FormRepeater = function () {
                 $(".dn_qty").change(function (e) { dn_preview(e); });
                 $(".dn_rate").keyup(function (e) { dn_preview(e); });
                 $(".dn_dsc").keyup(function (e) { dn_preview(e); });
+                $("#dn_round").change(function (e) { dn_preview(e); });
                 $('.dn_tax-select2').on("select2:select", function (e) { dn_preview(e); });
                 $(".dn_delete").click(function (e) { dn_preview(e); });
                 $("#dn_freight").change(function (e) { dn_preview(e); });
@@ -12942,24 +13030,7 @@ function q_preview(e) {
             tax_final = dcs_round(tax_final);
             gross_final = dcs_round(gross_final);
 
-            var decimal = Math.floor(total_final);
-            var fraction = total_final - decimal;
-
-            var roundoff = $('#q_round').val();
-            console.log(roundoff);
-
-            if (shouldAutoCalculateRoundoff(roundoff)) {
-
-                if (fraction >= 0.5) {
-                    var add_fraction = 1 - fraction;
-                    $('#q_round').val(add_fraction.toFixed(2));
-                    total_final += add_fraction;
-                } else {
-                    var add_fraction = -1 * fraction;
-                    $('#q_round').val(add_fraction.toFixed(2));
-                    total_final += add_fraction;
-                }
-            }
+            total_final = applySavedOrAutoRoundoff($('#q_round'), total_final, e);
 
             console.log(tax_final);
             console.log(gross_final);
@@ -13177,24 +13248,7 @@ function so_preview(e) {
             tax_final = dcs_round(tax_final);
             gross_final = dcs_round(gross_final);
 
-            var decimal = Math.floor(total_final);
-            var fraction = total_final - decimal;
-
-            var roundoff = $('#so_round').val();
-            console.log(roundoff);
-
-            if (shouldAutoCalculateRoundoff(roundoff)) {
-
-                if (fraction >= 0.5) {
-                    var add_fraction = 1 - fraction;
-                    $('#so_round').val(add_fraction.toFixed(2));
-                    total_final += add_fraction;
-                } else {
-                    var add_fraction = -1 * fraction;
-                    $('#so_round').val(add_fraction.toFixed(2));
-                    total_final += add_fraction;
-                }
-            }
+            total_final = applySavedOrAutoRoundoff($('#so_round'), total_final, e);
 
             console.log(tax_final);
             console.log(gross_final);
@@ -13587,24 +13641,7 @@ function dn_preview(e) {
             gross_final = Math.round(gross_final * 100) / 100;
 
 
-            var decimal = Math.floor(total_final);
-            var fraction = total_final - decimal;
-
-            var roundoff = $('#dn_round').val();
-            console.log(roundoff);
-
-            if (shouldAutoCalculateRoundoff(roundoff)) {
-
-                if (fraction >= 0.5) {
-                    var add_fraction = 1 - fraction;
-                    $('#dn_round').val(add_fraction.toFixed(2));
-                    total_final += add_fraction;
-                } else {
-                    var add_fraction = -1 * fraction;
-                    $('#dn_round').val(add_fraction.toFixed(2));
-                    total_final += add_fraction;
-                }
-            }
+            total_final = applySavedOrAutoRoundoff($('#dn_round'), total_final, e);
 
             console.log(tax_final);
             console.log(gross_final);
@@ -13822,24 +13859,7 @@ function pr_preview(e) {
             tax_final = dcs_round(tax_final);
             gross_final = dcs_round(gross_final);
 
-            var decimal = Math.floor(total_final);
-            var fraction = total_final - decimal;
-
-            var roundoff = $('#pr_round').val();
-            console.log(roundoff);
-
-            if (shouldAutoCalculateRoundoff(roundoff)) {
-
-                if (fraction >= 0.5) {
-                    var add_fraction = 1 - fraction;
-                    $('#pr_round').val(add_fraction.toFixed(2));
-                    total_final += add_fraction;
-                } else {
-                    var add_fraction = -1 * fraction;
-                    $('#pr_round').val(add_fraction.toFixed(2));
-                    total_final += add_fraction;
-                }
-            }
+            total_final = applySavedOrAutoRoundoff($('#pr_round'), total_final, e);
 
             console.log(tax_final);
             console.log(gross_final);
@@ -14072,24 +14092,7 @@ function si_preview(e) {
             tax_final = dcs_round(tax_final);
             gross_final = dcs_round(gross_final);
 
-            var decimal = Math.floor(total_final);
-            var fraction = total_final - decimal;
-
-            var roundoff = $('#si_round').val();
-            console.log(roundoff);
-
-            if (shouldAutoCalculateRoundoff(roundoff)) {
-
-                if (fraction >= 0.5) {
-                    var add_fraction = 1 - fraction;
-                    $('#si_round').val(add_fraction.toFixed(2));
-                    total_final += add_fraction;
-                } else {
-                    var add_fraction = -1 * fraction;
-                    $('#si_round').val(add_fraction.toFixed(2));
-                    total_final += add_fraction;
-                }
-            }
+            total_final = applySavedOrAutoRoundoff($('#si_round'), total_final, e);
 
             console.log(tax_final);
             console.log(gross_final);
@@ -19923,6 +19926,7 @@ function editQuotation(id) {
             data: { member_id: id },
             dataType: 'json',
             success: function (response) {
+                beginRoundoffHydrate($('#q_round'));
                 $("#q_id").val(response.id);
                 $("#q_state").val(response.state);
                 $('#mobile').val(response.mobile);
@@ -19988,10 +19992,7 @@ function editQuotation(id) {
                 var addons = JSON.parse(response.addons);
                 $("#q_freight").val(addons.freight.value);
                 $("#q_pf").val(addons.pf.value);
-                var savedRound = (addons.roundoff !== undefined && addons.roundoff !== null && addons.roundoff !== '')
-                    ? addons.roundoff
-                    : '';
-                $("#q_round").val(savedRound);
+                applyAddonsRoundoff($('#q_round'), addons);
 
                 var quotation_date = new Date(response.quotation_date);
                 var formatted_date = appendLeadingZeroes(quotation_date.getDate()) + "-" + appendLeadingZeroes(quotation_date.getMonth() + 1) + "-" + quotation_date.getFullYear();
@@ -20635,6 +20636,7 @@ function editSalesOrder(id) {
             data: { member_id: id },
             dataType: 'json',
             success: function (response) {
+                beginRoundoffHydrate($('#so_round'));
                 $("#edit_so_id").val(response.id);
                 $("#so_client").empty().append($("<option/>").val(response.client_name).text(response.client_name)).val(response.client_name).trigger("change");
                 $("#client_so_no").val(response.client_so_no);
@@ -20674,10 +20676,9 @@ function editSalesOrder(id) {
                     var addons = JSON.parse(response.addons);
                     $("#so_freight").val(addons.freight.value);
                     $("#so_pf").val(addons.pf.value);
-                    var savedRound = (addons.roundoff !== undefined && addons.roundoff !== null && addons.roundoff !== '')
-                        ? addons.roundoff
-                        : '';
-                    $("#so_round").val(savedRound);
+                    applyAddonsRoundoff($('#so_round'), addons);
+                } else {
+                    applyAddonsRoundoff($('#so_round'), {});
                 }
 
                 if (response.items != '' && response.items != null) {
@@ -21257,6 +21258,7 @@ function editSalesInvoice(id) {
             data: { member_id: id },
             dataType: 'json',
             success: function (response) {
+                beginRoundoffHydrate($('#si_round'));
                 $("#edit_si_id").val(response.id);
                 $("#si_state").val(response.state);
                 $("#mobile").val(response.mobile);
@@ -21341,10 +21343,9 @@ function editSalesInvoice(id) {
                     var addons = JSON.parse(response.addons);
                     $("#si_freight").val(addons.freight.value);
                     $("#si_pf").val(addons.pf.value);
-                    var savedRound = (addons.roundoff !== undefined && addons.roundoff !== null && addons.roundoff !== '')
-                        ? addons.roundoff
-                        : '';
-                    $("#si_round").val(savedRound);
+                    applyAddonsRoundoff($('#si_round'), addons);
+                } else {
+                    applyAddonsRoundoff($('#si_round'), {});
                 }
 
                 if (response.items != '') {
@@ -21440,6 +21441,7 @@ function makePrimaryInvoice(id) {
             data: { member_id: id },
             dataType: 'json',
             success: function (response) {
+                beginRoundoffHydrate($('#si_round'));
                 $("#edit_si_id").val(response.id);
                 $("#si_state").val(response.state);
                 $("#mobile").val(response.mobile);
@@ -21523,10 +21525,9 @@ function makePrimaryInvoice(id) {
                     var addons = JSON.parse(response.addons);
                     $("#si_freight").val(addons.freight.value);
                     $("#si_pf").val(addons.pf.value);
-                    var savedRound = (addons.roundoff !== undefined && addons.roundoff !== null && addons.roundoff !== '')
-                        ? addons.roundoff
-                        : '';
-                    $("#si_round").val(savedRound);
+                    applyAddonsRoundoff($('#si_round'), addons);
+                } else {
+                    applyAddonsRoundoff($('#si_round'), {});
                 }
 
                 if (response.items != '') {
@@ -23972,6 +23973,7 @@ function editProformaInvoice(id) {
             data: { member_id: id },
             dataType: 'json',
             success: function (response) {
+                beginRoundoffHydrate($('#pr_round'));
                 $("#edit_pr_id").val(response.id);
                 $("#pr_state").val(response.state);
 
@@ -24007,10 +24009,7 @@ function editProformaInvoice(id) {
                 var addons = JSON.parse(response.addons);
                 $("#pr_freight").val(addons.freight.value);
                 $("#pr_pf").val(addons.pf.value);
-                var savedRound = (addons.roundoff !== undefined && addons.roundoff !== null && addons.roundoff !== '')
-                    ? addons.roundoff
-                    : '';
-                $("#pr_round").val(savedRound);
+                applyAddonsRoundoff($('#pr_round'), addons);
 
                 var items = JSON.parse(response.items);
                 var len = items.product.length;
@@ -24585,6 +24584,7 @@ function editDebitNote(id) {
             data: { member_id: id },
             dataType: 'json',
             success: function (response) {
+                beginRoundoffHydrate($('#dn_round'));
                 $("#edit_dn_id").val(response.id);
                 $("#dn_state").val(response.state);
                 $("#dn_supplier").empty().append($("<option/>").val(response.supplier).text(response.supplier)).val(response.supplier).trigger("change");
@@ -24609,10 +24609,9 @@ function editDebitNote(id) {
                     var addons = JSON.parse(response.addons);
                     $("#dn_freight").val(addons.freight.value);
                     $("#dn_pf").val(addons.pf.value);
-                    var savedRound = (addons.roundoff !== undefined && addons.roundoff !== null && addons.roundoff !== '')
-                        ? addons.roundoff
-                        : '';
-                    $("#dn_round").val(savedRound);
+                    applyAddonsRoundoff($('#dn_round'), addons);
+                } else {
+                    applyAddonsRoundoff($('#dn_round'), {});
                 }
 
                 if (response.items != '') {

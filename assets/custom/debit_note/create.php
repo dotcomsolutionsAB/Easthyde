@@ -166,21 +166,9 @@
     if($tax['igst'] != '')
         $tax['igst'] = number_format((float)$tax['igst'],2, '.', '');
 
-    $decimal = floor($tot_amount);
-    $fraction = $tot_amount - $decimal;
-
-    if ($fraction >= 0.5) {
-        $add_fraction = 1 - $fraction;
-        $tot_amount += $add_fraction;
-    } else {
-        $add_fraction = -1 * $fraction;
-        $tot_amount += $add_fraction;
-    }
+    $addons['roundoff'] = roundoff_or_zero($_REQUEST['dn_round'] ?? '');
+    $tot_amount += (float)$addons['roundoff'];
     $tot_amount = TrimTrailingZeroes(number_format((float)$tot_amount,2, '.', ''));
-
-    $addons['roundoff'] = $add_fraction;
-    if($addons['roundoff'] != '')
-        $addons['roundoff'] = number_format((float)$addons['roundoff'],2, '.', '');
 
     $addon      = json_encode($addons);
     $tax_json   = json_encode($tax);

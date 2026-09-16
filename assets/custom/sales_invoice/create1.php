@@ -303,7 +303,7 @@
     if($tax['igst'] != '')
         $tax['igst'] = number_format((float)$tax['igst'],2, '.', '');
 
-    $addons['roundoff'] = replace_improper_amount($_REQUEST['si_round'] ?? '');
+    $addons['roundoff'] = roundoff_or_zero($_REQUEST['si_round'] ?? '');
 
     $tot_amount = replace_improper_amount($_REQUEST['si_total_final'] ?? '');
     $tot_amount = TrimTrailingZeroes(number_format((float)$tot_amount,2, '.', ''));
