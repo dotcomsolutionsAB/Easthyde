@@ -274,6 +274,37 @@
 			</div>
 
 			<!--end::Delete Product Modal-->
+
+			<!--begin::Bulk Edit Product Modal-->
+			<div class="modal fade" id="kt_modal_bulk_edit_product" tabindex="-1" role="dialog" aria-labelledby="bulkEditProductModal" aria-hidden="true">
+				<div class="modal-dialog modal-lg" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title" id="bulkEditProductModal">Bulk Edit Product Names</h5>
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							</button>
+						</div>
+						<div class="modal-body">
+							<div class="kt-portlet__body">
+								<table class="table table-bordered">
+									<thead>
+										<tr>
+											<th>Current Name</th>
+											<th>New Name</th>
+										</tr>
+									</thead>
+									<tbody id="bulk_edit_product_rows"></tbody>
+								</table>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+							<button id="bulk_edit_product_submit" type="button" class="btn btn-primary">Save All</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!--end::Bulk Edit Product Modal-->
 		</div>
 	</div>
 

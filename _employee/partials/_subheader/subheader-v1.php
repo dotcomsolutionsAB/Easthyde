@@ -28,6 +28,9 @@
 							<button class="btn btn-label-success btn-bold btn-sm btn-icon-h" id="kt_subheader_group_actions_product_excel">
 								Download Excel
 							</button>
+							<button class="btn btn-label-brand btn-bold btn-sm btn-icon-h" id="kt_subheader_group_actions_product_bulk_edit">
+								Bulk Edit Names
+							</button>
 						</div>
 					</div>
 				</div>

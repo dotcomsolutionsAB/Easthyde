@@ -155,8 +155,9 @@ while($row = $query->fetch_assoc()){
         $updated_cost_date = date('d-m-Y', strtotime($row['updated_cost_date']));
     }
 
-	$output['data'][] = array(		
+	$output['data'][] = array(
         	'SN' => $row['name'],
+            'Id' => $row['id'],
             'Name' => $row['name'],
             'Description' => "",
         	'Group' => $row['group'],

@@ -1296,7 +1296,7 @@ var Datatables = function () {
                         temp = '<i class="kt-nav__link-icon flaticon2-cross" style="color: red"></i>';
                     }
 
-                    return row.Name + ' ' + temp + '<br/><span class="form-text text-muted" style="font-size: 9px;">' + row.Description + "</span>";
+                    return '<span class="product-name-cell" data-id="' + row.Id + '" data-name="' + row.Name + '">' + row.Name + '</span> ' + temp + '<br/><span class="form-text text-muted" style="font-size: 9px;">' + row.Description + "</span>";
                 },
             }, {
                 field: 'Group',
@@ -11912,9 +11912,80 @@ var Product_Group = function () {
             window.open(url, '_blank');
             generateExcel("Excel file is being generated, kindly wait for 5 mins and then download the file");
         });
-    
+
     }
-    
+
+    var selectedBulkEdit = function () {
+
+        $('#kt_subheader_group_actions_product_bulk_edit').on('click', function () {
+
+            var rows = manageProductTable.rows('.kt-datatable__row--active').nodes();
+            var tbody = $('#bulk_edit_product_rows');
+            tbody.empty();
+
+            rows.each(function () {
+                var cell = $(this).find('.product-name-cell');
+                var id = cell.data('id');
+                var name = cell.data('name');
+
+                if (!id) {
+                    return;
+                }
+
+                tbody.append(
+                    '<tr data-id="' + id + '" data-orig-name="' + name + '">' +
+                    '<td>' + name + '</td>' +
+                    '<td><input type="text" class="form-control bulk-edit-new-name" value="' + name + '"></td>' +
+                    '</tr>'
+                );
+            });
+
+            $('#kt_modal_bulk_edit_product').modal('show');
+        });
+
+        $('#bulk_edit_product_submit').on('click', function () {
+
+            var products = [];
+
+            $('#bulk_edit_product_rows tr').each(function () {
+                var id = $(this).data('id');
+                var origName = String($(this).data('orig-name'));
+                var newName = $(this).find('.bulk-edit-new-name').val().trim();
+
+                if (newName !== '' && newName.toUpperCase() !== origName.toUpperCase()) {
+                    products.push({ id: id, name: newName });
+                }
+            });
+
+            if (products.length === 0) {
+                $('#kt_modal_bulk_edit_product').modal('hide');
+                return;
+            }
+
+            $('#bulk_edit_product_submit').attr('disabled', true);
+
+            $.ajax({
+                type: 'POST',
+                url: '../assets/custom/product/bulk_update.php',
+                data: { products_json: JSON.stringify(products) },
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success == true)
+                        editProductToast(response.messages);
+                    else
+                        editProductToastError(response.messages);
+
+                    $('#bulk_edit_product_submit').attr('disabled', false);
+                    $('#kt_modal_bulk_edit_product').modal('hide');
+                    manageProductTable.reload();
+                },
+                error: function () {
+                    editProductToastError('There was some error saving the records');
+                    $('#bulk_edit_product_submit').attr('disabled', false);
+                }
+            });
+        });
+    }
 
     function sleep(time) {
         return new Promise((resolve) => setTimeout(resolve, time));
@@ -11925,6 +11996,7 @@ var Product_Group = function () {
         init: function () {
             selection();
             selectedExport();
+            selectedBulkEdit();
         },
     };
 }();

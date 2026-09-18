@@ -1,7 +1,8 @@
 <?php
 	include ("../connect.php");
     include ("../php_replace_improper.php");
-	
+    include ("rename_cascade.php");
+
 	session_start();
 
 	$log_user = $_SESSION['username'] ?? '';
@@ -101,35 +102,7 @@
 	{
 
 		if($orig_name != $name){
-
-			$sql = "INSERT INTO `product_logs`(`old_name`, `new_name`, `log_user`, `log_date`) VALUES ('$orig_name','$name','$log_user','$log_date')";
-			$query = $db->query($sql);
-
-			$sql = "UPDATE assembly SET `composite` = '$name' WHERE `composite` LIKE '$orig_name'";
-	    	$query = $db->query($sql);
-
-	    	$sql = "UPDATE assembly_operation SET `composite` = '$name' WHERE `composite` LIKE '$orig_name'";
-	    	$query = $db->query($sql);
-
-			$product_name = '\"'.$name.'\"';
-			$orig_name = '\"'.$orig_name.'\"';
-
-	    	$sql = "UPDATE quotation SET `items` = REPLACE(`items`, '$orig_name', '$product_name') WHERE `items` LIKE '%$orig_name%'";
-	    	$query = $db->query($sql);	
-	    	$sql = "UPDATE sales_order SET `items` = REPLACE(`items`, '$orig_name', '$product_name') WHERE `items` LIKE '%$orig_name%'";
-	    	$query = $db->query($sql);	
-	    	$sql = "UPDATE purchase_order SET `items` = REPLACE(`items`, '$orig_name', '$product_name') WHERE `items` LIKE '%$orig_name%'";
-	    	$query = $db->query($sql);	
-	    	$sql = "UPDATE sales_invoice SET `items` = REPLACE(`items`, '$orig_name', '$product_name') WHERE `items` LIKE '%$orig_name%'";
-	    	$query = $db->query($sql);	
-	    	$sql = "UPDATE purchase_invoice SET `items` = REPLACE(`items`, '$orig_name', '$product_name') WHERE `items` LIKE '%$orig_name%'";
-	    	$query = $db->query($sql);	
-	    	$sql = "UPDATE assembly SET `spares` = REPLACE(`items`, '$orig_name', '$product_name') WHERE `spares` LIKE '%$orig_name%'";
-	    	$query = $db->query($sql);
-
-	    	$sql = "UPDATE assembly_operation SET `items` = REPLACE(`items`, '$orig_name', '$product_name') WHERE `items` LIKE '%$orig_name%'";
-	    	$query = $db->query($sql);
-
+			product_rename_cascade($db, $orig_name, $name, $log_user, $log_date);
 		}
 		
 		$validator['success'] = true;

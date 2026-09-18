@@ -40,6 +40,9 @@
 						<button class="btn btn-label-danger btn-bold btn-sm btn-icon-h" id="kt_subheader_group_actions_product_pdf">
 							Download PDF
 						</button>
+						<button class="btn btn-label-brand btn-bold btn-sm btn-icon-h" id="kt_subheader_group_actions_product_bulk_edit">
+							Bulk Edit Names
+						</button>
 					</div>
 				</div>
 			</div>
