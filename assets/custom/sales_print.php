@@ -1144,7 +1144,9 @@ for($ij=1;$ij<=$copies;$ij++){
 	$pdf->Cell(95,1,'','TR',0,L);
 	$pdf->Cell(95,1,'','T',1,L);
 	$pdf->Cell(95,5,'Customer\'s Signature:','',0,L);
-	$pdf->Image("../media/pdf/qr.jpg",90,$y,30,30);
+	if((float)$total_amount < 2000){
+		$pdf->Image("../media/pdf/qr.jpg",90,$y,30,30);
+	}
 	$pdf->Cell(95,5,'for M.M. LUCKY ENTERPRISE',0,1,R);
 	$pdf->Image("../media/company-logos/company_stamp.png",170,235,20,20);
 	$pdf->Cell(95,12,'','',0,L);
