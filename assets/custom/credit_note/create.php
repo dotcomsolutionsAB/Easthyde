@@ -2,6 +2,12 @@
     include ("../connect.php");
     include ("../php_replace_improper.php");
     include ("../fy_access.php");
+    include ("ensure_table.php");
+
+    if (!ensure_credit_note_table($db)) {
+        echo json_encode(array("success"=>false, "messages"=>"Could not create the credit note table: ".($db->error ?: 'unknown database error'), "si"=>""));
+        exit;
+    }
 
     session_start();
 

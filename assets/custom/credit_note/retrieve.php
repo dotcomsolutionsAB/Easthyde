@@ -1,6 +1,8 @@
 <?php
 session_start();
 require_once "../connect.php";
+require_once __DIR__ . "/ensure_table.php";
+ensure_credit_note_table($db);
 setlocale(LC_MONETARY, 'en_IN');
 
 $dt_start = $_SESSION['start'] ?? '';
