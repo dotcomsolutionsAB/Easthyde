@@ -1,7 +1,7 @@
 <?php
 
-$documents = array("enquiry", "quotation", "sales_order", "proforma", "sales_invoice", "e-commerce", "receipt", "purchase_order", "payment", "secondary");
-$print_name = array("Enquiry", "Quotation", "Sales Order", "Proforma Invoice", "Sales Invoice", "E-Commerce", "Receipt", "Purchase Order", "Payment", "Secondary");
+$documents = array("enquiry", "quotation", "sales_order", "proforma", "sales_invoice", "e-commerce", "receipt", "purchase_order", "payment", "secondary", "credit_note", "debit_note");
+$print_name = array("Enquiry", "Quotation", "Sales Order", "Proforma Invoice", "Sales Invoice", "E-Commerce", "Receipt", "Purchase Order", "Payment", "Secondary", "Credit Note", "Debit Note");
 
 $len = sizeof($documents);
 
@@ -81,12 +81,13 @@ else
 								$key = $documents[$i];
 								$sql_key_counter = "SELECT * FROM counter WHERE `key` = '$key'";
 								$query_key_counter = $db->query($sql_key_counter);
-								$row_key_counter = $query_key_counter->fetch_assoc();
+								$row_key_counter = ($query_key_counter) ? $query_key_counter->fetch_assoc() : null;
 
-								$value = json_decode($row_key_counter['value'], true);
-								$prefix = $value['prefix'][0];
-								$postfix = $value['postfix'][0];
-								$number = $value['number'][0];
+								$value = json_decode($row_key_counter['value'] ?? '', true);
+								if (!is_array($value)) { $value = []; }
+								$prefix = $value['prefix'][0] ?? '';
+								$postfix = $value['postfix'][0] ?? '';
+								$number = $value['number'][0] ?? '';
 
 								$id_prefix = $key.'_prefix';
 								$id_number = $key.'_number';

@@ -2,46 +2,52 @@
 	include ("../connect.php");
 	session_start();
 
-	$documents = $_REQUEST['documents'] ?? array("enquiry", "quotation", "sales_order","proforma", "sales_invoice", "secondary", "receipt", "purchase_order", "payment", "secondary","secondary_purchase");
-	if (!is_array($documents)) {
-		$documents = array("enquiry", "quotation", "sales_order","proforma", "sales_invoice", "secondary", "receipt", "purchase_order", "payment", "secondary","secondary_purchase");
-	}
-	$len = sizeof($documents);
+	$documents = array(
+		"enquiry", "quotation", "sales_order", "proforma", "sales_invoice", "e-commerce",
+		"receipt", "purchase_order", "payment", "secondary", "secondary_purchase",
+		"purchase_quotation", "purchase_invoice", "credit_note", "debit_note"
+	);
 
+	$esc = function ($value) use ($db) {
+		return $db->real_escape_string((string)$value);
+	};
 
-	for($i=0;$i<$len;$i++)
-	{
-		$key = $documents[$i];
-		$id_prefix = $key.'_prefix';
+	$updated = false;
+	foreach ($documents as $key) {
 		$id_number = $key.'_number';
-		$id_postfix = $key.'_postfix';
+		if (!isset($_REQUEST[$id_number])) {
+			continue;
+		}
 
-		$prefix = $_REQUEST[$id_prefix] ?? '';
+		$prefix = $_REQUEST[$key.'_prefix'] ?? '';
 		$number = $_REQUEST[$id_number] ?? '';
-		$postfix = $_REQUEST[$id_postfix] ?? '';
+		$postfix = $_REQUEST[$key.'_postfix'] ?? '';
 
 		$value_arr = array("prefix"=>array($prefix),"number"=>array($number),"postfix"=>array($postfix));
 		$value = json_encode($value_arr);
+		$safeKey = $esc($key);
+		$safeValue = $esc($value);
 
-		$sql = "UPDATE counter SET `value`='$value' WHERE `key` = '$key'";
-		$query = $db->query($sql);
-
+		$exists = $db->query("SELECT `key` FROM counter WHERE `key` = '$safeKey' LIMIT 1");
+		if ($exists && $exists->num_rows > 0) {
+			$query = $db->query("UPDATE counter SET `value`='$safeValue' WHERE `key` = '$safeKey'");
+		} else {
+			$query = $db->query("INSERT INTO counter (`key`, `value`) VALUES ('$safeKey', '$safeValue')");
+		}
+		if ($query === true) {
+			$updated = true;
+		}
 	}
 
 	$validator = array("success"=>false, "messages"=>"There was some error saving the records");
 
-
-	if($query===true)
-	{
+	if ($updated) {
 		$validator['success'] = true;
 		$validator['messages'] = "Successfully Updated";
-	}
-	else
-	{
+	} else {
 		$validator['success'] = false;
 		$validator['messages'] = "There was some error updating the records";
 	}
 
 	echo json_encode($validator);
-	
 ?>

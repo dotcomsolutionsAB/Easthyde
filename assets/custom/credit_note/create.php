@@ -1,6 +1,7 @@
 <?php
     include ("../connect.php");
     include ("../php_replace_improper.php");
+    include ("../fy_access.php");
 
     session_start();
 
@@ -18,8 +19,14 @@
     $client                 = replace_improper($_REQUEST['cn_client'] ?? '');
     $sales_invoice          = replace_improper($_REQUEST['cn_si_no'] ?? '');
     $cn_no                  = replace_improper($_REQUEST['cn_cn_no'] ?? '');
-    $cn_date_raw            = $_REQUEST['cn_date'] ?? '';
-    $cn_date                = ($cn_date_raw !== '') ? date('Y-m-d', strtotime((string)$cn_date_raw)) : '';
+    $cn_date_raw            = trim((string)($_REQUEST['cn_date'] ?? ''));
+    $cn_ts                  = ($cn_date_raw !== '') ? strtotime($cn_date_raw) : false;
+    if ($cn_ts === false) {
+        echo json_encode(array("success"=>false, "messages"=>"Enter a valid credit note date.", "si"=>""));
+        exit;
+    }
+    $cn_date                = date('Y-m-d', $cn_ts);
+    fy_assert_or_exit_json($cn_date, "Credit note date");
 
     $state                  = strtoupper((string)($_REQUEST['cn_state'] ?? ''));
 
@@ -73,6 +80,7 @@
             $items['hsn'][]         = replace_improper($row['cn_hsn'] ?? '');
             $items['tax'][]         = replace_improper($row['cn_tax'] ?? '');
             $items['place'][]       = replace_improper($row['cn_place'] ?? '');
+            $items['group'][]       = replace_improper($row['cn_display_make'] ?? '');
             $items['profit'][]      = "0";
             if($state == 'WEST BENGAL'){
                 $items['cgst'][]        = $cgst;
@@ -187,6 +195,17 @@
 
     $status=0;
     
+    $esc = function ($value) use ($db) {
+        return $db->real_escape_string((string)$value);
+    };
+
+    $fy_note = '';
+    $fy_start = (string)($_SESSION['start'] ?? '');
+    $fy_end = (string)($_SESSION['end'] ?? '');
+    if ($fy_start !== '' && $fy_end !== '' && ($cn_date < $fy_start || $cn_date > $fy_end)) {
+        $fy_note = " This date is outside the financial year selected in the header, so it will not appear in the current list.";
+    }
+
     if($id == '')
     {
         
@@ -197,26 +216,37 @@
         $row_counter_arr = json_decode($row_counter['value'] ?? '', true);
 
         if(is_array($row_counter_arr) && isset($row_counter_arr['prefix'][0], $row_counter_arr['number'][0], $row_counter_arr['postfix'][0])){
-            $order_no = $row_counter_arr['prefix'][0].str_pad((string)$row_counter_arr['number'][0],4,'0', STR_PAD_LEFT).$row_counter_arr['postfix'][0];
-            $row_counter_arr['number'][0] = $row_counter_arr['number'][0] + 1;
+            $guard = 0;
+            do {
+                $order_no = $row_counter_arr['prefix'][0].str_pad((string)$row_counter_arr['number'][0],4,'0', STR_PAD_LEFT).$row_counter_arr['postfix'][0];
+                $safe_no = $esc($order_no);
+                $exists_q = $db->query("SELECT id FROM credit_note WHERE cn_no = '$safe_no' LIMIT 1");
+                $taken = ($exists_q && $exists_q->num_rows > 0);
+                if ($taken) {
+                    $row_counter_arr['number'][0] = (int)$row_counter_arr['number'][0] + 1;
+                }
+                $guard++;
+            } while ($taken && $guard < 500);
 
-        $sql = "INSERT INTO credit_note (`client`,`sales_invoice`,`cn_no`,`cn_date`,`state`,`items`,`addons`,`total`,`tax`,`status`,`log_user`,`log_date`) VALUES ('$client','$sales_invoice','$order_no', '$cn_date','$state','$item','$addon','$tot_amount','$tax_json','$status','$log_user','$log_date')";
+            $row_counter_arr['number'][0] = (int)$row_counter_arr['number'][0] + 1;
+
+        $sql = "INSERT INTO credit_note (`client`,`sales_invoice`,`cn_no`,`cn_date`,`state`,`items`,`addons`,`total`,`tax`,`status`,`log_user`,`log_date`) VALUES ('".$esc($client)."','".$esc($sales_invoice)."','".$esc($order_no)."', '".$esc($cn_date)."','".$esc($state)."','".$esc($item)."','".$esc($addon)."','".$esc($tot_amount)."','".$esc($tax_json)."','".$esc($status)."','".$esc($log_user)."','".$esc($log_date)."')";
         $query = $db->query($sql);
 
         if($query===true)
         {
                 $counter_array = json_encode($row_counter_arr);
-                $sql_counter = "UPDATE counter SET `value` = '$counter_array' WHERE `key` = 'credit_note'";
+                $sql_counter = "UPDATE counter SET `value` = '".$esc($counter_array)."' WHERE `key` = 'credit_note'";
                 $query_counter = $db->query($sql_counter);
             
             $validator['success'] = true;
-            $validator['messages'] = "Successfully Added";
+            $validator['messages'] = "Successfully Added.".$fy_note;
             $validator['cn'] = $order_no;
         }
         else
         {
             $validator['success'] = false;
-            $validator['messages'] = "There was some error saving the records";
+            $validator['messages'] = "Could not save the credit note: ".($db->error ?: 'unknown database error');
 
         }
         } else {
@@ -231,19 +261,28 @@
     else
     {
         $order_no = $cn_no;
-        $sql = "UPDATE credit_note SET `client` = '$client', `sales_invoice`='$sales_invoice',`cn_no`='$cn_no', `cn_date`='$cn_date',`state`='$state',`items`='$item',`addons`='$addon',`total`='$tot_amount',`tax`='$tax_json',`log_user`='$log_user',`log_date`='$log_date' WHERE `id`='$id'";
+        $sql = "UPDATE credit_note SET `client` = '".$esc($client)."', `sales_invoice`='".$esc($sales_invoice)."',`cn_no`='".$esc($cn_no)."', `cn_date`='".$esc($cn_date)."',`state`='".$esc($state)."',`items`='".$esc($item)."',`addons`='".$esc($addon)."',`total`='".$esc($tot_amount)."',`tax`='".$esc($tax_json)."',`log_user`='".$esc($log_user)."',`log_date`='".$esc($log_date)."' WHERE `id`='".$esc($id)."'";
         $query = $db->query($sql);
 
         if($query===true)
         {
+            if ($db->affected_rows < 1) {
+                $check = $db->query("SELECT id FROM credit_note WHERE id = '".$esc($id)."' LIMIT 1");
+                if (!$check || $check->num_rows < 1) {
+                    $validator['success'] = false;
+                    $validator['messages'] = "Credit note was not found to update.";
+                    echo json_encode($validator);
+                    exit;
+                }
+            }
             $validator['success'] = true;
-            $validator['messages'] = "Successfully Updated";
+            $validator['messages'] = "Successfully Updated.".$fy_note;
             $validator['si'] = $order_no;
         }
         else
         {
             $validator['success'] = false;
-            $validator['messages'] = "There was some error saving the records";
+            $validator['messages'] = "Could not save the credit note: ".($db->error ?: 'unknown database error');
 
         }
     }

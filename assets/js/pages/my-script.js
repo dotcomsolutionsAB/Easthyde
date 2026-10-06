@@ -24268,9 +24268,9 @@ var Credit_Note = function () {
                         swal.fire({
                             position: 'top-right',
                             type: 'success',
-                            title: 'Credit Note has been saved',
+                            title: response.messages || 'Credit Note has been saved',
                             showConfirmButton: false,
-                            timer: 1500
+                            timer: 2500
                         });
 
                         //Reset The Form
@@ -24289,11 +24289,25 @@ var Credit_Note = function () {
                         swal.fire({
                             position: 'top-right',
                             type: 'error',
-                            title: 'There were some errors in your submission.',
-                            showConfirmButton: false,
-                            timer: 1500
+                            title: response.messages || 'There were some errors in your submission.',
+                            showConfirmButton: true
                         });
                     }
+                },
+                error: function (xhr) {
+                    var msg = 'Credit note save failed.';
+                    try {
+                        var parsed = JSON.parse(xhr.responseText);
+                        if (parsed && parsed.messages) {
+                            msg = parsed.messages;
+                        }
+                    } catch (err) {}
+                    swal.fire({
+                        position: 'top-right',
+                        type: 'error',
+                        title: msg,
+                        showConfirmButton: true
+                    });
                 }
             });
 
@@ -24458,9 +24472,8 @@ function editCreditNote(id) {
                         tmp = "input[name$='credit_note[" + i + "][cn_product_description]']";
                         $(tmp).val(items.desc[i]);
                         tmp = "textarea[name$='credit_note[" + i + "][cn_product_add_description]']";
-                        var temp = items.long_desc[i];
-                        temp = temp.replace(/\|/g, "\r\n");
-                        $(tmp).val(temp);
+                        var longDesc = (items.long_desc && items.long_desc[i] != null) ? String(items.long_desc[i]) : '';
+                        $(tmp).val(longDesc.replace(/\|/g, "\r\n"));
 
                         var temp_textarea = $(tmp);
                         autosize(temp_textarea);
@@ -24478,7 +24491,8 @@ function editCreditNote(id) {
                         tmp = "select[name$='credit_note[" + i + "][cn_tax]']";
                         $(tmp).val(items.tax[i]).trigger("change");
                         tmp = "select[name$='credit_note[" + i + "][cn_display_make]']";
-                        $(tmp).val(items.group[i]).trigger("change");
+                        var groupVal = (items.group && items.group[i] != null) ? items.group[i] : '';
+                        $(tmp).val(groupVal).trigger("change");
                     }
                 }
 

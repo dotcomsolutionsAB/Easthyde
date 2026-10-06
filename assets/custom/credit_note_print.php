@@ -315,7 +315,7 @@ for($i=0;$i<$l;$i++){
 		$cgst = (float)($items['cgst'][$i] ?? 0);
 		$sgst = (float)($items['sgst'][$i] ?? 0);
 		$pr = $items['product'][$i];
-		$make = $items['group'][$i];
+		$make = $items['group'][$i] ?? '';
 
 		$line_total = (float)($items['quantity'][$i] ?? 0)*(float)($items['price'][$i] ?? 0)*(100-(float)($items['discount'][$i] ?? 0))/100;
 		$GLOBALS["gross_total"] += $line_total;
@@ -492,7 +492,7 @@ for($i=0;$i<$l;$i++){
 		$tax = (float)($items['tax'][$i] ?? 0);
 		$igst = (float)($items['igst'][$i] ?? 0);
 		$pr = $items['product'][$i];
-		$make = $items['group'][$i];
+		$make = $items['group'][$i] ?? '';
 
 		$line_total = (float)($items['quantity'][$i] ?? 0)*(float)($items['price'][$i] ?? 0)*(100-(float)($items['discount'][$i] ?? 0))/100;
 		$GLOBALS["gross_total"] += $line_total;
