@@ -1,6 +1,13 @@
 <?php
     include ("../connect.php");
     include ("../php_replace_improper.php");
+    include ("../fy_access.php");
+    include ("ensure_table.php");
+
+    if (!ensure_debit_note_table($db)) {
+        echo json_encode(array("success"=>false, "messages"=>"Could not create the debit note table: ".($db->error ?: 'unknown database error'), "si"=>""));
+        exit;
+    }
 
     session_start();
 
@@ -18,11 +25,25 @@
     $supplier                 = replace_improper($_REQUEST['dn_supplier'] ?? '');
     $purchase_invoice          = replace_improper($_REQUEST['dn_pi_no'] ?? '');
     $dn_no                  = replace_improper($_REQUEST['dn_dn_no'] ?? '');
-    $dn_date_raw            = $_REQUEST['dn_date'] ?? '';
-    $dn_date                = ($dn_date_raw !== '') ? date('Y-m-d', strtotime((string)$dn_date_raw)) : '';
+    $dn_date_raw            = trim((string)($_REQUEST['dn_date'] ?? ''));
+    $dn_ts                  = ($dn_date_raw !== '') ? strtotime($dn_date_raw) : false;
+    if ($dn_ts === false) {
+        echo json_encode(array("success"=>false, "messages"=>"Enter a valid debit note date.", "si"=>""));
+        exit;
+    }
+    $dn_date                = date('Y-m-d', $dn_ts);
+    fy_assert_or_exit_json($dn_date, "Debit note date");
 
-    $dn_pi_date_raw         = $_REQUEST['dn_pi_date'] ?? '';
-    $dn_pi_date             = ($dn_pi_date_raw !== '') ? date('Y-m-d', strtotime((string)$dn_pi_date_raw)) : '';
+    $dn_pi_date_raw         = trim((string)($_REQUEST['dn_pi_date'] ?? ''));
+    $dn_pi_date             = '';
+    if ($dn_pi_date_raw !== '') {
+        $dn_pi_ts = strtotime($dn_pi_date_raw);
+        if ($dn_pi_ts === false) {
+            echo json_encode(array("success"=>false, "messages"=>"Enter a valid purchase invoice date.", "si"=>""));
+            exit;
+        }
+        $dn_pi_date = date('Y-m-d', $dn_pi_ts);
+    }
 
 
     $state                  = strtoupper((string)($_REQUEST['dn_state'] ?? ''));
@@ -66,7 +87,7 @@
             $items['product'][]     = replace_improper($row['dn_product_name'] ?? '');
             $items['desc'][]        = replace_improper_same($row['dn_product_description'] ?? '');
             $items['long_desc'][]   = replace_improper_textarea($row['dn_product_add_description'] ?? '');
-            $items['group'][]       = $row['dn_display_make'] ?? '';
+            $items['group'][]       = replace_improper($row['dn_display_make'] ?? '');
             $items['quantity'][]    = replace_improper($row['dn_qty'] ?? '');
             $items['unit'][]        = replace_improper($row['dn_unit'] ?? '');
             $items['price'][]       = replace_improper_amount($row['dn_rate'] ?? '');
@@ -174,10 +195,21 @@
     $tax_json   = json_encode($tax);
 
     $status=0;
-    
+
+    $esc = function ($value) use ($db) {
+        return $db->real_escape_string((string)$value);
+    };
+    $dn_pi_sql = ($dn_pi_date === '') ? "NULL" : "'".$esc($dn_pi_date)."'";
+
+    $fy_note = '';
+    $fy_start = (string)($_SESSION['start'] ?? '');
+    $fy_end = (string)($_SESSION['end'] ?? '');
+    if ($fy_start !== '' && $fy_end !== '' && ($dn_date < $fy_start || $dn_date > $fy_end)) {
+        $fy_note = " This date is outside the financial year selected in the header, so it will not appear in the current list.";
+    }
+
     if($id == '')
     {
-        
         $sql_counter = "SELECT * FROM counter WHERE `key` = 'debit_note'";
         $query_counter = $db->query($sql_counter);
         if ($query_counter && $query_counter->num_rows > 0) {
@@ -185,26 +217,37 @@
         $row_counter_arr = json_decode($row_counter['value'] ?? '', true);
 
         if(is_array($row_counter_arr) && isset($row_counter_arr['prefix'][0], $row_counter_arr['number'][0], $row_counter_arr['postfix'][0])){
-            $order_no = $row_counter_arr['prefix'][0].str_pad((string)$row_counter_arr['number'][0],4,'0', STR_PAD_LEFT).$row_counter_arr['postfix'][0];
-            $row_counter_arr['number'][0] = $row_counter_arr['number'][0] + 1;
+            $guard = 0;
+            do {
+                $order_no = $row_counter_arr['prefix'][0].str_pad((string)$row_counter_arr['number'][0],4,'0', STR_PAD_LEFT).$row_counter_arr['postfix'][0];
+                $safe_no = $esc($order_no);
+                $exists_q = $db->query("SELECT id FROM debit_note WHERE dn_no = '$safe_no' LIMIT 1");
+                $taken = ($exists_q && $exists_q->num_rows > 0);
+                if ($taken) {
+                    $row_counter_arr['number'][0] = (int)$row_counter_arr['number'][0] + 1;
+                }
+                $guard++;
+            } while ($taken && $guard < 500);
 
-        $sql = "INSERT INTO debit_note (`supplier`,`purchase_invoice`,`dn_pi_date`,`dn_no`,`dn_date`,`state`,`items`,`addons`,`total`,`tax`,`status`,`log_user`,`log_date`) VALUES ('$supplier','$purchase_invoice','$dn_pi_date','$order_no', '$dn_date','$state','$item','$addon','$tot_amount','$tax_json','$status','$log_user','$log_date')";
+            $row_counter_arr['number'][0] = (int)$row_counter_arr['number'][0] + 1;
+
+        $sql = "INSERT INTO debit_note (`supplier`,`purchase_invoice`,`dn_pi_date`,`dn_no`,`dn_date`,`state`,`items`,`addons`,`total`,`tax`,`status`,`log_user`,`log_date`) VALUES ('".$esc($supplier)."','".$esc($purchase_invoice)."',".$dn_pi_sql.",'".$esc($order_no)."', '".$esc($dn_date)."','".$esc($state)."','".$esc($item)."','".$esc($addon)."','".$esc($tot_amount)."','".$esc($tax_json)."','".$esc($status)."','".$esc($log_user)."','".$esc($log_date)."')";
         $query = $db->query($sql);
 
         if($query===true)
         {
                 $counter_array = json_encode($row_counter_arr);
-                $sql_counter = "UPDATE counter SET `value` = '$counter_array' WHERE `key` = 'debit_note'";
+                $sql_counter = "UPDATE counter SET `value` = '".$esc($counter_array)."' WHERE `key` = 'debit_note'";
                 $query_counter = $db->query($sql_counter);
-            
+
             $validator['success'] = true;
-            $validator['messages'] = "Successfully Added";
+            $validator['messages'] = "Successfully Added.".$fy_note;
             $validator['cn'] = $order_no;
         }
         else
         {
             $validator['success'] = false;
-            $validator['messages'] = "There was some error saving the records";
+            $validator['messages'] = "Could not save the debit note: ".($db->error ?: 'unknown database error');
 
         }
         } else {
@@ -213,25 +256,34 @@
         }
         } else {
             $validator['success'] = false;
-            $validator['messages'] = "Debit note counter not found.";
+            $validator['messages'] = "Debit note counter not found. Set it under Settings, then save again.";
         }
     }
     else
     {
         $order_no = $dn_no;
-        $sql = "UPDATE debit_note SET `supplier` = '$supplier', `purchase_invoice`='$purchase_invoice',`dn_pi_date`='$dn_pi_date',`dn_no`='$dn_no', `dn_date`='$dn_date',`state`='$state',`items`='$item',`addons`='$addon',`total`='$tot_amount',`tax`='$tax_json',`log_user`='$log_user',`log_date`='$log_date' WHERE `id`='$id'";
+        $sql = "UPDATE debit_note SET `supplier` = '".$esc($supplier)."', `purchase_invoice`='".$esc($purchase_invoice)."',`dn_pi_date`=".$dn_pi_sql.",`dn_no`='".$esc($dn_no)."', `dn_date`='".$esc($dn_date)."',`state`='".$esc($state)."',`items`='".$esc($item)."',`addons`='".$esc($addon)."',`total`='".$esc($tot_amount)."',`tax`='".$esc($tax_json)."',`log_user`='".$esc($log_user)."',`log_date`='".$esc($log_date)."' WHERE `id`='".$esc($id)."'";
         $query = $db->query($sql);
 
         if($query===true)
         {
+            if ($db->affected_rows < 1) {
+                $check = $db->query("SELECT id FROM debit_note WHERE id = '".$esc($id)."' LIMIT 1");
+                if (!$check || $check->num_rows < 1) {
+                    $validator['success'] = false;
+                    $validator['messages'] = "Debit note was not found to update.";
+                    echo json_encode($validator);
+                    exit;
+                }
+            }
             $validator['success'] = true;
-            $validator['messages'] = "Successfully Updated";
+            $validator['messages'] = "Successfully Updated.".$fy_note;
             $validator['si'] = $order_no;
         }
         else
         {
             $validator['success'] = false;
-            $validator['messages'] = "There was some error saving the records";
+            $validator['messages'] = "Could not save the debit note: ".($db->error ?: 'unknown database error');
 
         }
     }

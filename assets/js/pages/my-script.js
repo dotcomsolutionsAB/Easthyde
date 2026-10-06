@@ -6947,6 +6947,7 @@ var FormRepeater = function () {
                 $(".cn_delete").click(function (e) { cn_preview(e); });
                 $("#cn_freight").change(function (e) { cn_preview(e); });
                 $("#cn_pf").change(function (e) { cn_preview(e); });
+                $("#cn_round").change(function (e) { cn_preview(e); });
                 $("#cn_tot_discount").change(function (e) { cn_preview(e); });
                 $('#cn_btn_add').on("click", function (e) { cn_preview(e); });
             },
@@ -7028,6 +7029,7 @@ var FormRepeater = function () {
                 $(".cn_delete").click(function (e) { cn_preview(e); });
                 $("#cn_freight").change(function (e) { cn_preview(e); });
                 $("#cn_pf").change(function (e) { cn_preview(e); });
+                $("#cn_round").change(function (e) { cn_preview(e); });
                 $("#cn_tot_discount").change(function (e) { cn_preview(e); });
                 $('#cn_btn_add').on("click", function (e) { cn_preview(e); });
 
@@ -8061,16 +8063,16 @@ var FormRepeater = function () {
                     }); // /fetch selected member info
                 });
 
-                // $(".pi_qty").keyup(function(e) { pi_preview(e); });
-                // $(".pi_rate").keyup(function(e) { pi_preview(e); });
-                // $(".pi_dsc").keyup(function(e) { pi_preview(e); });
-                // $('.pi_tax-select2').on("select2:select", function(e) { pi_preview(e); });
-                // $(".pi_delete").click(function(e) { pi_preview(e); });
-                // $("#pi_freight").change(function(e) { pi_preview(e); });
-                // $("#pi_pf").change(function(e) { pi_preview(e); });
-                // $("#pi_tot_discount").change(function(e) { pi_preview(e); });
-                // $("#pi_round").change(function(e) { pi_preview(e); });
-                // $('#pi_btn_add').on("click", function(e) { pi_preview(e); });
+                $(".pi_qty").keyup(function (e) { pi_preview(e); });
+                $(".pi_rate").keyup(function (e) { pi_preview(e); });
+                $(".pi_dsc").keyup(function (e) { pi_preview(e); });
+                $('.pi_tax-select2').on("select2:select", function (e) { pi_preview(e); });
+                $(".pi_delete").click(function (e) { pi_preview(e); });
+                $("#pi_freight").change(function (e) { pi_preview(e); });
+                $("#pi_pf").change(function (e) { pi_preview(e); });
+                $("#pi_tcs").on("change keyup", function (e) { pi_preview(e); });
+                $("#pi_round").change(function (e) { pi_preview(e); });
+                $('#pi_btn_add').on("click", function (e) { pi_preview(e); });
 
                 $('#pi_preview_btn').on("click", function (e) { pi_preview(e); });
 
@@ -8150,16 +8152,16 @@ var FormRepeater = function () {
                     }); // /fetch selected member info
                 });
 
-                // $(".pi_qty").keyup(function(e) { pi_preview(e); });
-                // $(".pi_rate").keyup(function(e) { pi_preview(e); });
-                // $(".pi_dsc").keyup(function(e) { pi_preview(e); });
-                // $('.pi_tax-select2').on("select2:select", function(e) { pi_preview(e); });
-                // $(".pi_delete").click(function(e) { pi_preview(e); });
-                // $("#pi_freight").change(function(e) { pi_preview(e); });
-                // $("#pi_pf").change(function(e) { pi_preview(e); });
-                // $("#pi_tot_discount").change(function(e) { pi_preview(e); });
-                // $("#pi_round").change(function(e) { pi_preview(e); });
-                // $('#pi_btn_add').on("click", function(e) { pi_preview(e); });
+                $(".pi_qty").keyup(function (e) { pi_preview(e); });
+                $(".pi_rate").keyup(function (e) { pi_preview(e); });
+                $(".pi_dsc").keyup(function (e) { pi_preview(e); });
+                $('.pi_tax-select2').on("select2:select", function (e) { pi_preview(e); });
+                $(".pi_delete").click(function (e) { pi_preview(e); });
+                $("#pi_freight").change(function (e) { pi_preview(e); });
+                $("#pi_pf").change(function (e) { pi_preview(e); });
+                $("#pi_tcs").on("change keyup", function (e) { pi_preview(e); });
+                $("#pi_round").change(function (e) { pi_preview(e); });
+                $('#pi_btn_add').on("click", function (e) { pi_preview(e); });
 
                 $('#pi_preview_btn').on("click", function (e) { pi_preview(e); });
 
@@ -11337,11 +11339,14 @@ var Select2 = function () {
         });
 
         $('#pi_supplier').on("select2:select", function (e) {
+            selected_supplier = $(e.currentTarget).val();
+            if (window.purchaseHydrating) {
+                return;
+            }
             $('[data-repeater-list="purchase_invoice"]').empty();
             $('[data-repeater-create="purchase_invoice"]').click();
             var tmp = "input[name$='purchase_invoice[0][pi_sn]']";
             $(tmp).val(1);
-            selected_supplier = $(e.currentTarget).val();
             $.ajax({
                 url: '../assets/custom/api_get/get_supplier_address.php',
                 type: 'post',
@@ -11367,6 +11372,9 @@ var Select2 = function () {
         });
 
         $('.pi_purchase_order-select2').on("select2:select", function (e) {
+            if (window.purchaseHydrating) {
+                return;
+            }
             $('[data-repeater-list="purchase_invoice"]').empty();
             $('[data-repeater-create="purchase_invoice"]').click();
             var tmp = "input[name$='purchase_invoice[0][pi_sn]']";
@@ -13529,9 +13537,7 @@ function cn_preview(e) {
             tax_final = Math.round(tax_final * 100) / 100;
             gross_final = Math.round(gross_final * 100) / 100;
 
-            var decimal = Math.floor(total_final);
-            var fraction = total_final - decimal;
-
+            total_final = applySavedOrAutoRoundoff($('#cn_round'), total_final, e);
 
             total_final = Math.round(total_final * 100) / 100;
             tax_final = Math.round(tax_final * 100) / 100;
@@ -18135,19 +18141,22 @@ var Purchase_Invoice = function () {
 
         var ajaxAdd = function (form) {
             form = $(form);
+            var payload = form.serializeJSON();
+            payload.edit_pi_id = $('#edit_pi_id').val() || payload.edit_pi_id || '';
+            $("#purchase_invoice_submit").prop("disabled", true);
             $.ajax({
                 type: "POST",
                 url: "../assets/custom/purchase_invoice/create.php",
-                // data: form.serialize(),
-                data: JSON.stringify(form.serializeJSON()),
-                // var data = JSON.stringify(form.serializeJSON());
+                data: JSON.stringify(payload),
+                contentType: 'application/json; charset=UTF-8',
+                processData: false,
                 dataType: 'json',
                 success: function (response) {
                     if (response.success == true) {
                         swal.fire({
                             position: 'top-right',
                             type: 'success',
-                            title: 'Your purchase invoice has been saved',
+                            title: response.messages || 'Your purchase invoice has been saved',
                             showConfirmButton: false,
                             timer: 1500
                         });
@@ -18167,38 +18176,53 @@ var Purchase_Invoice = function () {
                             dataType: 'json',
                             success: function (response) { }
                         });
+
+                        $('#add_purchase_invoice')[0].reset();
+                        $('#edit_pi_id').val('');
+                        if (param_page == 'purchase') {
+                            managePurchaseInvoiceTable.reload();
+                            set_purchase();
+                        }
+
+                        if (param_page == 'secondary_purchase') {
+                            manageSecondaryPurchaseInvoiceTable.reload();
+                            set_secondary_purchase();
+                        }
+
+                        $('#pi_supplier').val(null).trigger('change');
+                        $('#pi_purchase_order').val(null).trigger('change');
+                        $('#pi_product_name').val(null).trigger('change');
+                        $('#pi_tax').val(null).trigger('change');
+                        $('[data-repeater-list="purchase_invoice"]').empty();
+                        $('[data-repeater-create="purchase_invoice"]').click();
+                        var tmp = "input[name$='purchase_invoice[0][pi_sn]']";
+                        $(tmp).val(1);
                     } else {
                         swal.fire({
                             position: 'top-right',
                             type: 'error',
-                            title: 'There were some errors in your submission.',
-                            showConfirmButton: false,
-                            timer: 1500
+                            title: response.messages || 'There were some errors in your submission.',
+                            showConfirmButton: true
                         });
                     }
-
-                    //Reset The Form
-                    $('#add_purchase_invoice')[0].reset();
-                    // close the modal
-                    if (param_page == 'purchase') {
-                        managePurchaseInvoiceTable.reload();
-                        set_purchase();
-                    }
-
-                    if (param_page == 'secondary_purchase') {
-                        manageSecondaryPurchaseInvoiceTable.reload();
-                        set_secondary_purchase();
-                    }
-
-                    $('#pi_supplier').val(null).trigger('change');
-                    $('#pi_purchase_order').val(null).trigger('change');
-                    $('#pi_product_name').val(null).trigger('change');
-                    $('#pi_tax').val(null).trigger('change');
-                    $('[data-repeater-list="purchase_invoice"]').empty();
-                    $('[data-repeater-create="purchase_invoice"]').click();
-                    var tmp = "input[name$='purchase_invoice[0][pi_sn]']";
-                    $(tmp).val(1);
-                    $("#purchase_invoice_submit").attr("disabled", false);
+                },
+                error: function (xhr) {
+                    var msg = 'Purchase invoice save failed.';
+                    try {
+                        var parsed = JSON.parse(xhr.responseText);
+                        if (parsed && parsed.messages) {
+                            msg = parsed.messages;
+                        }
+                    } catch (err) {}
+                    swal.fire({
+                        position: 'top-right',
+                        type: 'error',
+                        title: msg,
+                        showConfirmButton: true
+                    });
+                },
+                complete: function () {
+                    $("#purchase_invoice_submit").prop("disabled", false);
                 }
             });
 
@@ -18209,11 +18233,12 @@ var Purchase_Invoice = function () {
             errorElement: 'span', //default input error message container
             errorClass: 'help-block', // default input error message class
             focusInvalid: false, // do not focus the last invalid input
+            ignore: ':hidden:not(#pi_supplier)',
             rules: {
-                pi_client: {
+                pi_supplier: {
                     required: true
                 },
-                purchase: {
+                purchase_invoice_no: {
                     required: true
                 },
                 purchase_invoice_date: {
@@ -18221,10 +18246,10 @@ var Purchase_Invoice = function () {
                 },
             },
             messages: {
-                pi_client: {
-                    required: 'This field is required!'
+                pi_supplier: {
+                    required: 'Select a supplier.'
                 },
-                purchase: {
+                purchase_invoice_no: {
                     required: 'This field is required!'
                 },
                 purchase_invoice_date: {
@@ -18249,7 +18274,6 @@ var Purchase_Invoice = function () {
 
             submitHandler: function (form) {
                 ajaxAdd(form);
-                $("#purchase_invoice_submit").attr("disabled", true);
             }
         });
 
@@ -18284,6 +18308,8 @@ function editPurchaseInvoice(id) {
             data: { member_id: id },
             dataType: 'json',
             success: function (response) {
+                window.purchaseHydrating = true;
+                $("#purchase_invoice_submit").prop("disabled", false);
                 $("#edit_pi_id").val(response.id);
                 $("#pi_state").val(response.state);
                 $("#pi_supplier").empty().append($("<option/>").val(response.supplier_name).text(response.supplier_name)).val(response.supplier_name).trigger("change");
@@ -18296,7 +18322,9 @@ function editPurchaseInvoice(id) {
                 console.log(formatted_date);
                 $("#purchase_invoice_date").val(formatted_date);
 
-                var e_nos = JSON.parse(response.po_no);
+                var e_nos = [];
+                try { e_nos = JSON.parse(response.po_no || '[]') || []; } catch (err) { e_nos = []; }
+                if (!Array.isArray(e_nos)) { e_nos = []; }
 
                 $('#pi_purchase_order').empty();
                 for (var i = 0, l = e_nos.length; i < l; i++) {
@@ -18314,21 +18342,22 @@ function editPurchaseInvoice(id) {
                 $("#pi_purchase_order").val(Values).trigger('change');
                 $("#pi_purchase_order").attr('readonly', true);
 
-                var shipping = JSON.parse(response.shipping);
-                $("#shipping_add_1").val(shipping.address1);
-                $("#shipping_add_2").val(shipping.address2);
-                $("#shipping_add_3").empty().append($("<option/>").val(shipping.address3).text(shipping.address3)).val(shipping.address3).trigger("change");
+                var shipping = {};
+                try { shipping = JSON.parse(response.shipping || '{}') || {}; } catch (err) { shipping = {}; }
+                $("#shipping_add_1").val(shipping.address1 || '');
+                $("#shipping_add_2").val(shipping.address2 || '');
+                $("#shipping_add_3").empty().append($("<option/>").val(shipping.address3 || '').text(shipping.address3 || '')).val(shipping.address3 || '').trigger("change");
 
-                var addons = JSON.parse(response.addons);
-                $("#pi_freight").val(addons.freight.value);
-                $("#pi_pf").val(addons.pf.value);
-                $("#pi_round").val(addons.roundoff);
-                $("#pi_tcs").val(addons.tcs);
+                var addons = {};
+                try { addons = JSON.parse(response.addons || '{}') || {}; } catch (err) { addons = {}; }
+                $("#pi_freight").val(addons.freight ? addons.freight.value : '');
+                $("#pi_pf").val(addons.pf ? addons.pf.value : '');
+                $("#pi_round").val(addons.roundoff || '');
+                $("#pi_tcs").val(addons.tcs || '');
 
-
-
-                var items = JSON.parse(response.items);
-                var len = items.product.length;
+                var items = {};
+                try { items = JSON.parse(response.items || '{}') || {}; } catch (err) { items = {}; }
+                var len = (items.product && items.product.length) ? items.product.length : 0;
 
                 $('[data-repeater-list="purchase_invoice"]').empty();
                 $('[data-repeater-create="purchase_invoice"]').click();
@@ -18345,31 +18374,35 @@ function editPurchaseInvoice(id) {
                     tmp = "select[name$='purchase_invoice[" + i + "][pi_product_name]']";
                     $(tmp).empty().append($("<option/>").val(items.product[i]).text(items.product[i])).val(items.product[i]).trigger("change");
                     tmp = "input[name$='purchase_invoice[" + i + "][pi_product_description]']";
-                    $(tmp).val(items.desc[i]);
-                    tmp = "textarea[name$='purchase_invoice[" + i + "][pi_product_description]']";
-                    var temp = items.long_desc[i];
-                    temp = temp.replace(/\|/g, "\r\n");
-                    $(tmp).val(temp);
+                    $(tmp).val((items.desc && items.desc[i] != null) ? items.desc[i] : '');
+                    tmp = "textarea[name$='purchase_invoice[" + i + "][pi_product_add_description]']";
+                    var longDesc = (items.long_desc && items.long_desc[i] != null) ? String(items.long_desc[i]) : '';
+                    $(tmp).val(longDesc.replace(/\|/g, "\r\n"));
 
                     var temp_textarea = $(tmp);
                     autosize(temp_textarea);
 
                     tmp = "input[name$='purchase_invoice[" + i + "][pi_qty]']";
-                    $(tmp).val(items.quantity[i]);
+                    $(tmp).val(items.quantity ? items.quantity[i] : '');
                     tmp = "select[name$='purchase_invoice[" + i + "][pi_unit]']";
-                    $(tmp).empty().append($("<option/>").val(items.unit[i]).text(items.unit[i])).val(items.unit[i]).trigger("change");
+                    var unitVal = (items.unit && items.unit[i] != null) ? items.unit[i] : '';
+                    $(tmp).empty().append($("<option/>").val(unitVal).text(unitVal)).val(unitVal).trigger("change");
                     tmp = "input[name$='purchase_invoice[" + i + "][pi_rate]']";
-                    $(tmp).val(items.price[i]);
+                    $(tmp).val(items.price ? items.price[i] : '');
                     tmp = "input[name$='purchase_invoice[" + i + "][pi_dsc]']";
-                    $(tmp).val(items.discount[i]);
+                    $(tmp).val((items.discount && items.discount[i] != null) ? items.discount[i] : '');
                     tmp = "input[name$='purchase_invoice[" + i + "][pi_hsn]']";
-
-                    $(tmp).val(items.hsn[i]);
+                    $(tmp).val((items.hsn && items.hsn[i] != null) ? items.hsn[i] : '');
                     tmp = "select[name$='purchase_invoice[" + i + "][pi_tax]']";
-                    $(tmp).empty().append($("<option/>").val(items.tax[i]).text(items.tax[i])).val(items.tax[i]).trigger("change");
+                    var taxVal = (items.tax && items.tax[i] != null) ? items.tax[i] : '';
+                    $(tmp).empty().append($("<option/>").val(taxVal).text(taxVal)).val(taxVal).trigger("change");
                     tmp = "select[name$='purchase_invoice[" + i + "][pi_display_make]']";
-                    $(tmp).val(items.group[i]).trigger("change");
+                    var groupVal = (items.group && items.group[i] != null) ? items.group[i] : '';
+                    $(tmp).val(groupVal).trigger("change");
                 }
+                window.purchaseHydrating = false;
+                pi_preview({ currentTarget: { name: '' } });
+                $("#purchase_invoice_submit").prop("disabled", false);
                 KTUtil.scrollTop();
             }
         });
@@ -24432,6 +24465,7 @@ function editCreditNote(id) {
             data: { member_id: id },
             dataType: 'json',
             success: function (response) {
+                beginRoundoffHydrate($('#cn_round'));
                 $("#edit_cn_id").val(response.id);
                 $("#cn_state").val(response.state);
                 $("#cn_client").empty().append($("<option/>").val(response.client).text(response.client)).val(response.client).trigger("change");
@@ -24449,6 +24483,9 @@ function editCreditNote(id) {
                     var addons = JSON.parse(response.addons);
                     $("#cn_freight").val(addons.freight.value);
                     $("#cn_pf").val(addons.pf.value);
+                    applyAddonsRoundoff($('#cn_round'), addons);
+                } else {
+                    applyAddonsRoundoff($('#cn_round'), {});
                 }
 
                 if (response.items != '') {
@@ -24524,9 +24561,9 @@ var Debit_Note = function () {
                         swal.fire({
                             position: 'top-right',
                             type: 'success',
-                            title: 'Debit Note has been saved',
+                            title: response.messages || 'Debit Note has been saved',
                             showConfirmButton: false,
-                            timer: 1500
+                            timer: 2500
                         });
 
                         //Reset The Form
@@ -24545,11 +24582,25 @@ var Debit_Note = function () {
                         swal.fire({
                             position: 'top-right',
                             type: 'error',
-                            title: 'There were some errors in your submission.',
-                            showConfirmButton: false,
-                            timer: 1500
+                            title: response.messages || 'There were some errors in your submission.',
+                            showConfirmButton: true
                         });
                     }
+                },
+                error: function (xhr) {
+                    var msg = 'Debit note save failed.';
+                    try {
+                        var parsed = JSON.parse(xhr.responseText);
+                        if (parsed && parsed.messages) {
+                            msg = parsed.messages;
+                        }
+                    } catch (err) {}
+                    swal.fire({
+                        position: 'top-right',
+                        type: 'error',
+                        title: msg,
+                        showConfirmButton: true
+                    });
                 }
             });
 
@@ -24725,9 +24776,8 @@ function editDebitNote(id) {
                         tmp = "input[name$='debit_note[" + i + "][dn_product_description]']";
                         $(tmp).val(items.desc[i]);
                         tmp = "textarea[name$='debit_note[" + i + "][dn_product_add_description]']";
-                        var temp = items.long_desc[i];
-                        temp = temp.replace(/\|/g, "\r\n");
-                        $(tmp).val(temp);
+                        var longDesc = (items.long_desc && items.long_desc[i] != null) ? String(items.long_desc[i]) : '';
+                        $(tmp).val(longDesc.replace(/\|/g, "\r\n"));
 
                         var temp_textarea = $(tmp);
                         autosize(temp_textarea);
@@ -24745,7 +24795,8 @@ function editDebitNote(id) {
                         tmp = "select[name$='debit_note[" + i + "][dn_tax]']";
                         $(tmp).val(items.tax[i]).trigger("change");
                         tmp = "select[name$='debit_note[" + i + "][dn_display_make]']";
-                        $(tmp).val(items.group[i]).trigger("change");
+                        var groupVal = (items.group && items.group[i] != null) ? items.group[i] : '';
+                        $(tmp).val(groupVal).trigger("change");
                     }
                 }
 

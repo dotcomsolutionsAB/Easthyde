@@ -276,6 +276,16 @@
 						</div>
 						<div class="form-group row" style="margin-bottom: 2px;">
 							<div class="col-md-10">
+								<div class="form-control" style="text-align:right; border: none;">Round Off :</div>
+							</div>
+							<div class="col-md-2">
+								<div class="input-group">
+						            <input type="text" class="form-control" name="cn_round" style="text-align:right;" id="cn_round">
+								</div>
+							</div>
+						</div>
+						<div class="form-group row" style="margin-bottom: 2px;">
+							<div class="col-md-10">
 								<div class="form-control" style="text-align:right; border: none;">Grand Total :</div>
 								
 							</div>

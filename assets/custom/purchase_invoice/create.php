@@ -180,8 +180,8 @@
     $pi_freight     = str_replace(",","",$pi_freight);
     $pi_tcs         = str_replace(",","",$pi_tcs);
 
-    $tot_amount = replace_improper_amount($input->pi_total_final ?? '');
-    $tot_amount = TrimTrailingZeroes(number_format((float)$tot_amount,2, '.', ''));
+    $tot_amount = 0;
+    $gross_amount = 0;
 
     $tax = array("cgst" => 0.00, "sgst" => 0.00, "igst" => 0.00); // Initialize as float
 
@@ -203,20 +203,39 @@
 foreach ($purchase_invoice_items as $line_item) {
         if (!is_array($line_item)) { continue; }
         if (($line_item['pi_product_name'] ?? '') != '' && ($line_item['pi_qty'] ?? '') != '') {
-            // Add items to the array
+            $qty = (float)str_replace(',', '', (string)($line_item['pi_qty'] ?? '0'));
+            $rate = (float)str_replace(',', '', (string)($line_item['pi_rate'] ?? '0'));
+            $dsc = (float)str_replace(',', '', (string)($line_item['pi_dsc'] ?? '0'));
+            $tax_pct = (float)str_replace(',', '', (string)($line_item['pi_tax'] ?? '0'));
+
+            $line_gross = ($rate * $qty);
+            if ($dsc != 0) {
+                $line_gross = $line_gross * ((100 - $dsc) / 100);
+            }
+            $line_gross = round($line_gross, 2);
+
+            $cgst = 0.0;
+            $sgst = 0.0;
+            $igst = 0.0;
+            if ($state == 'WEST BENGAL') {
+                $half = $tax_pct / 2;
+                $cgst = round($line_gross * $half / 100, 2);
+                $sgst = round($line_gross * $half / 100, 2);
+            } else {
+                $igst = round($line_gross * $tax_pct / 100, 2);
+            }
+
             $items['product'][] = replace_improper($line_item['pi_product_name'] ?? '');
             $items['desc'][] = replace_improper($line_item['pi_product_description'] ?? '');
             $items['long_desc'][] = replace_improper_textarea($line_item['pi_product_add_description'] ?? '');
+            $items['group'][] = replace_improper($line_item['pi_display_make'] ?? '');
             $items['quantity'][] = replace_improper($line_item['pi_qty'] ?? '');
             $items['unit'][] = replace_improper($line_item['pi_unit'] ?? '');
             $items['price'][] = replace_improper_amount($line_item['pi_rate'] ?? '');
+            $items['discount'][] = replace_improper($line_item['pi_dsc'] ?? '');
+            $items['hsn'][] = replace_improper($line_item['pi_hsn'] ?? '');
             $items['tax'][] = replace_improper($line_item['pi_tax'] ?? '');
-    
-            // Handle tax values
-            $cgst = (float)($line_item['pi_cgst'] ?? 0);
-            $sgst = (float)($line_item['pi_sgst'] ?? 0);
-            $igst = (float)($line_item['pi_igst'] ?? 0);
-    
+
             if ($state == 'WEST BENGAL') {
                 $items['cgst'][] = $cgst;
                 $items['sgst'][] = $sgst;
@@ -226,11 +245,10 @@ foreach ($purchase_invoice_items as $line_item) {
                 $items['igst'][] = $igst;
                 $tax['igst'] += $igst;
             }
-         
-            
-            $secondary_total += (float)($line_item['pi_gross_pr'] ?? 0);
 
-     
+            $gross_amount += $line_gross;
+            $secondary_total += $line_gross;
+            $tot_amount += $line_gross + $cgst + $sgst + $igst;
         }
     }
         
@@ -238,33 +256,48 @@ foreach ($purchase_invoice_items as $line_item) {
     $item=json_encode($items);
 
     $status=0;
-    $addons = array('freight'=>array('value'=>$pi_freight,'cgst'=>'','sgst'=>'','igst'=>''),'pf'=>array('value'=>$pi_pf,'cgst'=>'','sgst'=>'','igst'=>''),'roundoff'=>'','tcs'=>$pi_tcs);
+    $parse_money = function ($raw, $gross) {
+        $raw = trim(str_replace(',', '', (string)$raw));
+        if ($raw === '') {
+            return 0.0;
+        }
+        if (substr($raw, -1) === '%') {
+            return round($gross * ((float)$raw) / 100, 2);
+        }
+        return round((float)$raw, 2);
+    };
+    $freight_amt = $parse_money($pi_freight, $gross_amount);
+    $pf_amt = $parse_money($pi_pf, $gross_amount);
+    $tcs_amt = round((float)str_replace(',', '', (string)$pi_tcs), 2);
+    $round_amt = (float)roundoff_or_zero($input->pi_round ?? '');
+
+    $addons = array('freight'=>array('value'=>number_format($freight_amt, 2, '.', ''),'cgst'=>'','sgst'=>'','igst'=>''),'pf'=>array('value'=>number_format($pf_amt, 2, '.', ''),'cgst'=>'','sgst'=>'','igst'=>''),'roundoff'=>number_format($round_amt, 2, '.', ''),'tcs'=>number_format($tcs_amt, 2, '.', ''));
 
     if ($state == 'WEST BENGAL') {
-        $addons['freight']['cgst'] = isset($pi_freight_cgst) ? (float)$pi_freight_cgst : 0.0;
-        $addons['freight']['sgst'] = isset($pi_freight_sgst) ? (float)$pi_freight_sgst : 0.0;
-        $tax['cgst'] += $addons['freight']['cgst'];
-        $tax['sgst'] += $addons['freight']['sgst'];
-    
-        $addons['pf']['cgst'] = isset($pi_pf_cgst) ? (float)$pi_pf_cgst : 0.0;
-        $addons['pf']['sgst'] = isset($pi_pf_sgst) ? (float)$pi_pf_sgst : 0.0;
-        $tax['cgst'] += $addons['pf']['cgst'];
-        $tax['sgst'] += $addons['pf']['sgst'];
+        $freight_tax = round($freight_amt * 9 / 100, 2);
+        $pf_tax = round($pf_amt * 9 / 100, 2);
+        $addons['freight']['cgst'] = $freight_tax;
+        $addons['freight']['sgst'] = $freight_tax;
+        $addons['pf']['cgst'] = $pf_tax;
+        $addons['pf']['sgst'] = $pf_tax;
+        $tax['cgst'] += $freight_tax + $pf_tax;
+        $tax['sgst'] += $freight_tax + $pf_tax;
+        $tot_amount += $freight_amt + $pf_amt + ($freight_tax * 2) + ($pf_tax * 2);
     } else {
-        $addons['freight']['igst'] = isset($pi_freight_igst) ? (float)$pi_freight_igst : 0.0;
-        $tax['igst'] += $addons['freight']['igst'];
-    
-        $addons['pf']['igst'] = isset($pi_pf_igst) ? (float)$pi_pf_igst : 0.0;
-        $tax['igst'] += $addons['pf']['igst'];
+        $freight_tax = round($freight_amt * 18 / 100, 2);
+        $pf_tax = round($pf_amt * 18 / 100, 2);
+        $addons['freight']['igst'] = $freight_tax;
+        $addons['pf']['igst'] = $pf_tax;
+        $tax['igst'] += $freight_tax + $pf_tax;
+        $tot_amount += $freight_amt + $pf_amt + $freight_tax + $pf_tax;
     }
-    
+
+    $tot_amount += $tcs_amt + $round_amt;
+    $tot_amount = TrimTrailingZeroes(number_format((float)$tot_amount, 2, '.', ''));
 
     $tax['cgst'] = number_format((float)$tax['cgst'], 2, '.', '');
     $tax['sgst'] = number_format((float)$tax['sgst'], 2, '.', '');
     $tax['igst'] = number_format((float)$tax['igst'], 2, '.', '');
-    
-
-    $addons['roundoff'] = replace_improper_amount($input->pi_round ?? '');
 
     $addon      = json_encode($addons);
     $tax_json   = json_encode($tax);
@@ -281,11 +314,15 @@ foreach ($purchase_invoice_items as $line_item) {
     //     $tot_amount = $secondary_total;
     // }
 
+    $esc = function ($value) use ($db) {
+        return $db->real_escape_string((string)$value);
+    };
+
     if($pi_id == '')
     {
 
         //die("inide here ".$pi_id);
-        $sql = "INSERT INTO purchase_invoice (`supplier_name`,`mobile`,`series`,`pi_no`,`spi_no`,`pi_date`,`po_no`,`shipping`,`items`,`addons`,`total`,`tax`,`status`,`log_user`,`log_date`) VALUES ('$supplier','$mobile','$series','$order_no','$spi_no', '$order_date','$purchase_o','$address','$item','$addon','$tot_amount','$tax_json','$status','$log_user','$log_date')";
+        $sql = "INSERT INTO purchase_invoice (`supplier_name`,`mobile`,`series`,`pi_no`,`spi_no`,`pi_date`,`po_no`,`shipping`,`items`,`addons`,`total`,`tax`,`status`,`log_user`,`log_date`) VALUES ('".$esc($supplier)."','".$esc($mobile)."','".$esc($series)."','".$esc($order_no)."','".$esc($spi_no)."', '".$esc($order_date)."','".$esc($purchase_o)."','".$esc($address)."','".$esc($item)."','".$esc($addon)."','".$esc($tot_amount)."','".$esc($tax_json)."','".$esc($status)."','".$esc($log_user)."','".$esc($log_date)."')";
         $query = $db->query($sql);
       
 
@@ -302,7 +339,7 @@ foreach ($purchase_invoice_items as $line_item) {
         else
         {
             $validator['success'] = false;
-            $validator['messages'] = "There was some error saving the records";
+            $validator['messages'] = "Could not save the purchase invoice: ".($db->error ?: 'unknown database error');
 
         }
 
@@ -345,12 +382,20 @@ foreach ($purchase_invoice_items as $line_item) {
     }
     else{
         //die("inide not here ".$pi_id);
-        $sql = "UPDATE purchase_invoice SET `supplier_name` = '$supplier',`mobile`='$mobile',`series`='$series', `pi_no`='$order_no',`spi_no`='$spi_no',`pi_date`='$order_date', `po_no`='$purchase_o',`shipping`='$address',`items`='$item',`addons`='$addon', `total` = '$tot_amount', `tax` = '$tax_json',`log_user`='$log_user',`log_date`='$log_date' WHERE `id`='$pi_id'";
+        $sql = "UPDATE purchase_invoice SET `supplier_name` = '".$esc($supplier)."',`mobile`='".$esc($mobile)."',`series`='".$esc($series)."', `pi_no`='".$esc($order_no)."',`spi_no`='".$esc($spi_no)."',`pi_date`='".$esc($order_date)."', `po_no`='".$esc($purchase_o)."',`shipping`='".$esc($address)."',`items`='".$esc($item)."',`addons`='".$esc($addon)."', `total` = '".$esc($tot_amount)."', `tax` = '".$esc($tax_json)."',`log_user`='".$esc($log_user)."',`log_date`='".$esc($log_date)."' WHERE `id`='".$esc($pi_id)."'";
         $query = $db->query($sql);
-        //die( $sql);
 
         if($query===true)
         {
+            if ($db->affected_rows < 1) {
+                $check = $db->query("SELECT id FROM purchase_invoice WHERE id = '".$esc($pi_id)."' LIMIT 1");
+                if (!$check || $check->num_rows < 1) {
+                    $validator['success'] = false;
+                    $validator['messages'] = "Purchase invoice was not found to update.";
+                    echo json_encode($validator);
+                    exit;
+                }
+            }
             syncConsignmentSettlements($db, $pi_id, $order_no, $supplier, $order_date, $items);
             $validator['success'] = true;
             $validator['messages'] = "Successfully Updated";
@@ -359,7 +404,7 @@ foreach ($purchase_invoice_items as $line_item) {
         else
         {
             $validator['success'] = false;
-            $validator['messages'] = "There was some error saving the records";
+            $validator['messages'] = "Could not save the purchase invoice: ".($db->error ?: 'unknown database error');
 
         }
     }
