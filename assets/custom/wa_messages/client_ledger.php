@@ -170,7 +170,7 @@ For any query / clarification / discrepancies, please feel free to contact
 ';
 
 $output['message'] .= 'Thanking You,
-*Ammar Industrial Corporation*
+*M.M. Lucky Enterprise*
 *Ph : 22316239 / 33165010*';
 $output['status'] = "200";
 

@@ -36,18 +36,20 @@ class PDF_AutoPrint extends PDF_JavaScript
 		$this->Cell(190,3,'',0,2,C);
 		$this->Cell(190,7,'Purchase Order',0,2,C);
 
-		$this->SetFont('Arial','B',18);
-	    $this->Image("../media/pdf/a_logo.png",38,11,38,16);
-		$this->Cell(190,8,'                 INDUSTRIAL CORPORATION',0,2,C);
+		$this->SetFont('Arial','B',20);
+		$this->Cell(190,8,'M.M. Lucky Enterprise',0,2,C);
 		$this->SetFont('Arial','',9);
-		$this->Cell(190,4,'83/85 NETAJI SUBHASH ROAD, ROOM #A33, GROUND FLOOR',0,2,C);
-		$this->Cell(190,4,'KOLKATA - 700 001, WEST BENGAL, INDIA',0,2,C);
-		$this->Cell(190,4,'GST : 19AEKPB4862M1Z2',0,1,C);
-	    $this->Image("../media/pdf/contact.jpg",10,40,5,5);
-	    $this->Image("../media/pdf/email.jpg",95,40,5,5);
-	    $this->Image("../media/pdf/whatsapp.jpg",173,40,5,5);
+		$this->Cell(190,4,'26, Strand Road, Ground Floor,',0,2,C);
+		$this->Cell(190,4,'Kolkata - 700 001, West Bengal, India',0,2,C);
+		$this->Cell(190,4,'Email:mmleind@gmail.com ',0,2,C);
+		$this->Cell(190,4,'Phone:+91 6289778473 ',0,2,C);
+		$this->SetFont('Arial','B',10);
+		$this->Cell(190,4,'GST : 19ALCPM0139R1ZO','B',1,C);
+		$this->Image("../media/company-logos/logo.jpg",10,20,50,20);
+		$this->Image("../media/company-logos/MSME1.png",165,18,30,25);
+		$this->Image("../media/pdf/email.jpg",80,36,3,3);
+		$this->Image("../media/pdf/whatsapp.jpg",83,40,3,3);
 
-		$this->Cell(190,6,'     :(033) 2231-6239/7134-2823/4602-7368                                 :info@ammarindustrial.in                                                :7980684655','B',2);
 		
 
 		$y = $this->getY();
@@ -125,8 +127,8 @@ class PDF_AutoPrint extends PDF_JavaScript
 	function Footer()
 	{
 
-		// $this->Image("../media/pdf/quot_bottom.jpg",10,263,190,24);
-		// $this->Line(10,262,200,262);
+		// $this->Image("../media/pdf/quot_bottom.jpg",9,259,192,29);
+		// $this->Line(10,258,200,258);
 	    // Position at 1.5 cm from bottom
 	    $this->SetY(-15);
 	    // Arial italic 8
@@ -965,7 +967,7 @@ else{
 	$pdf->Cell(95,1,'','T',0,L);
 	$pdf->Cell(95,1,'','T',1,L);
 	$pdf->Cell(95,5,'','',0,L);
-	$pdf->Cell(95,5,'for AMMAR INDUSTRIAL CORPORATION',0,1,R);
+	$pdf->Cell(95,5,'for M.M. LUCKY ENTERPRISE',0,1,R);
 	$pdf->Cell(95,12,'','',0,L);
 	$pdf->Cell(95,12,'',0,1,R);
 	$pdf->Cell(95,4,'','',0,L);
@@ -1025,7 +1027,7 @@ $mail->Port = 587;
 
 //From email address and name
 $mail->From = $sending_email;
-$mail->FromName = "Ammar Industrial Corporation";
+$mail->FromName = "M.M. Lucky Enterprise";
 
 //To address and name
 for($k=0;$k<$len;$k++){

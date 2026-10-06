@@ -471,7 +471,7 @@ if($pdf_type == ''){
 
     //From email address and name
     $mail->From = $sending_email;
-    $mail->FromName = "Ammar Industrial Corporation";
+    $mail->FromName = "M.M. Lucky Enterprise";
 
     //To address and name
     for($k=0;$k<$len;$k++){

@@ -173,7 +173,7 @@ for($loop = 0;$loop < $len; $loop++){
 		$y = $y_index * 35 + 10;
 		$pdf->setY($y);
 		$pdf->SetFont('Arial','B',9);
-		$pdf->Cell(105,5,'Ammar Industrial Corporation',0,2,C);
+		$pdf->Cell(105,5,'M.M. Lucky Enterprise',0,2,C);
 		$pdf->SetFont('Arial','I',8);
 		$pdf->Cell(10,5,'',0,0,C);
 		$pdf->CellFitScale(60,5,$row['print_name'],'B',0,L);
@@ -221,7 +221,7 @@ for($loop = 0;$loop < $len; $loop++){
 		$pdf->setY($y);
 		$pdf->setX(105);
 		$pdf->SetFont('Arial','B',9);
-		$pdf->Cell(105,5,'Ammar Industrial Corporation',0,2,C);
+		$pdf->Cell(105,5,'M.M. Lucky Enterprise',0,2,C);
 		$pdf->SetFont('Arial','I',8);
 		$pdf->Cell(10,5,'',0,0,C);
 		$pdf->CellFitScale(60,5,$row['print_name'],'B',0,L);

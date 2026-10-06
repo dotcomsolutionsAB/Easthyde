@@ -36,13 +36,13 @@ class PDF_AutoPrint extends PDF_JavaScript
 
 		$this->SetFont('Arial','B',18);
 		$this->Cell(190,3,'',0,2,C);
-		$this->Cell(190,8,'AMMAR INDUSTRIAL CORPORATION',0,1,C);
+		$this->Cell(190,8,'M.M. LUCKY ENTERPRISE',0,1,C);
         $this->SetFont('Arial','',9);
 
-		$this->Cell(190,4,'83/85 Netaji Subhas Road, Room #A33, Ground Floor',0,1,C);
+		$this->Cell(190,4,'26, Strand Road, Ground Floor,',0,1,C);
 		$this->Cell(190,4,'Kolkata - 700 001, West Bengal, India',0,1,C);
-		$this->Cell(190,4,'(033) 2231-6239/7134-2823/4602-7368',0,1,C);
-		$this->Cell(190,4,'info@ammarindustrial.in',0,1,C);
+		$this->Cell(190,4,'+91 6289778473',0,1,C);
+		$this->Cell(190,4,'mmleind@gmail.com',0,1,C);
 
         $this->Cell(30,2,"",'',0,C);
         $this->Cell(130,2,"",'B',0,C);
@@ -448,7 +448,7 @@ $mail->Port = 587;
 
 //From email address and name
 $mail->From = $sending_email;
-$mail->FromName = "Ammar Industrial Corporation";
+$mail->FromName = "M.M. Lucky Enterprise";
 
 //To address and name
 for($k=0;$k<$len;$k++){
@@ -457,7 +457,7 @@ for($k=0;$k<$len;$k++){
 }
 
 // Address to which recipient will reply
-$mail->addReplyTo("info@ammarindustrial.in");
+$mail->addReplyTo("mmleind@gmail.com");
 
 //Send HTML or Plain Text email
 $mail->isHTML(true);

@@ -7,7 +7,7 @@
     }
 </style>
 
-<title>Sales - Ammar Industrial</title>
+<title>Sales - M.M. Lucky Enterprise</title>
 
 <table class="table table-bordered table-striped table-hover " >
 	<thead>
