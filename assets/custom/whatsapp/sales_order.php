@@ -15,11 +15,10 @@ $query_fetch = $db->query($sql_fetch);
 $row_fetch = ($query_fetch) ? $query_fetch->fetch_assoc() : null;
 
 $date=date('d-m-Y', strtotime($row_fetch['so_date']));
-//Include Master
+$company = voucher_party_name($db, 'clients', $row_fetch['client_name'] ?? '');
+$name = voucher_pdf_name('Sales Order', $so_no, $company, $date);
 
-$name = "Sales_Order_AICSO-".substr($so_no,7,3)."_".str_replace('-','',$date).".pdf";
-
-$url = 'https://crm.ammarindustrial.biz/assets/pdf/sales_order/'.$name;
+$url = 'https://crm.ammarindustrial.biz/assets/pdf/sales_order/'.rawurlencode($name);
 
 $numbers = explode(',',$mobile);
 $length = is_array($numbers) ? sizeof($numbers) : 0;

@@ -38,4 +38,27 @@
 	if (version_compare(phpversion(), '7.1', '>=')) {
 		ini_set('serialize_precision', -1);
 	}
+
+	if (!function_exists('voucher_pdf_name')) {
+	function voucher_pdf_name($voucher, $number, $company, $date) {
+		$part = function ($value) {
+			$value = trim(preg_replace('/\s+/', ' ', (string)$value));
+			$value = str_replace(array('/', '\\', ':', '*', '?', '"', '<', '>', '|'), '-', $value);
+			return $value === '' ? '-' : $value;
+		};
+		return $part($voucher).'_'.$part($number).'_'.$part($company).'_'.$part($date).'.pdf';
+	}
+
+	function voucher_party_name($db, $table, $name) {
+		$name = (string)$name;
+		if (!in_array($table, array('clients', 'suppliers'), true)) {
+			return $name;
+		}
+		$safe = $db->real_escape_string($name);
+		$query = $db->query("SELECT print_name FROM `$table` WHERE name = '$safe' LIMIT 1");
+		$row = $query ? $query->fetch_assoc() : null;
+		$print = trim((string)($row['print_name'] ?? ''));
+		return $print !== '' ? $print : $name;
+	}
+	}
 ?>

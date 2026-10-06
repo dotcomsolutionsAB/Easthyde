@@ -13,13 +13,12 @@ $query_fetch = $db->query($sql_fetch);
 $row_fetch = ($query_fetch) ? $query_fetch->fetch_assoc() : null;
 
 $date=date('d-m-Y', strtotime($row_fetch['pi_date']));
-//Include Master
-
-$name = "Purchase_Invoice_AIC/P-".$pi_no."_".str_replace('-','',$date).".pdf";
+$company = voucher_party_name($db, 'suppliers', $row_fetch['supplier_name'] ?? '');
+$name = voucher_pdf_name('Purchase Invoice', $pi_no, $company, $date);
 
 include("token.php");
 
-$url = 'https://crm.ammarindustrial.in/assets/pdf/purchase_invoice/'.$name;
+$url = 'https://crm.ammarindustrial.in/assets/pdf/purchase_invoice/'.rawurlencode($name);
 
 $numbers = explode(',',$mobile);
 $length = is_array($numbers) ? sizeof($numbers) : 0;
@@ -35,7 +34,7 @@ for($i=0;$i<$length;$i++){
     $post_url .= '&type=media';
     $post_url .= '&message='."";
     $post_url .= '&media_url='.$url;
-    $post_url .= '&filename='.$name;
+    $post_url .= '&filename='.rawurlencode($name);
     $post_url .= '&instance_id='.$instance_id;
     $post_url .= '&access_token='.$token;    
 

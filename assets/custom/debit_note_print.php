@@ -928,7 +928,7 @@ else{
 
 //------------------------------------------------- Terms & Conditions Block ------------------------------------------------------
 
-$name = "Debit_Note_AIC/CN-".substr($GLOBALS["dn_no"],7,3)."_".str_replace('-','',$GLOBALS["dt"]).".pdf";
+$name = voucher_pdf_name('Debit Note', $GLOBALS['dn_no'], $GLOBALS['supplier'], $GLOBALS['dt']);
 
 if($pdf_type == 'print'){
 	$pdf->AutoPrint();

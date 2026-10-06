@@ -1103,7 +1103,7 @@ for($ij=1;$ij<=$copies;$ij++){
 
 //------------------------------------------------- Terms & Conditions Block ------------------------------------------------------
 
-$name = "Invoice_AICGST-".substr($GLOBALS["si_no"],8,4)."_".str_replace('-','',$GLOBALS["dt"]).".pdf";
+$name = voucher_pdf_name('Sales Invoice', $GLOBALS['si_no'], $GLOBALS['client'], $GLOBALS['dt']);
 
 if($pdf_type == 'print'){
 	// $pdf->AutoPrint();

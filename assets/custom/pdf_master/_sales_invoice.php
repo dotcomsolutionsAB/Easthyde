@@ -1098,7 +1098,7 @@ for($ij=1;$ij<=$copies;$ij++){
 	}
 }
 
-$name = "Invoice_AICI-".substr($GLOBALS["si_no"],6,4)."_".str_replace('-','',$GLOBALS["dt"]).".pdf";
+$name = voucher_pdf_name('Sales Invoice', $GLOBALS['si_no'], $GLOBALS['client'], $GLOBALS['dt']);
 
 $filename = "../../pdf/sales_invoice/".$name;
 $pdf->Output('F', $filename, true);

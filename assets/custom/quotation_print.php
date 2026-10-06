@@ -1199,7 +1199,7 @@ if($tr_flag == 1){
 	$pdf->Cell(70,3,'','',1,L);
 }
 
-$name = "Quotation_-".substr($GLOBALS["q_no"],6,4)."_".str_replace('-','',$GLOBALS["dt"]).".pdf";
+$name = voucher_pdf_name('Quotation', $GLOBALS['q_no'], $GLOBALS['client'], $GLOBALS['dt']);
 // Quotation_AICQ-0006_06042020
 
 $filename = "../pdf/quotations/".$name;

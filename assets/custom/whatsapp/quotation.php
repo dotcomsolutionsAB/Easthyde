@@ -15,12 +15,10 @@ $query_fetch = $db->query($sql_fetch);
 $row_fetch = ($query_fetch) ? $query_fetch->fetch_assoc() : null;
 
 $date=date('d-m-Y', strtotime($row_fetch['quotation_date']));
-//Include Master
+$company = voucher_party_name($db, 'clients', $row_fetch['client'] ?? '');
+$name = voucher_pdf_name('Quotation', $q_no, $company, $date);
 
-$name = "Quotation_AICQ-".substr($q_no,6,4)."_".str_replace('-','',$date).".pdf";
-// echo $name;
-
-$url = 'https://crm.ammarindustrial.in/assets/pdf/quotation/'.$name;
+$url = 'https://crm.ammarindustrial.in/assets/pdf/quotation/'.rawurlencode($name);
 
 $numbers = explode(',',$mobile);
 $length = is_array($numbers) ? sizeof($numbers) : 0;
@@ -36,7 +34,7 @@ for($i=0;$i<$length;$i++){
     $post_url .= '&type=media';
     $post_url .= '&message='."";
     $post_url .= '&media_url='.$url;
-    $post_url .= '&filename='.$name;
+    $post_url .= '&filename='.rawurlencode($name);
     $post_url .= '&instance_id='.$instance_id;
     $post_url .= '&access_token='.$token;    
 

@@ -990,7 +990,7 @@ $sending_host = $row_website['sending_host'];
 $sending_email = $row_website['sending_email'];
 $sending_email_password = $row_website['sending_email_password'];
 
-$filename = "Purchase_Order_AICPO-".substr($GLOBALS["po_no"],7,4)."_".str_replace('-','',$GLOBALS["dt"]).".pdf";
+$filename = voucher_pdf_name('Purchase Order', $GLOBALS['po_no'], $GLOBALS['supplier'], $GLOBALS['dt']);
 
 $attachment= $pdf->output($filename, 'S');
 

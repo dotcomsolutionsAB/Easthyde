@@ -923,7 +923,7 @@ else{
 	$pdf->Cell(20,5,money_format('%!i', $tot_total),'TB',1,C);
 }
 
-$name = "Purchase_Invoice_AIC/P-".$GLOBALS["pi_no"]."_".str_replace('-','',$GLOBALS["dt"]).".pdf";
+$name = voucher_pdf_name('Purchase Invoice', $GLOBALS['pi_no'], $GLOBALS['supplier'], $GLOBALS['dt']);
 
 $filename = "../../pdf/purchase_invoice/".$name;
 $pdf->Output('F', $filename, true);

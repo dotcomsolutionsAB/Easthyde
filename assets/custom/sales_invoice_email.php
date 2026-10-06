@@ -1101,7 +1101,7 @@ $sending_host = $row_website['sending_host'];
 $sending_email = $row_website['sending_email'];
 $sending_email_password = $row_website['sending_email_password'];
 
-$filename = "Invoice_AICI-".substr($GLOBALS["si_no"],6,4)."_".str_replace('-','',$GLOBALS["dt"]).".pdf";
+$filename = voucher_pdf_name('Sales Invoice', $GLOBALS['si_no'], $GLOBALS['client'], $GLOBALS['dt']);
 
 $attachment= $pdf->output($filename, 'S');
 

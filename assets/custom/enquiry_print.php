@@ -340,8 +340,7 @@ for($i=0;$i<$l;$i++){
 
 $pdf->Cell(190,3,'','T',0,C);
 
-// $name = "Enquiry_AICE-".substr($GLOBALS["enquiry_no"]),6,4)."_".str_replace('-','',$GLOBALS["enquiry_date"]).".pdf";
-$name = "Enquiry.pdf";
+$name = voucher_pdf_name('Enquiry', $GLOBALS['enquiry_no'], $GLOBALS['client'], $GLOBALS['enquiry_date']);
 // $pdf->AutoPrint();
 // Quotation_AICQ-0006_06042020
 if($pdf_type == 'print'){

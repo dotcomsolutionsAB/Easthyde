@@ -922,7 +922,7 @@ else{
 
 //------------------------------------------------- Terms & Conditions Block ------------------------------------------------------
 
-$filename = "Purchase_Invoice_AIC/P-".substr($GLOBALS["pi_no"],8,4)."_".str_replace('-','',$GLOBALS["dt"]).".pdf";
+$filename = voucher_pdf_name('Purchase Invoice', $GLOBALS['pi_no'], $GLOBALS['supplier'], $GLOBALS['dt']);
 
 $attachment= $pdf->output($rname, 'S');
 

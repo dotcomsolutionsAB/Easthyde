@@ -905,7 +905,7 @@ else{
 
 //------------------------------------------------- Terms & Conditions Block ------------------------------------------------------
 
-$name = "Credit_Note_AIC/CN-".substr($GLOBALS["cn_no"],7,3)."_".str_replace('-','',$GLOBALS["dt"]).".pdf";
+$name = voucher_pdf_name('Credit Note', $GLOBALS['cn_no'], $GLOBALS['client'], $GLOBALS['dt']);
 
 if($pdf_type == 'print'){
 	$pdf->AutoPrint();

@@ -924,7 +924,7 @@ $sending_host = $row_website['sending_host'];
 $sending_email = $row_website['sending_email'];
 $sending_email_password = $row_website['sending_email_password'];
 
-$filename = "Sales_Order_AICSO-".substr($GLOBALS["so_no"],7,3)."_".str_replace('-','',$GLOBALS["dt"]).".pdf";
+$filename = voucher_pdf_name('Sales Order', $GLOBALS['so_no'], $GLOBALS['client'], $GLOBALS['dt']);
 
 $attachment= $pdf->output($rname, 'S');
 

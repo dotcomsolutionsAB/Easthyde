@@ -941,7 +941,7 @@ $tr_flag = 0;
 	$pdf->Cell(95,4,'','R',0,L);
 	$pdf->Cell(95,4,'Authorised Signatory',0,1,R);
 
-$name = "Proforma_Invoice_AICPI-".substr($GLOBALS["pr_no"],7,3)."_".str_replace('-','',$GLOBALS["dt"]).".pdf";
+$name = voucher_pdf_name('Proforma Invoice', $GLOBALS['pr_no'], $GLOBALS['client'], $GLOBALS['dt']);
 
 $filename = "../../pdf/proforma_invoice/".$name;
 $pdf->Output('F', $filename, true);

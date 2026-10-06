@@ -986,7 +986,7 @@ else{
 	}
 //------------------------------------------------- Terms & Conditions Block ------------------------------------------------------
 
-$name = "Purchase_Order_AICPO-".substr($GLOBALS["po_no"],7,3)."_".str_replace('-','',$GLOBALS["dt"]).".pdf";
+$name = voucher_pdf_name('Purchase Order', $GLOBALS['po_no'], $GLOBALS['supplier'], $GLOBALS['dt']);
 
 $filename = "../../pdf/purchase_order/".$name;
 $pdf->Output('F', $filename, true);

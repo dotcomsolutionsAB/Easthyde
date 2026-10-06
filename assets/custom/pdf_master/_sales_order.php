@@ -918,7 +918,7 @@ else{
 
 //------------------------------------------------- Terms & Conditions Block ------------------------------------------------------
 
-$name = "Sales_Order_AICSO-".substr($GLOBALS["so_no"],7,3)."_".str_replace('-','',$GLOBALS["dt"]).".pdf";
+$name = voucher_pdf_name('Sales Order', $GLOBALS['so_no'], $GLOBALS['client'], $GLOBALS['dt']);
 
 $filename = "../../pdf/sales_order/".$name;
 $pdf->Output('F', $filename, true);

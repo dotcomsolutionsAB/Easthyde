@@ -1131,7 +1131,7 @@ $sending_email_password = $row_website['sending_email_password'];
 // $sending_email_password = 'LOGIN@11012';
 // $imap_host = "{imap.gmail.com:993/imap/ssl}";
 
-$filename = "Quotation_AICQ-".substr($GLOBALS["q_no"],6,4)."_".str_replace('-','',$GLOBALS["dt"]).".pdf";
+$filename = voucher_pdf_name('Quotation', $GLOBALS['q_no'], $GLOBALS['client'], $GLOBALS['dt']);
 
 $attachment= $pdf->output($rname, 'S');
 

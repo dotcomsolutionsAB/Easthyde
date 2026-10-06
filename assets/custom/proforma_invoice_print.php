@@ -1009,7 +1009,7 @@ if($tot_total == '0') {
 
 //------------------------------------------------- Terms & Conditions Block ------------------------------------------------------
 
-$name = "Proforma_Invoice_AICPI-".substr($GLOBALS["pr_no"],7,4)."_".str_replace('-','',$GLOBALS["dt"]).".pdf";
+$name = voucher_pdf_name('Proforma Invoice', $GLOBALS['pr_no'], $GLOBALS['client'], $GLOBALS['dt']);
 
 if($pdf_type == 'print'){
 	$pdf->AutoPrint();

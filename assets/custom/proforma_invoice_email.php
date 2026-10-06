@@ -953,7 +953,7 @@ $sending_email_password = $row_website['sending_email_password'];
 // $sending_email_password = 'LOGIN@11012';
 // $imap_host = "{imap.gmail.com:993/imap/ssl}";
 
-$filename = "Proforma_AICPI-".substr($GLOBALS["pr_no"],7,3)."_".str_replace('-','',$GLOBALS["dt"]).".pdf";
+$filename = voucher_pdf_name('Proforma Invoice', $GLOBALS['pr_no'], $GLOBALS['client'], $GLOBALS['dt']);
 
 $attachment= $pdf->output($rname, 'S');
 

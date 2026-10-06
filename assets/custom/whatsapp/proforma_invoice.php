@@ -15,14 +15,13 @@ $query_fetch = $db->query($sql_fetch);
 $row_fetch = ($query_fetch) ? $query_fetch->fetch_assoc() : null;
 
 $date=date('d-m-Y', strtotime($row_fetch['pr_date']));
-//Include Master
-
-$name = "Proforma_Invoice_AICPI-".substr($pr_no,7,3)."_".str_replace('-','',$date).".pdf";
+$company = voucher_party_name($db, 'clients', $row_fetch['client_name'] ?? '');
+$name = voucher_pdf_name('Proforma Invoice', $pr_no, $company, $date);
 
 include("token.php");
 // echo $name;
 
-$url = 'https://crm.ammarindustrial.in/assets/pdf/proforma_invoice/'.$name;
+$url = 'https://crm.ammarindustrial.in/assets/pdf/proforma_invoice/'.rawurlencode($name);
 
 $numbers = explode(',',$mobile);
 $length = is_array($numbers) ? sizeof($numbers) : 0;
@@ -38,7 +37,7 @@ for($i=0;$i<$length;$i++){
     $post_url .= '&type=media';
     $post_url .= '&message='."";
     $post_url .= '&media_url='.$url;
-    $post_url .= '&filename='.$name;
+    $post_url .= '&filename='.rawurlencode($name);
     $post_url .= '&instance_id='.$instance_id;
     $post_url .= '&access_token='.$token;    
 

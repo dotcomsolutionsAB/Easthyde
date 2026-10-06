@@ -15,11 +15,10 @@ $query_fetch = $db->query($sql_fetch);
 $row_fetch = ($query_fetch) ? $query_fetch->fetch_assoc() : null;
 
 $date=date('d-m-Y', strtotime($row_fetch['si_date']));
-//Include Master
+$company = voucher_party_name($db, 'clients', $row_fetch['client_name'] ?? '');
+$name = voucher_pdf_name('Sales Invoice', $si_no, $company, $date);
 
-$name = "Invoice_AICI-".substr($si_no,6,4)."_".str_replace('-','',$date).".pdf";
-
-$url = 'https://crm.ammarindustrial.in/assets/pdf/sales_invoice/'.$name;
+$url = 'https://crm.ammarindustrial.in/assets/pdf/sales_invoice/'.rawurlencode($name);
 
 $numbers = explode(',',$mobile);
 $length = is_array($numbers) ? sizeof($numbers) : 0;
@@ -35,7 +34,7 @@ for($i=0;$i<$length;$i++){
     $post_url .= '&type=media';
     $post_url .= '&message='."";
     $post_url .= '&media_url='.$url;
-    $post_url .= '&filename='.$name;
+    $post_url .= '&filename='.rawurlencode($name);
     $post_url .= '&instance_id='.$instance_id;
     $post_url .= '&access_token='.$token;    
 

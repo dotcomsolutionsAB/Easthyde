@@ -299,7 +299,7 @@ $pdf->Ln(3);
 
 
 
-$name = "S-".substr($GLOBALS["si_no"],7,4)."_".str_replace('-','',$GLOBALS["dt"]).".pdf";
+$name = voucher_pdf_name('Secondary Sales Invoice', $GLOBALS['si_no'], $GLOBALS['client'], $GLOBALS['dt']);
 
 if($pdf_type == 'print'){
     $pdf->AutoPrint();

@@ -1123,7 +1123,7 @@ if($tr_flag == 1){
 	$pdf->Cell(70,3,'','',1,L);
 }
 
-$name = "Quotation_AICQ-".substr($GLOBALS["q_no"],6,4)."_".str_replace('-','',$GLOBALS["dt"]).".pdf";
+$name = voucher_pdf_name('Quotation', $GLOBALS['q_no'], $GLOBALS['client'], $GLOBALS['dt']);
 
 $filename = "../../pdf/quotation/".$name;
 $pdf->Output('F', $filename, true);

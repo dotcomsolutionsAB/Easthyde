@@ -740,7 +740,7 @@ $pdf->Cell(45,6,'Customer Signature & Date',0,0,L);
 $pdf->Cell(103,6,'',0,0,L);
 $pdf->Cell(45,6,'Customer Signature & Date',0,1,L);
 
-$name = "Local_AICSO-".substr($GLOBALS["so_no"],7,4)."_".str_replace('-','',$GLOBALS["dt"]).".pdf";
+$name = voucher_pdf_name('Sales Order', $GLOBALS['so_no'], $GLOBALS['client'], $GLOBALS['dt']);
 
 if($pdf_type == 'print'){
 	// $pdf->AutoPrint();

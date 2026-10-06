@@ -932,7 +932,7 @@ else{
 
 //------------------------------------------------- Terms & Conditions Block ------------------------------------------------------
 
-$name = "Purchase_Invoice_AIC/P-".substr($GLOBALS["pi_no"],8,4)."_".str_replace('-','',$GLOBALS["dt"]).".pdf";
+$name = voucher_pdf_name('Purchase Invoice', $GLOBALS['pi_no'], $GLOBALS['supplier'], $GLOBALS['dt']);
 
 if($pdf_type == 'print'){
 	// $pdf->AutoPrint();
