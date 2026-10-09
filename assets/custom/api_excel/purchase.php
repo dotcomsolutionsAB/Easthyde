@@ -137,17 +137,6 @@ try {
 			);
 		}
 
-		$pf = (isset($addons['pf']) && is_array($addons['pf'])) ? $addons['pf'] : array();
-		$pf_value = (float)($pf['value'] ?? 0);
-		if ($pf_value != 0.0) {
-			$hsn_data['PF'] = array(
-				'amount' => $pf_value,
-				'cgst' => (float)($pf['cgst'] ?? 0),
-				'sgst' => (float)($pf['sgst'] ?? 0),
-				'igst' => (float)($pf['igst'] ?? 0),
-			);
-		}
-
 		$first_row = true;
 		foreach ($hsn_data as $hsn_code => $data) {
 			$amount = (float)$data['amount'];
