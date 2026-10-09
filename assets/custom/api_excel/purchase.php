@@ -126,15 +126,38 @@ try {
 			}
 		}
 
+		$addon_amount = 0.0;
+		$addon_cgst = 0.0;
+		$addon_sgst = 0.0;
+		$addon_igst = 0.0;
+
 		$freight = (isset($addons['freight']) && is_array($addons['freight'])) ? $addons['freight'] : array();
-		$freight_value = (float)($freight['value'] ?? 0);
-		if ($freight_value != 0.0) {
-			$hsn_data['FREIGHT'] = array(
-				'amount' => $freight_value,
-				'cgst' => (float)($freight['cgst'] ?? 0),
-				'sgst' => (float)($freight['sgst'] ?? 0),
-				'igst' => (float)($freight['igst'] ?? 0),
-			);
+		$addon_amount += (float)($freight['value'] ?? 0);
+		$addon_cgst += (float)($freight['cgst'] ?? 0);
+		$addon_sgst += (float)($freight['sgst'] ?? 0);
+		$addon_igst += (float)($freight['igst'] ?? 0);
+
+		$pf = (isset($addons['pf']) && is_array($addons['pf'])) ? $addons['pf'] : array();
+		$addon_amount += (float)($pf['value'] ?? 0);
+		$addon_cgst += (float)($pf['cgst'] ?? 0);
+		$addon_sgst += (float)($pf['sgst'] ?? 0);
+		$addon_igst += (float)($pf['igst'] ?? 0);
+
+		if ($addon_amount != 0.0 || $addon_cgst != 0.0 || $addon_sgst != 0.0 || $addon_igst != 0.0) {
+			if (!empty($hsn_data)) {
+				$first_hsn = array_key_first($hsn_data);
+				$hsn_data[$first_hsn]['amount'] += $addon_amount;
+				$hsn_data[$first_hsn]['cgst'] += $addon_cgst;
+				$hsn_data[$first_hsn]['sgst'] += $addon_sgst;
+				$hsn_data[$first_hsn]['igst'] += $addon_igst;
+			} else {
+				$hsn_data[''] = array(
+					'amount' => $addon_amount,
+					'cgst' => $addon_cgst,
+					'sgst' => $addon_sgst,
+					'igst' => $addon_igst,
+				);
+			}
 		}
 
 		$first_row = true;
