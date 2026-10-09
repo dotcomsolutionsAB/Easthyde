@@ -12229,20 +12229,51 @@ var Purchase_Group = function () {
             }
 
             var url = '../assets/custom/api_excel/purchase.php?ids=' + id_list;
+            swal.fire({
+                title: 'Generating Excel...',
+                allowOutsideClick: false,
+                onOpen: function () {
+                    swal.showLoading();
+                }
+            });
             $.ajax({
                 type: "POST",
                 url: url,
                 dataType: 'json',
-                success: function (response) { }
-            });
-
-            swal.fire({
-                position: 'top-right',
-                type: 'success',
-                title: 'Excel file generated successfully',
-                html: 'You may download the Excel <a href="../assets/custom/api_excel/purchase.xlsx" download="purchase.xlsx" target="_blank">here</a>.',
-                showConfirmButton: false,
-                showCancelButton: true
+                success: function (response) {
+                    if (response && response.success) {
+                        swal.fire({
+                            position: 'top-right',
+                            type: 'success',
+                            title: 'Excel file generated successfully',
+                            html: 'You may download the Excel <a href="../assets/custom/api_excel/purchase.xlsx?t=' + Date.now() + '" download="purchase.xlsx" target="_blank">here</a>.',
+                            showConfirmButton: false,
+                            showCancelButton: true
+                        });
+                    } else {
+                        swal.fire({
+                            type: 'error',
+                            title: 'Excel export failed',
+                            text: (response && response.messages) ? response.messages : 'Could not generate Excel.',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                },
+                error: function (xhr) {
+                    var message = 'Could not generate Excel.';
+                    try {
+                        var parsed = JSON.parse(xhr.responseText || '{}');
+                        if (parsed.messages) {
+                            message = parsed.messages;
+                        }
+                    } catch (e) { }
+                    swal.fire({
+                        type: 'error',
+                        title: 'Excel export failed',
+                        text: message,
+                        confirmButtonText: 'OK'
+                    });
+                }
             });
 
         });
@@ -12250,20 +12281,51 @@ var Purchase_Group = function () {
         $('#kt_subheader_group_actions_purchase_all_excel').on('click', function () {
 
             var url = '../assets/custom/api_excel/purchase.php?ids=all';
+            swal.fire({
+                title: 'Generating Excel...',
+                allowOutsideClick: false,
+                onOpen: function () {
+                    swal.showLoading();
+                }
+            });
             $.ajax({
                 type: "POST",
                 url: url,
                 dataType: 'json',
-                success: function (response) { }
-            });
-
-            swal.fire({
-                position: 'top-right',
-                type: 'success',
-                title: 'XML file generated successfully',
-                html: 'You may download the Excel file <a href="../assets/custom/api_excel/purchase.xlsx" download="purchase.excel" target="_blank">here</a>.',
-                showConfirmButton: false,
-                showCancelButton: true
+                success: function (response) {
+                    if (response && response.success) {
+                        swal.fire({
+                            position: 'top-right',
+                            type: 'success',
+                            title: 'Excel file generated successfully',
+                            html: 'You may download the Excel <a href="../assets/custom/api_excel/purchase.xlsx?t=' + Date.now() + '" download="purchase.xlsx" target="_blank">here</a>.',
+                            showConfirmButton: false,
+                            showCancelButton: true
+                        });
+                    } else {
+                        swal.fire({
+                            type: 'error',
+                            title: 'Excel export failed',
+                            text: (response && response.messages) ? response.messages : 'Could not generate Excel.',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                },
+                error: function (xhr) {
+                    var message = 'Could not generate Excel.';
+                    try {
+                        var parsed = JSON.parse(xhr.responseText || '{}');
+                        if (parsed.messages) {
+                            message = parsed.messages;
+                        }
+                    } catch (e) { }
+                    swal.fire({
+                        type: 'error',
+                        title: 'Excel export failed',
+                        text: message,
+                        confirmButtonText: 'OK'
+                    });
+                }
             });
 
         });
