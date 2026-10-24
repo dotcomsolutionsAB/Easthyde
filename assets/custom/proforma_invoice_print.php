@@ -991,7 +991,6 @@ if($tot_total == '0') {
 
 	$pdf->SetFont('Arial','',9);
 	$pdf->Cell(190,6,'BANK NAME : AXIS BANK, BRANCH : DALHOUSIE, A/C NO. : 918020014434303, IFSC : UTIB0000153','T',2,C);
-	$pdf->Cell(190,6,'BANK NAME : UCO BANK, BRANCH : CANNINNG STREET, A/C NO. : 13390200000481, IFSC :UCBA0001339','B',2,C);
 
 	$y = $pdf->getY();
 	$pdf->SetFont('Arial','B',9);
