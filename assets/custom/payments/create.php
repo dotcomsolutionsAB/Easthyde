@@ -2,9 +2,11 @@
 	include ("../connect.php");
 	include ("../php_replace_improper.php");
 	include ("../fy_access.php");
+	include ("ensure_remarks.php");
 	require_once "../api_set/sync_allocation_status.php";
 
 	session_start();
+	ensure_payments_remarks_column($db);
 
 	$py_id = $_REQUEST['py_id'] ?? '';
 	$py_no = $_REQUEST['py_no'] ?? '';
@@ -18,6 +20,7 @@
 	$ins_date = replace_improper($_REQUEST['py_ins_date'] ?? '');
 	$ins_date 	= ($ins_date !== '') ? date('Y-m-d', strtotime($ins_date)) : '';
 	$adv_amount = replace_improper_amount($_REQUEST['py_advance_amount'] ?? '');
+	$remarks = replace_improper_same($_REQUEST['py_remarks'] ?? '');
 
 	$status		= 1;
 	$total		= 0;
@@ -87,7 +90,7 @@
 					$py_no = $row_counter_arr['prefix'][0].str_pad((string)$row_counter_arr['number'][0],4,'0', STR_PAD_LEFT).$row_counter_arr['postfix'][0];
 					$row_counter_arr['number'][0] = $row_counter_arr['number'][0] + 1;
 
-					$sql = "INSERT INTO payments (`py_no`,`supplier`,`date`,`purchase_invoice`,`account`,`amount`,`mode`,`bank_name`,`instrument`,`ins_date`,`status`) VALUES ("
+					$sql = "INSERT INTO payments (`py_no`,`supplier`,`date`,`purchase_invoice`,`account`,`amount`,`mode`,`bank_name`,`instrument`,`ins_date`,`status`,`remarks`) VALUES ("
 						. "'" . $esc($py_no) . "',"
 						. "'" . $esc($supplier) . "',"
 						. $sqldate($date) . ","
@@ -98,7 +101,8 @@
 						. "'" . $esc($bank_name) . "',"
 						. "'" . $esc($instrument) . "',"
 						. $sqldate($ins_date) . ","
-						. "'" . $esc($status) . "'"
+						. "'" . $esc($status) . "',"
+						. "'" . $esc($remarks) . "'"
 						. ")";
 					$query = $db->query($sql);
 
@@ -151,7 +155,8 @@
 				. "`bank_name`='" . $esc($bank_name) . "',"
 				. "`instrument`='" . $esc($instrument) . "',"
 				. "`ins_date`=" . $sqldate($ins_date) . ","
-				. "`status`='" . $esc($status) . "'"
+				. "`status`='" . $esc($status) . "',"
+				. "`remarks`='" . $esc($remarks) . "'"
 				. " WHERE `id` = '" . $esc($py_id) . "'";
 			$query = $db->query($sql);
 

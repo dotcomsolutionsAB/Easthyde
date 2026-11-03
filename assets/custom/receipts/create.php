@@ -2,9 +2,11 @@
 	include ("../connect.php");
 	include ("../php_replace_improper.php");
 	include ("../fy_access.php");
+	include ("ensure_remarks.php");
 	require_once "../api_set/sync_allocation_status.php";
 
 	session_start();
+	ensure_receipts_remarks_column($db);
 
 	$log_user 	= $_SESSION['username'] ?? '';
 
@@ -27,6 +29,7 @@
 		$ins_date = $date;
 	}
 	$adv_amount = replace_improper_amount($_REQUEST['rc_advance_amount'] ?? '');
+	$remarks 	= replace_improper_same($_REQUEST['rc_remarks'] ?? '');
 
 	if($bank == 'CASH')
 		$mode = 'Cash';
@@ -87,7 +90,7 @@
 					$r_no = $row_counter_arr['prefix'][0].str_pad((string)$row_counter_arr['number'][0],4,'0', STR_PAD_LEFT).$row_counter_arr['postfix'][0];
 					$row_counter_arr['number'][0] = $row_counter_arr['number'][0] + 1;
 
-					$sql = "INSERT INTO receipts (`r_no`,`client`,`date`,`sales_invoice`,`account`,`amount`,`mode`,`bank_name`,`instrument`,`ins_date`,`status`,`series`) VALUES ("
+					$sql = "INSERT INTO receipts (`r_no`,`client`,`date`,`sales_invoice`,`account`,`amount`,`mode`,`bank_name`,`instrument`,`ins_date`,`status`,`series`,`remarks`) VALUES ("
 						. "'" . $esc($r_no) . "',"
 						. "'" . $esc($client) . "',"
 						. $sqldate($date) . ","
@@ -99,7 +102,8 @@
 						. "'" . $esc($instrument) . "',"
 						. $sqldate($ins_date) . ","
 						. "'" . $esc($status) . "',"
-						. "'" . $esc($series) . "'"
+						. "'" . $esc($series) . "',"
+						. "'" . $esc($remarks) . "'"
 						. ")";
 					$query = $db->query($sql);
 					if($query===true)
@@ -152,7 +156,8 @@
 				. "`series`='" . $esc($series) . "',"
 				. "`instrument`='" . $esc($instrument) . "',"
 				. "`ins_date`=" . $sqldate($ins_date) . ","
-				. "`status`='" . $esc($status) . "'"
+				. "`status`='" . $esc($status) . "',"
+				. "`remarks`='" . $esc($remarks) . "'"
 				. " WHERE `id` = '" . $esc($rc_id) . "'";
 			$query = $db->query($sql);
 

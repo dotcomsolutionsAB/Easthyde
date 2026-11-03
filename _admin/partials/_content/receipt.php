@@ -173,6 +173,15 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="form-group row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label>Remarks</label>
+                                    <textarea name="rc_remarks" id="rc_remarks" class="form-control" rows="2" placeholder="Remarks"></textarea>
+                                    <span class="form-text text-muted">Optional remarks for this receipt..</span>
+                                </div>
+                            </div>
+                        </div>
                         
 					</div>
 		            <div class="kt-portlet__foot">

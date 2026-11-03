@@ -989,9 +989,6 @@ if($tot_total == '0') {
 	}
 
 
-	$pdf->SetFont('Arial','',9);
-	$pdf->Cell(190,6,'BANK NAME : AXIS BANK, BRANCH : DALHOUSIE, A/C NO. : 918020014434303, IFSC : UTIB0000153','T',2,C);
-
 	$y = $pdf->getY();
 	$pdf->SetFont('Arial','B',9);
 	$pdf->Cell(95,1,'','TR',0,L);

@@ -1,7 +1,8 @@
 <?php
 session_start();
 require_once "../connect.php";
-
+require_once __DIR__ . "/ensure_remarks.php";
+ensure_receipts_remarks_column($db);
 
 //ini_set('display_errors', 1);
 
@@ -105,6 +106,7 @@ while($row = $query->fetch_assoc()){
         'Cheque'=>$row['cheque'],
         'IFSC'=>$row['ifsc'],
         'Amount' => number_format($row['amount'], 2),
+        'Remarks' => $row['remarks'] ?? '',
         'Status'=>$row['status'],
         'Actions' => $actionBtn
 	);

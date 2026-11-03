@@ -3637,6 +3637,9 @@ var Datatables = function () {
                 field: 'Amount',
                 title: 'Amount',
             }, {
+                field: 'Remarks',
+                title: 'Remarks',
+            }, {
                 field: 'Actions',
                 title: 'Actions',
             }],
@@ -4792,6 +4795,9 @@ var Datatables = function () {
             }, {
                 field: 'Amount',
                 title: 'Amount',
+            }, {
+                field: 'Remarks',
+                title: 'Remarks',
             }, {
                 field: 'Actions',
                 title: 'Actions',
@@ -19224,6 +19230,7 @@ function editPayments(id) {
                 $("#py_bank_name").val(response.bank_name);
                 $("#py_instrument").val(response.instrument || response.cheque || '');
                 $("#py_ins_date").val(formatVoucherDate(response.ins_date));
+                $("#py_remarks").val(response.remarks || '');
                 $("#payment_amount").val(response.amount).trigger('keyup');
 
                 loadPaymentPendingInvoices(response.supplier, function () {
@@ -22216,6 +22223,7 @@ function editReceipts(id) {
                 $("#rc_bank_name").val(response.bank_name);
                 $("#rc_instrument").val(response.instrument || response.cheque || '');
                 $("#rc_ins_date").val(formatVoucherDate(response.ins_date));
+                $("#rc_remarks").val(response.remarks || '');
                 $("#amount").val(response.amount).trigger('keyup');
 
                 loadReceiptPendingInvoices(response.client, function () {

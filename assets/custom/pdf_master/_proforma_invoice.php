@@ -927,9 +927,6 @@ $tr_flag = 0;
 		$pdf->setY($terms_limit);
 	}
 
-	$pdf->SetFont('Arial','',9);
-	$pdf->Cell(190,8,'BANK NAME : HDFC BANK, BRANCH : DALHOUSIE-CLIVE ROW, A/C NO. : 50200030584202, IFSC :HDFC0001015','TB',2,C);
-
 	$y = $pdf->getY();
 	$pdf->SetFont('Arial','B',9);
 	$pdf->Cell(95,1,'','TR',0,L);

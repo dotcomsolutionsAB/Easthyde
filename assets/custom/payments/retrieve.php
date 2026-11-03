@@ -1,6 +1,8 @@
 <?php
 session_start();
 require_once "../connect.php";
+require_once __DIR__ . "/ensure_remarks.php";
+ensure_payments_remarks_column($db);
 
 $pagination = $_REQUEST['pagination'] ?? [];
 $query_array = $_REQUEST['query'] ?? [];
@@ -89,6 +91,7 @@ while($row = $query->fetch_assoc()){
         'Cheque'=>$row['cheque'],
         'IFSC'=>$row['ifsc'],
         'Amount'=>$row['amount'],
+        'Remarks'=>$row['remarks'] ?? '',
         'Status'=>$row['status'],
         'Actions' => $actionBtn
     );
