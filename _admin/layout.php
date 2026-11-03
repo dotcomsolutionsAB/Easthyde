@@ -647,42 +647,34 @@
 <!--begin::Client History Modal-->
 <form class="kt-form kt-form--label-right" id="client_history_form">
     <div class="modal fade" id="kt_modal_client_history" tabindex="-1" role="dialog" aria-labelledby="clientHistoryModal" aria-hidden="true">
-        <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable client-history-modal" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="clientHistoryModal">Client History</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <!--begin::Form-->
-                    <div class="kt-portlet__body">
-                        <div class="form-group row">
-                            <div class="col-lg-6">
-                                <label>Select Client:</label>
-                                <div class="kt-input-icon">
-                                    <select class="form-control kt-select2 history_client-select2" id="history_client" name="history_client">
-                                        <!-- Options will be loaded dynamically via backend -->
-										<option></option>
-                                    </select>
-                                </div>
-                                <span class="form-text text-muted">Please select a client to view their history.</span>
-                            </div>
-                            <div class="col-lg-6">
-                                <label for="history_client_series">Primary / Secondary:</label>
-                                <select class="form-control" id="history_client_series" name="history_client_series">
-                                    <option value="">All</option>
-                                    <option value="primary">Primary</option>
-                                    <option value="secondary">Secondary</option>
-                                </select>
-                                <span class="form-text text-muted">Filter sales and purchase rows by invoice series.</span>
-                            </div>
+                    <div class="client-history-filters form-group row mb-4">
+                        <div class="col-md-7">
+                            <label for="history_client">Client</label>
+                            <select class="form-control kt-select2 history_client-select2" id="history_client" name="history_client">
+                                <option></option>
+                            </select>
                         </div>
-						<!--begin: Datatable -->
-						<div class="kt-datatable" id="client_history_datatable"></div>
-						<!--end: Datatable -->
+                        <div class="col-md-5">
+                            <label for="history_client_series">Series</label>
+                            <select class="form-control" id="history_client_series" name="history_client_series">
+                                <option value="">All</option>
+                                <option value="primary">Primary</option>
+                                <option value="secondary">Secondary</option>
+                            </select>
+                        </div>
                     </div>
-                    <!--end::Form-->
+                    <div class="client-history-table-wrap">
+                        <div class="kt-datatable" id="client_history_datatable"></div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>

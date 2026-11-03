@@ -166,3 +166,117 @@ button.zero {
   width: 100%!important;
 }
 
+/* Client History modal */
+.client-history-modal .modal-content {
+  border: 0;
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.18);
+}
+
+.client-history-modal .modal-header {
+  border-bottom: 1px solid #eef0f4;
+  padding: 1.1rem 1.5rem;
+}
+
+.client-history-modal .modal-title {
+  font-weight: 600;
+  color: #1e1e2d;
+}
+
+.client-history-modal .modal-body {
+  background: #f7f8fa;
+  padding: 1.25rem 1.5rem;
+}
+
+.client-history-filters {
+  background: #ffffff;
+  border: 1px solid #eef0f4;
+  border-radius: 8px;
+  padding: 1rem 1rem 0.35rem;
+  margin-bottom: 1rem !important;
+}
+
+.client-history-filters label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.client-history-table-wrap {
+  background: #ffffff;
+  border: 1px solid #eef0f4;
+  border-radius: 8px;
+  padding: 0.5rem;
+  overflow: hidden;
+}
+
+#client_history_datatable .kt-datatable__table {
+  width: 100% !important;
+}
+
+#client_history_datatable .kt-datatable__row {
+  border-bottom: 1px solid #eef0f4;
+}
+
+#client_history_datatable .kt-datatable__cell {
+  vertical-align: top !important;
+  padding-top: 0.85rem !important;
+  padding-bottom: 0.85rem !important;
+}
+
+#client_history_datatable .kt-datatable__row-even {
+  background: #fbfcfe;
+}
+
+.client-history-type-no {
+  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-size: 0.82rem;
+  color: #3f4254;
+  word-break: break-all;
+}
+
+.client-history-amount {
+  display: block;
+  text-align: right;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.client-history-products {
+  width: 100%;
+  margin: 0;
+  font-size: 0.8rem;
+  background: #fff;
+}
+
+.client-history-products thead th {
+  background: #f3f6f9;
+  color: #5e6278;
+  font-weight: 600;
+  border-color: #e4e6ef;
+  white-space: nowrap;
+  padding: 0.4rem 0.5rem;
+}
+
+.client-history-products tbody td {
+  border-color: #eef0f4;
+  padding: 0.4rem 0.5rem;
+  vertical-align: middle;
+}
+
+.client-history-products .text-right {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.client-history-products .product-name {
+  max-width: 220px;
+  white-space: normal;
+  color: #181c32;
+}
+
+.client-history-empty {
+  color: #a1a5b7;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+

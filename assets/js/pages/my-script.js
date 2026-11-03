@@ -1577,13 +1577,21 @@ var Datatables = function () {
 
     };
     var client_history = function () {
+        function escapeHtml(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         manageClientHistoryTable = $('#client_history_datatable').KTDatatable({
-            // datasource definition
             data: {
                 type: 'remote',
                 source: {
                     read: {
-                        url: '../assets/custom/clients/history.php',  // Make sure this URL is correct
+                        url: '../assets/custom/clients/history.php',
                         map: function (raw) {
                             var dataSet = raw;
                             if (typeof raw.data !== 'undefined') {
@@ -1593,18 +1601,20 @@ var Datatables = function () {
                         },
                     },
                 },
-                pageSize: 20,
+                pageSize: 10,
                 serverPaging: true,
                 serverFiltering: true,
                 serverSorting: true,
+                saveState: false,
             },
 
             layout: {
                 scroll: true,
+                height: 520,
                 footer: false,
             },
 
-            sortable: true,
+            sortable: false,
             pagination: true,
             search: {
                 input: $('#history_client'),
@@ -1613,75 +1623,100 @@ var Datatables = function () {
             columns: [
                 {
                     field: 'SN',
-                    title: 'Serial',
+                    title: '#',
+                    width: 50,
+                    textAlign: 'center',
                     template: function (row) {
-                        return row.SN;
+                        return escapeHtml(row.SN);
                     }
                 },
                 {
                     field: 'Date',
                     title: 'Date',
+                    width: 95,
                     template: function (row) {
-                        return row.Date;
+                        return escapeHtml(row.Date);
                     }
                 },
                 {
                     field: 'Type',
                     title: 'Type',
+                    width: 90,
                     template: function (row) {
-                        return row.Type;
+                        var type = String(row.Type || '');
+                        var badge = type.toLowerCase() === 'purchase' ? 'kt-badge--primary' : 'kt-badge--brand';
+                        return '<span class="kt-badge ' + badge + ' kt-badge--inline kt-badge--pill">' + escapeHtml(type) + '</span>';
                     }
                 },
                 {
                     field: 'TypeNo',
-                    title: 'Type No',
+                    title: 'Doc No',
+                    width: 150,
                     template: function (row) {
-                        return row.TypeNo;
+                        return '<span class="client-history-type-no">' + escapeHtml(row.TypeNo) + '</span>';
                     }
                 },
                 {
                     field: 'Series',
-                    title: 'Primary / Secondary',
+                    title: 'Series',
+                    width: 95,
                     template: function (row) {
-                        return row.Series || '';
+                        var series = String(row.Series || '');
+                        if (!series) {
+                            return '<span class="text-muted">-</span>';
+                        }
+                        var badge = series.toLowerCase() === 'secondary' ? 'kt-badge--warning' : 'kt-badge--success';
+                        return '<span class="kt-badge ' + badge + ' kt-badge--inline kt-badge--pill">' + escapeHtml(series) + '</span>';
                     }
                 },
                 {
                     field: 'TotalAmount',
-                    title: 'Total Amount',
+                    title: 'Amount',
+                    width: 100,
+                    textAlign: 'right',
                     template: function (row) {
-                        return row.TotalAmount;
+                        return '<span class="client-history-amount">' + escapeHtml(row.TotalAmount) + '</span>';
                     }
                 },
                 {
                     field: 'Status',
                     title: 'Status',
+                    width: 95,
                     template: function (row) {
-                        return row.Status;
+                        var status = String(row.Status || '');
+                        var badge = status.toLowerCase() === 'complete' ? 'kt-badge--success' : 'kt-badge--danger';
+                        return '<span class="kt-badge ' + badge + ' kt-badge--inline kt-badge--pill">' + escapeHtml(status) + '</span>';
                     }
                 },
                 {
-                    field: 'ProductDetails', // New field to handle product details in a table format
+                    field: 'ProductDetails',
                     title: 'Product Details',
+                    width: 420,
+                    autoHide: false,
                     template: function (row) {
-                        var productDetails = '<table class="table table-bordered"><thead>';
-                        productDetails += '<tr><th>Product</th><th>Price</th><th>Quantity</th><th>Unit</th><th>Tax</th><th>Discount</th><th>Total</th></tr></thead><tbody>';
+                        var details = Array.isArray(row.Details) ? row.Details : [];
+                        if (!details.length) {
+                            return '<span class="client-history-empty">No line items</span>';
+                        }
 
-                        // Loop through each product detail and add it as a row in the nested table
-                        row.Details.forEach(function (detail) {
-                            productDetails += '<tr>';
-                            productDetails += '<td>' + detail.product + '</td>';
-                            productDetails += '<td>' + detail.price + '</td>';
-                            productDetails += '<td>' + detail.qty + '</td>';
-                            productDetails += '<td>' + detail.unit + '</td>';
-                            productDetails += '<td>' + detail.tax + '</td>';
-                            productDetails += '<td>' + detail.discount + '</td>';
-                            productDetails += '<td>' + detail.total + '</td>';
-                            productDetails += '</tr>';
+                        var html = '<table class="table table-sm table-bordered client-history-products mb-0"><thead><tr>';
+                        html += '<th>Product</th><th class="text-right">Price</th><th class="text-right">Qty</th><th>Unit</th><th class="text-right">Tax</th><th class="text-right">Disc</th><th class="text-right">Total</th>';
+                        html += '</tr></thead><tbody>';
+
+                        details.forEach(function (detail) {
+                            html += '<tr>';
+                            html += '<td class="product-name">' + escapeHtml(detail.product) + '</td>';
+                            html += '<td class="text-right">' + escapeHtml(detail.price) + '</td>';
+                            html += '<td class="text-right">' + escapeHtml(detail.qty) + '</td>';
+                            html += '<td>' + escapeHtml(detail.unit) + '</td>';
+                            html += '<td class="text-right">' + escapeHtml(detail.tax) + '</td>';
+                            html += '<td class="text-right">' + escapeHtml(detail.discount) + '</td>';
+                            html += '<td class="text-right"><strong>' + escapeHtml(detail.total) + '</strong></td>';
+                            html += '</tr>';
                         });
 
-                        productDetails += '</tbody></table>';
-                        return productDetails;
+                        html += '</tbody></table>';
+                        return html;
                     }
                 }
             ]
